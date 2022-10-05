@@ -15,7 +15,7 @@ const api = axios.create({
       ? uat
         ? "https://basil-client-portal-uat.paxcenters.com:8889/"
         : "https://basil-client-portal.paxcenters.com:8888/"
-      : "http://localhost:8888/",
+      : "http://localhost:8081/api/v1",
   withCredentials: true,
 });
 
@@ -31,4 +31,4 @@ export default boot(({ app }) => {
   //       so you can easily perform requests against your app's API
 });
 
-export { api };
+export { api, uat };
