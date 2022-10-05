@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.EmployeeMapper">
+
+    <!-- General query mapping result -->
+    <resultMap id="BaseResultMap" type="us.pax.basil.entity.login.Employee">
+        <id column="EMP_OID" property="empOid" />
+        <result column="NAME" property="name" />
+        <result column="DIVISION" property="password" />
+        <result column="TITLE" property="title" />
+        <result column="EMP_STATUS" property="email" />
+        <result column="BR_PER_HOUR" property="brPerHour" />
+        <result column="EMAIL" property="email" />
+        <result column="PASSWORD" property="password" />
+        <result column="LAST_LOGIN_DATE" property="lastLoginDate" />
+        <result column="CREATOR" property="creator" />
+        <result column="CREATE_DATE" property="gmtCreate" />
+        <result column="VERSION" property="creator" />
+    </resultMap>
+
+    <!--select id="getUserStatus" resultType="Integer">
+        SELECT EMP_STATUS FROM BASIL_ODS_PRD.EMPLOYEE_MASTER
+        WHERE EMP_OID=#{empOid, jdbcType=INTEGER};
+    </select-->
+</mapper>

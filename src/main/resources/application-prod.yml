@@ -1,0 +1,72 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    url: jdbc:mysql://192.168.21.72:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
+    username: reyb
+    password: PaxUser@123
+
+security:
+  # urls which do not need authentication
+  permit-all:
+    urls:
+      - /webjars/**
+      - /v2/**
+      - /internal/**
+      - /basil/login
+      - /error
+      - /api/**
+      - /basil/**
+
+  # CORS configuration
+  cors:
+    configs:
+      - path: "/**"
+        origins: "*"
+        headers: "*"
+        methods: "*"
+        allowCredentials: true
+        maxAge: 3600
+
+logging:
+  config: conf/logback-spring.xml
+  level:
+    org.springframework.security: debug
+
+server:
+  servlet:
+    context-path: /
+    session:
+      timeout: 10800
+  port: 8888
+  tomcat:
+    remote_ip_header: X-Forwarded-For
+    protocol_header: X-Forwarded-Proto
+    port-header: X-Forwarded-Port
+    basedir: ./
+    accesslog:
+      enabled: true
+      directory: service-logs
+
+  ssl:
+    enabled: true
+    protocol: TLS
+    key-store: server.keystore
+    key-store-password: pax@4901FL!2
+    key-store-type: JKS
+
+    #trust-store: src/test/resources/trust.keystore
+    #trust-store-password: pax@4901
+    #trust-store-type: JKS
+    #trust-store-provider: SUN
+    #client-auth: need
+
+http_pool:
+  max_total: 200
+  default_max_per_route: 100
+  connect_timeout: 5000
+  connection_request_timeout: 1000
+  socket_timeout: 65000
+  validate_after_inactivity: 2000

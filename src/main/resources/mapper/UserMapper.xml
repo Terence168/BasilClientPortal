@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.UserMapper">
+
+    <!-- General query mapping result -->
+    <resultMap id="BaseResultMap" type="us.pax.basil.entity.User">
+        <id column="id" property="id" />
+        <result column="user_name" property="userName" />
+        <result column="password" property="password" />
+        <result column="nick_name" property="nickName" />
+        <result column="email" property="email" />
+        <result column="phone" property="phone" />
+        <result column="status" property="status" />
+        <result column="last_login_time" property="lastLoginTime" />
+        <result column="last_login_ip" property="lastLoginIp" />
+        <result column="note" property="note" />
+        <result column="gmt_create" property="gmtCreate" />
+        <result column="creator" property="creator" />
+        <result column="gmt_modified" property="gmtModified" />
+        <result column="modifier" property="modifier" />
+        <result column="version" property="version" />
+    </resultMap>
+
+    <insert id="addUser" parameterType="us.pax.basil.entity.User">
+    	INSERT 
+    		INTO BASIL_SEC_PRD.USERS (NAME, COMPANY_ID, EMAIL, PASSWORD, PASS_TOKEN, PASS_TOKEN_EXP, STATUS, CREATOR, MODIFIER)
+    		VALUES(#{name}, #{companyId}, #{email}, #{password}, #{passToken}, #{passTokenExp}, #{status}, #{creator}, #{creator});
+    </insert>
+    
+    <update id="setLastLogin">
+		UPDATE EMPLOYEE_MASTER
+			SET LAST_LOGIN_DATE = NOW()
+		WHERE EMP_OID=#{empOid,jdbcType=INTEGER}
+    </update>
+
+    <update id="setUserId">
+		SET @userId=#{userId,jdbcType=VARCHAR}
+    </update>
+
+    <update id="setProgramName">
+		SET @programName=#{programName,jdbcType=VARCHAR}
+    </update>
+
+    <update id="setReasonForChange">
+		SET @reasonForChange=#{reasonForChange,jdbcType=VARCHAR}
+    </update>
+
+    <select id="getUserStatus" resultType="Integer">
+        SELECT EMP_STATUS FROM BASIL_ODS_PRD.EMPLOYEE_MASTER 
+        WHERE EMP_OID=#{empOid, jdbcType=INTEGER};
+    </select>
+
+	<select id="getUserByEmail" resultType="us.pax.basil.entity.User">
+		SELECT 
+			* 
+		FROM 
+			BASIL_SEC_PRD.USERS 
+		WHERE 
+			EMAIL=#{email};
+	</select>
+
+	<select id="getUserByToken" resultType="us.pax.basil.entity.User">
+		SELECT 
+			* 
+		FROM 
+			BASIL_SEC_PRD.USERS 
+		WHERE 
+			PASS_TOKEN=#{token};
+	</select>
+</mapper>
