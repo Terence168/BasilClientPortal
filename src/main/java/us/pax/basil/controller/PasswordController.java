@@ -33,7 +33,7 @@ import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.service.PasswordService;
 
 @RestController
-@RequestMapping("/basil/password")
+@RequestMapping("/password")
 @Api(tags = "Basil API Interface")
 @AllArgsConstructor
 public class PasswordController {

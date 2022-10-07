@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Api(tags = "Basil API Interface")
 @RestController
-@RequestMapping("/basil/user")
+@RequestMapping("/user")
 @AllArgsConstructor
 public class UserController {
 
