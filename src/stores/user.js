@@ -18,12 +18,21 @@ export const useUserStore = defineStore("user", {
   actions: {
     login(username, password) {
       const formData = new FormData();
-      formData.append('username', username);
-      formData.append('password', password);
+      formData.append("username", username);
+      formData.append("password", password);
+
       api
-        .post("login", formData, { headers: {'Content-Type': 'application/x-www-form-urlencoded' }})
-        .then((res) => {
-          console.log(res);
+        .post("login", formData, {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        })
+        .then((response) => {
+          if (response.data.code === 20000) {
+            return api.get("user/detail");
+          } else {
+            throw new Error(
+              "Incorrect username and/or password. Please try again."
+            );
+          }
         })
         .catch(() => {
           console.log("error");
