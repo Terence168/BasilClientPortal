@@ -36,8 +36,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -78,7 +76,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	    	//
 	    	// Default password for new users
 	    	//
-	        user.setPassword(passwordEncoder.encode(PasswordConstant.NEW_USER_PASSWORD));
+	        //user.setPassword(passwordEncoder.encode(PasswordConstant.NEW_USER_PASSWORD));
+	        user.setPassword(passwordEncoder.encode("Pax4Future!@"));
 	
 	        user.setStatus(StatusConstant.USER_INACTIVE);
 	
@@ -152,8 +151,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         
         map.put("name", details.getUsername());
         map.put("email", details.getEmailAddress());
-        map.put("empOid", details.getEmpOid());
         map.put("xtOid", 999);
+        //TODO: company name
         
         ArrayList<String> permissions = new ArrayList<>();
         

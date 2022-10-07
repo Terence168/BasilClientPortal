@@ -112,12 +112,12 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         // customize login interface
         http.formLogin()
-                .loginProcessingUrl("/api/v1/login")
+                .loginProcessingUrl("/login")
                 .successHandler(successHandler)
                 .failureHandler(failHandler)
             .and()
                 .logout()
-                .logoutUrl("/api/v1/logout")
+                .logoutUrl("/logout")
                 .clearAuthentication(true)
                 .logoutSuccessHandler(new CustomLogoutSuccessHandler())
             .and()

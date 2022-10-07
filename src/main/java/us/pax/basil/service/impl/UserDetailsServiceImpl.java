@@ -19,19 +19,17 @@ package us.pax.basil.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import lombok.extern.log4j.Log4j2;
-
-import us.pax.basil.entity.login.Employee;
+import us.pax.basil.entity.User;
 import us.pax.basil.mapper.EmployeeMapper;
 import us.pax.basil.mapper.PermissionMapper;
+import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
 
 /**
@@ -46,28 +44,31 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     EmployeeMapper employeeMapper;
 
     @Autowired
+    UserMapper userMapper;
+
+    @Autowired
     PermissionMapper permissionMapper;
 
     @Override
     public UserDetails loadUserByUsername(String loginName) {
         // Get user information from database
-        QueryWrapper<Employee> employeeWrapper = new QueryWrapper<>();
-        employeeWrapper.eq("EMAIL", loginName);
-        Employee employee = employeeMapper.selectOne(employeeWrapper);
-        if (null == employee) {
-            log.error("Employee does not exist: {}", loginName);
+    	User user = userMapper.getUserByEmail(loginName);
+        if (user == null) {
+            log.error("User does not exist: {}", loginName);
             throw new AuthenticationCredentialsNotFoundException("Incorrect Credential: " + loginName);
         }
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        /*
         List <String> privilegeList = permissionMapper.getPrivilegeListByEmpOid(employee.getEmpOid());
         if (!CollectionUtils.isEmpty(privilegeList)) {
             privilegeList.forEach(privilege -> authorities.add(new SimpleGrantedAuthority(privilege)));
         }
+        */
 
-        return new CustomUserDetails(employee.getName(), employee.getPassword(), authorities)
-                .setEmailAddress(employee.getEmail())
-                .setEmpOid(employee.getEmpOid())
+        return new CustomUserDetails(user.getName(), user.getPassword(), authorities)
+                .setEmailAddress(user.getEmail())
+                .setEmpOid(null)
                 .setRoles(null); // Using privilege information directly to decide access. Role list not needed
     }
 }

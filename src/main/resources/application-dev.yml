@@ -63,11 +63,10 @@ security:
       - /swagger-resources/**
       - /v2/**
       - /internal/**
-      - /api/v1/login
       - /error
       - /api/**
+      - /api/v1/**
       - /basil/**
-#      - /user/**
 
   # CORS configuration
   cors:
@@ -91,7 +90,7 @@ security:
 
 server:
   servlet:
-    context-path: /
+    context-path: /api/v1
     session:
       timeout: 3600
   port: 8081
