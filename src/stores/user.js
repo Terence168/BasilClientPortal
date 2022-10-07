@@ -16,9 +16,12 @@ export const useUserStore = defineStore("user", {
         Date.now(),
   },
   actions: {
-    login(payload) {
+    login(username, password) {
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
       api
-        .post("login", payload)
+        .post("login", formData, { headers: {'Content-Type': 'application/x-www-form-urlencoded' }})
         .then((res) => {
           console.log(res);
         })

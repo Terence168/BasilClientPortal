@@ -32,7 +32,7 @@
         <q-form @submit="onSubmit" class="col-auto q-gutter-y-sm">
           <q-input
             outlined
-            v-model="username"
+            v-model="usr"
             label="Email"
             lazy-rules
             dense
@@ -47,7 +47,7 @@
           </q-input>
 
           <q-input
-            v-model="password"
+            v-model="pwd"
             outlined
             label="Password"
             :type="isPwd ? 'password' : 'text'"
@@ -95,8 +95,8 @@ import { ref, computed } from "vue";
 
 const user = useUserStore();
 
-const username = ref(null);
-const password = ref(null);
+const usr = ref(null);
+const pwd = ref(null);
 const isPwd = ref(true);
 
 const validateEmail = function (username) {
@@ -106,10 +106,10 @@ const validateEmail = function (username) {
 };
 
 const onSubmit = function () {
-  const email = username.value;
-  const hashedPassword = sha256(password.value);
+  const username = usr.value;
+  const password = sha256(pwd.value);
 
-  user.login({ email, hashedPassword });
+  user.login(username, password);
 };
 
 // export default defineComponent({
