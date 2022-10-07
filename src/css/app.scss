@@ -1,1 +1,34 @@
 // app global css in SCSS form
+body {
+  background-color: #eef5fb;
+  color: #333438;
+}
+
+.q-tab__label {
+  font-size: 18px;
+}
+
+.q-tab__indicator {
+  height: 4px;
+  border-radius: 2px;
+}
+
+.section-title {
+  color: $section;
+}
+
+.list-item {
+  padding-left: 25px;
+  padding-right: 10px;
+  border-radius: 10px;
+}
+
+.active-link {
+  background-color: $primary;
+  color: white;
+}
+
+.generic-container {
+  background-color: white;
+  border-radius: 15px;
+}
