@@ -21,9 +21,10 @@ import us.pax.basil.entity.User;
 
 public interface UserMapper extends BaseMapper<User> {
 
-    Integer getUserStatus(Integer empOid);
+    Integer getUserStatus(Integer id);
 	User getUserByEmail(String email);
 	User getUserByToken(String token);
+	String getCompanyName(Integer id);
 	void addUser(User user);
     void setLastLogin(Integer empOid);
     void setUserId(String userId);

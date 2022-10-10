@@ -138,10 +138,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public QueryResultArrayDTO getUserDetail(Authentication authentication) {
         CustomUserDetails details = (CustomUserDetails)authentication.getPrincipal();
         
-        Integer userStatus = userMapper.getUserStatus(details.getEmpOid());
+        Integer userStatus = userMapper.getUserStatus(details.getUserId());
         
         if (userStatus.equals(StatusConstant.USER_DISABLED) == true) {
             return new QueryResultArrayDTO(null, 0, -55, "User account is currently disabled.");
+        } else if (userStatus.equals(StatusConstant.STATUS_NOT_ENABLE) == true) {
+            return new QueryResultArrayDTO(null, 0, -55, "User account is currently not enabled.");
+        } else if (userStatus.equals(StatusConstant.STATUS_DISABLED) == true ){
+            return new QueryResultArrayDTO(null, 0, -55, "User account is currently disabled.");
+        } else if (userStatus.equals(StatusConstant.STATUS_DELETED) == true) {
+            return new QueryResultArrayDTO(null, 0, -55, "User account is currently deleted.");
+        } else if (userStatus.equals(StatusConstant.USER_INACTIVE) == true) {
+            return new QueryResultArrayDTO(null, 0, -55, "User account is currently inactive.");
         }
 
         Collection<GrantedAuthority> authorities = details.getAuthorities();
@@ -151,8 +159,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         
         map.put("name", details.getUsername());
         map.put("email", details.getEmailAddress());
-        map.put("xtOid", 999);
-        //TODO: company name
+        map.put("companyName", details.getCompanyName());
         
         ArrayList<String> permissions = new ArrayList<>();
         

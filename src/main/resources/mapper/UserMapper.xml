@@ -46,8 +46,10 @@
     </update>
 
     <select id="getUserStatus" resultType="Integer">
-        SELECT EMP_STATUS FROM BASIL_ODS_PRD.EMPLOYEE_MASTER 
-        WHERE EMP_OID=#{empOid, jdbcType=INTEGER};
+        SELECT 
+			STATUS
+    	FROM BASIL_SEC_PRD.USERS
+    		where U_OID=#{id};
     </select>
 
 	<select id="getUserByEmail" resultType="us.pax.basil.entity.User">
@@ -67,4 +69,13 @@
 		WHERE 
 			PASS_TOKEN=#{token};
 	</select>
+
+    <select id="getCompanyName" resultType="String">
+    	SELECT
+			CUSTOMER_ORGANIZATION
+		FROM 
+			BASIL_ODS_PRD.MASTER_CUSTOMER
+		WHERE
+			MC_OID=#{id};
+    </select>
 </mapper>

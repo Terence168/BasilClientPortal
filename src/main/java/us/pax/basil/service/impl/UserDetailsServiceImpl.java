@@ -53,6 +53,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String loginName) {
         // Get user information from database
     	User user = userMapper.getUserByEmail(loginName);
+
         if (user == null) {
             log.error("User does not exist: {}", loginName);
             throw new AuthenticationCredentialsNotFoundException("Incorrect Credential: " + loginName);
@@ -67,8 +68,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         */
 
         return new CustomUserDetails(user.getName(), user.getPassword(), authorities)
+                .setUserId(user.getUOid())
                 .setEmailAddress(user.getEmail())
-                .setEmpOid(null)
-                .setRoles(null); // Using privilege information directly to decide access. Role list not needed
+                .setCompanyName(userMapper.getCompanyName(user.getCompanyId()));
     }
 }

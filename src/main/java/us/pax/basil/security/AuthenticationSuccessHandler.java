@@ -44,7 +44,7 @@ public class AuthenticationSuccessHandler extends SavedRequestAwareAuthenticatio
         CustomUserDetails userDetails = (CustomUserDetails)authentication.getPrincipal();
         log.info("User [{}] login successfully, IP: {}", userDetails.getUsername(), HttpServletUtils.getClientIp());
         
-        userMapper.setLastLogin(userDetails.getEmpOid());
+//        userMapper.setLastLogin(userDetails.getEmpOid());
         
         ResponseUtil.out(response, Result.ok());
     }
