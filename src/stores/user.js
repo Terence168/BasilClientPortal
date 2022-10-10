@@ -1,10 +1,13 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
+import { Notify } from "quasar";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
     username: null,
     email: null,
+    company: null,
+    permissoins: [],
     sessionStartTime: null,
   }),
   getters: {
@@ -34,8 +37,24 @@ export const useUserStore = defineStore("user", {
             );
           }
         })
-        .catch(() => {
-          console.log("error");
+        .then((response) => {
+          if (response.data.resultCode === -55) {
+            throw new Error(response.data.errorMessage);
+          }
+
+          const user = response.data.data[0];
+
+          this.username = user.name;
+          this.email = user.email;
+          this.company = user.companyName;
+          this.permissions = user.permissions;
+        })
+        .then(() => this.router.push("/"))
+        .catch((error) => {
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
         });
     },
 
