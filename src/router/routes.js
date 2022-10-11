@@ -2,7 +2,48 @@ const routes = [
   {
     path: "/",
     component: () => import("layouts/MainLayout.vue"),
-    children: [{ path: "", component: () => import("pages/IndexPage.vue") }],
+    children: [
+      {
+        path: "privilege",
+        name: "privilege",
+        component: () => import("pages/PrivilegePage.vue"),
+        meta: {
+          requiresAuth: true,
+          permissions: ["privilege"],
+        },
+        children: [
+          {
+            path: "role-type",
+            name: "role-type",
+            component: () => import("pages/RoleTypePage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["privilege.role-type"],
+            },
+          },
+
+          {
+            path: "role",
+            name: "role",
+            component: () => import("pages/RolePage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["privilege.role"],
+            },
+          },
+
+          {
+            path: "user",
+            name: "user",
+            component: () => import("pages/UserPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["privilege.user"],
+            },
+          },
+        ],
+      },
+    ],
   },
 
   {

@@ -3,20 +3,14 @@
     <q-header class="transparent q-ma-sm" style="min-height: 100px">
       <div class="row items-center justify-between">
         <q-tabs
-          class="col-auto text-accent text-subtitle1"
+          class="col-auto text-accent text-subtitle1 q-ml-md"
           style="min-height: 80px"
           v-model="tab"
           no-caps
           indicator-color="primary"
           align="left"
         >
-          <q-tab name="home" label="Home" />
-          <q-tab name="rma" label="RMA" />
-          <q-tab
-            v-if="$checkPermission('privilege')"
-            name="privilege"
-            label="Privilege"
-          />
+          <q-tab name="privilege" label="Privilege" />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
           <q-avatar color="primary" text-color="white">{{
@@ -29,7 +23,7 @@
       </div>
     </q-header>
 
-    <q-drawer value side="left" :width="340" :breakpoint="0">
+    <q-drawer model-value side="left" :width="350" :breakpoint="0">
       <!-- drawer content -->
 
       <q-toolbar class="justify-center text-primary" style="min-height: 100px">
@@ -150,10 +144,8 @@
 </template>
 
 <script>
-// import HomeSubMenu from "src/components/HomeSubMenu.vue";
-// import RmaSubMenu from "src/components/RMASubMenu.vue";
-// import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
-// import BaseModal from "src/components/BaseModal.vue";
+import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
+import BaseModal from "src/components/BaseModal.vue";
 
 import { format } from "quasar";
 const { capitalize } = format;
@@ -163,12 +155,12 @@ import sha256 from "js-sha256";
 export default {
   name: "MainLayout",
 
-  components: { HomeSubMenu, RmaSubMenu, PrivilegeSubMenu, BaseModal },
+  components: { PrivilegeSubMenu, BaseModal },
 
   data() {
     return {
       showModal: false,
-      tab: "rma",
+      tab: "privilege",
       isPwd: true,
       isPwd2: true,
       newPassword: null,
@@ -181,7 +173,7 @@ export default {
       return capitalize(this.tab) + "SubMenu";
     },
     userName() {
-      return this.$store.state.account.user?.name;
+      return "Guest";
     },
   },
 
@@ -215,120 +207,3 @@ export default {
   },
 };
 </script>
-
-<!-- <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
-      <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
-
-        <q-toolbar-title>
-          Quasar App
-        </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
-      </q-toolbar>
-    </q-header>
-
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
-      <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
-
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
-    </q-drawer>
-
-    <q-page-container>
-      <router-view />
-    </q-page-container>
-  </q-layout>
-</template>
-
-<script>
-import { defineComponent, ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
-
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
-  }
-]
-
-export default defineComponent({
-  name: 'MainLayout',
-
-  components: {
-    EssentialLink
-  },
-
-  setup () {
-    const leftDrawerOpen = ref(false)
-
-    return {
-      essentialLinks: linksList,
-      leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      }
-    }
-  }
-})
-</script> -->
