@@ -4,19 +4,21 @@ import { Notify } from "quasar";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    username: null,
-    email: null,
-    company: null,
+    username: "",
+    email: "",
+    company: "",
     permissoins: [],
-    sessionStartTime: null,
+    sessionStartTime: 0,
   }),
   getters: {
     loggedIn: (state) =>
-      state.sessionStartTime === null ||
-      state.sessionStartTime +
-        import.meta.env.VITE_SESSION_DURATION * 60000 -
-        5000 <
-        Date.now(),
+      !(
+        state.sessionStartTime === 0 ||
+        state.sessionStartTime +
+          import.meta.env.VITE_SESSION_DURATION * 60000 -
+          5000 <
+          Date.now()
+      ),
   },
   actions: {
     login(username, password) {
@@ -49,7 +51,7 @@ export const useUserStore = defineStore("user", {
           this.company = user.companyName;
           this.permissions = user.permissions;
         })
-        .then(() => this.router.push("/"))
+        .then(() => this.router.push({ name: "user" }))
         .catch((error) => {
           Notify.create({
             type: "negative",
@@ -60,6 +62,8 @@ export const useUserStore = defineStore("user", {
 
     logout() {
       this.$reset();
+      this.router.push({ name: "login" });
     },
   },
+  persist: true,
 });

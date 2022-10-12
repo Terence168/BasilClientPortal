@@ -7,8 +7,8 @@
       :title="title"
       :data="users"
       :columns="columns"
-      :row-key="row => role + '-' + row.userName"
-      :pagination.sync="pagination"
+      :row-key="(row) => role + '-' + row.userName"
+      v-model:pagination="pagination"
       hide-pagination
       :filter="filter"
     >
@@ -34,7 +34,9 @@
           placeholder="Search"
           @input="updateUserNumber"
         >
-          <q-icon slot="append" name="search" />
+          <template v-if="text" v-slot:append
+            ><q-icon name="search"
+          /></template>
         </q-input>
       </template>
     </q-table>
@@ -62,10 +64,9 @@ export default {
   props: { id: Number, title: String, role: String, users: Array },
 
   created() {
-    this.$nextTick(function() {
-      this.filteredUserNumber = this.$refs[
-        "role" + this.role
-      ].computedRowsNumber;
+    this.$nextTick(function () {
+      this.filteredUserNumber =
+        this.$refs["role" + this.role].computedRowsNumber;
     });
   },
 
@@ -79,7 +80,7 @@ export default {
         sortBy: "userName",
         descending: false,
         page: 1,
-        rowsPerPage: 5
+        rowsPerPage: 5,
         // rowsNumber: xx if getting data from a server
       },
 
@@ -89,16 +90,16 @@ export default {
           align: "center",
           label: "User Name",
           field: "userName",
-          sortable: true
+          sortable: true,
         },
         {
           name: "email",
           align: "center",
           label: "Email",
           field: "email",
-          sortable: true
-        }
-      ]
+          sortable: true,
+        },
+      ],
 
       // users: [
       //   { id: 1, userName: "John Doe", email: "aaa@gmail.com" },
@@ -114,18 +115,17 @@ export default {
   computed: {
     pagesNumber() {
       return Math.ceil(this.filteredUserNumber / this.pagination.rowsPerPage);
-    }
+    },
   },
 
   methods: {
     updateUserNumber() {
-      this.$nextTick(function() {
-        this.filteredUserNumber = this.$refs[
-          "role" + this.role
-        ].computedRowsNumber;
+      this.$nextTick(function () {
+        this.filteredUserNumber =
+          this.$refs["role" + this.role].computedRowsNumber;
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

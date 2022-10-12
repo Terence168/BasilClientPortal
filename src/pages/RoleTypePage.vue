@@ -8,9 +8,7 @@
       <q-separator />
 
       <div class="q-px-lg q-py-md">
-        <div class="text-subtitle1 text-weight-medium">
-          Manage Role Types
-        </div>
+        <div class="text-subtitle1 text-weight-medium">Manage Role Types</div>
         <FilterOptions :filterFields="filterFields" />
       </div>
     </div>
@@ -46,7 +44,7 @@
     </div>
 
     <BaseModal
-      :show.sync="showModal"
+      v-model:show="showModal"
       :title="`${modalFormOptions.action} Role Type`"
       :width="500"
     >
@@ -98,8 +96,6 @@ import GenericPagination from "src/components/GenericPagination.vue";
 import BaseModal from "src/components/BaseModal.vue";
 
 export default {
-  name: "RoleType",
-
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
 
   data() {
@@ -109,11 +105,11 @@ export default {
       modalFormOptions: {
         id: null,
         action: "",
-        submitting: false
+        submitting: false,
       },
 
       modalFormData: {
-        name: null
+        name: null,
       },
 
       filterFields: [{ id: "roleType", label: "Role Type" }],
@@ -121,11 +117,11 @@ export default {
       tableData: {
         columns: [
           { id: "roleType", label: "Role Type", sortable: true },
-          { id: "actions", label: "Actions", sortable: false }
+          { id: "actions", label: "Actions", sortable: false },
         ],
-        rows: []
+        rows: [],
       },
-      total: 0
+      total: 0,
     };
   },
 
@@ -144,7 +140,7 @@ export default {
       }
 
       return null;
-    }
+    },
   },
 
   created() {
@@ -154,7 +150,7 @@ export default {
   watch: {
     $route() {
       this.queryData();
-    }
+    },
   },
 
   methods: {
@@ -163,11 +159,11 @@ export default {
 
       this.$api
         .get("/basil/privilege/role-type/query" + window.location.search)
-        .then(function(response) {
+        .then(function (response) {
           vm.tableData.rows = response.data.data;
           vm.total = response.data.total;
         })
-        .catch(function(error) {
+        .catch(function (error) {
           // handle error
           console.log(error);
         });
@@ -186,7 +182,7 @@ export default {
       const vm = this;
       this.$api
         .post(actionURL, { id, ...this.modalFormData })
-        .then(function(response) {
+        .then(function (response) {
           console.log(response);
           vm.showModal = false;
           vm.queryData();
@@ -194,7 +190,7 @@ export default {
     },
 
     pickData(id) {
-      return this.tableData.rows.find(row => row.id === id);
+      return this.tableData.rows.find((row) => row.id === id);
     },
 
     populateFields(id) {
@@ -227,8 +223,8 @@ export default {
       this.modalFormOptions.action = "Update";
 
       this.populateFields(id);
-    }
-  }
+    },
+  },
 };
 </script>
 

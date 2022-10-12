@@ -150,7 +150,11 @@ import BaseModal from "src/components/BaseModal.vue";
 import { format } from "quasar";
 const { capitalize } = format;
 
+import { useUserStore } from "stores/user";
+
 import sha256 from "js-sha256";
+
+const user = useUserStore();
 
 export default {
   name: "MainLayout",
@@ -173,15 +177,13 @@ export default {
       return capitalize(this.tab) + "SubMenu";
     },
     userName() {
-      return "Guest";
+      return user.username || "Guest";
     },
   },
 
   methods: {
     logout() {
-      this.$store
-        .dispatch("account/logout")
-        .catch((err) => this.$q.notify(err.message));
+      user.logout();
     },
 
     changePassword() {

@@ -17,7 +17,7 @@
         </div>
 
         <div class="q-mt-md">
-          <div class="row justify-center  q-mb-md">
+          <div class="row justify-center q-mb-md">
             <div class="col-8">
               <q-card>
                 <q-card-section>
@@ -51,7 +51,6 @@
           <q-separator />
           <div class="row justify-end q-mt-md">
             <q-btn
-              v-if="$checkPermission('privilege.role.add')"
               icon="add"
               label="Add"
               color="primary"
@@ -64,7 +63,7 @@
     </div>
 
     <BaseModal
-      :show.sync="showModal"
+      v-model:show="showModal"
       :title="`${modalFormOptions.action} Role`"
       :width="600"
     >
@@ -101,7 +100,7 @@
               :nodes="permissions"
               node-key="id"
               tick-strategy="leaf"
-              :ticked.sync="ticked"
+              v-model:ticked="ticked"
             />
           </div>
         </div>
@@ -182,8 +181,6 @@ import BaseModal from "src/components/BaseModal.vue";
 import { kebabCase } from "lodash";
 
 export default {
-  name: "Role",
-
   components: { RoleCard, BaseModal },
 
   data() {
@@ -193,19 +190,19 @@ export default {
       modalFormOptions: {
         id: null,
         action: "",
-        submitting: false
+        submitting: false,
       },
 
       modalFormData: {
         roleName: null,
-        roleTypeID: null
+        roleTypeID: null,
       },
 
       summary: {
         adminTotal: 4,
         techTotal: 16,
         qacaTotal: 5,
-        sparePartsClerk: 3
+        sparePartsClerk: 3,
       },
 
       permissions: [
@@ -223,17 +220,17 @@ export default {
                   children: [
                     {
                       id: 24,
-                      label: "View - Customer"
+                      label: "View - Customer",
                     },
                     {
                       id: 25,
-                      label: "Add - Customer"
+                      label: "Add - Customer",
                     },
                     {
                       id: 26,
-                      label: "Update - Customer"
-                    }
-                  ]
+                      label: "Update - Customer",
+                    },
+                  ],
                 },
                 {
                   id: 6,
@@ -241,19 +238,19 @@ export default {
                   children: [
                     {
                       id: 27,
-                      label: "View - Material"
+                      label: "View - Material",
                     },
                     {
                       id: 28,
-                      label: "Add - Material"
+                      label: "Add - Material",
                     },
                     {
                       id: 29,
-                      label: "Update - Material"
-                    }
-                  ]
-                }
-              ]
+                      label: "Update - Material",
+                    },
+                  ],
+                },
+              ],
             },
             {
               id: 2,
@@ -265,21 +262,21 @@ export default {
                   children: [
                     {
                       id: 30,
-                      label: "View - Inventory"
+                      label: "View - Inventory",
                     },
                     {
                       id: 31,
-                      label: "Upload File - Inventory"
+                      label: "Upload File - Inventory",
                     },
                     {
                       id: 32,
-                      label: "Add - Inventory"
+                      label: "Add - Inventory",
                     },
                     {
                       id: 33,
-                      label: "Update - Inventory"
-                    }
-                  ]
+                      label: "Update - Inventory",
+                    },
+                  ],
                 },
                 {
                   id: 8,
@@ -287,13 +284,13 @@ export default {
                   children: [
                     {
                       id: 34,
-                      label: "View - Scheduling"
+                      label: "View - Scheduling",
                     },
                     {
                       id: 35,
-                      label: "Update - Scheduling"
-                    }
-                  ]
+                      label: "Update - Scheduling",
+                    },
+                  ],
                 },
                 {
                   id: 9,
@@ -301,17 +298,17 @@ export default {
                   children: [
                     {
                       id: 36,
-                      label: "View - Shipping"
+                      label: "View - Shipping",
                     },
                     {
                       id: 37,
-                      label: "Upload File - Shipping"
+                      label: "Upload File - Shipping",
                     },
                     {
                       id: 38,
-                      label: "Update - Shipping"
-                    }
-                  ]
+                      label: "Update - Shipping",
+                    },
+                  ],
                 },
                 {
                   id: 10,
@@ -319,13 +316,13 @@ export default {
                   children: [
                     {
                       id: 39,
-                      label: "View - Invoice"
+                      label: "View - Invoice",
                     },
                     {
                       id: 40,
-                      label: "Update - Invoice"
-                    }
-                  ]
+                      label: "Update - Invoice",
+                    },
+                  ],
                 },
                 {
                   id: 11,
@@ -337,17 +334,17 @@ export default {
                       children: [
                         {
                           id: 55,
-                          label: "View - Fault Code"
+                          label: "View - Fault Code",
                         },
                         {
                           id: 56,
-                          label: "Add - Fault Code"
+                          label: "Add - Fault Code",
                         },
                         {
                           id: 57,
-                          label: "Update - Fault Code"
-                        }
-                      ]
+                          label: "Update - Fault Code",
+                        },
+                      ],
                     },
                     {
                       id: 19,
@@ -355,13 +352,13 @@ export default {
                       children: [
                         {
                           id: 58,
-                          label: "Add - Reported Issue"
+                          label: "Add - Reported Issue",
                         },
                         {
                           id: 59,
-                          label: "Update - Reported Issue"
-                        }
-                      ]
+                          label: "Update - Reported Issue",
+                        },
+                      ],
                     },
                     {
                       id: 20,
@@ -369,13 +366,13 @@ export default {
                       children: [
                         {
                           id: 60,
-                          label: "Add - Status"
+                          label: "Add - Status",
                         },
                         {
                           id: 61,
-                          label: "Update - Status"
-                        }
-                      ]
+                          label: "Update - Status",
+                        },
+                      ],
                     },
                     {
                       id: 21,
@@ -383,13 +380,13 @@ export default {
                       children: [
                         {
                           id: 62,
-                          label: "Add - Location"
+                          label: "Add - Location",
                         },
                         {
                           id: 63,
-                          label: "Update - Location"
-                        }
-                      ]
+                          label: "Update - Location",
+                        },
+                      ],
                     },
                     {
                       id: 22,
@@ -397,13 +394,13 @@ export default {
                       children: [
                         {
                           id: 64,
-                          label: "Add - Part Number"
+                          label: "Add - Part Number",
                         },
                         {
                           id: 65,
-                          label: "Update - Part Number"
-                        }
-                      ]
+                          label: "Update - Part Number",
+                        },
+                      ],
                     },
                     {
                       id: 23,
@@ -411,17 +408,17 @@ export default {
                       children: [
                         {
                           id: 66,
-                          label: "Add - Priority"
+                          label: "Add - Priority",
                         },
                         {
                           id: 67,
-                          label: "Save Order - Priority"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
+                          label: "Save Order - Priority",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
             },
             {
               id: 3,
@@ -433,13 +430,13 @@ export default {
                   children: [
                     {
                       id: 41,
-                      label: "View - Scheduled Work"
+                      label: "View - Scheduled Work",
                     },
                     {
                       id: 42,
-                      label: "Update - Scheduled Work"
-                    }
-                  ]
+                      label: "Update - Scheduled Work",
+                    },
+                  ],
                 },
                 {
                   id: 13,
@@ -447,13 +444,13 @@ export default {
                   children: [
                     {
                       id: 43,
-                      label: "View - QA/CA"
+                      label: "View - QA/CA",
                     },
                     {
                       id: 44,
-                      label: "Update - QA/CA"
-                    }
-                  ]
+                      label: "Update - QA/CA",
+                    },
+                  ],
                 },
                 {
                   id: 14,
@@ -461,9 +458,9 @@ export default {
                   children: [
                     {
                       id: 45,
-                      label: "View - Repair Record"
-                    }
-                  ]
+                      label: "View - Repair Record",
+                    },
+                  ],
                 },
                 {
                   id: 68,
@@ -471,19 +468,19 @@ export default {
                   children: [
                     {
                       id: 69,
-                      label: "Create Record - Destruction"
+                      label: "Create Record - Destruction",
                     },
                     {
                       id: 70,
-                      label: "Bulk Assign - Destruction"
+                      label: "Bulk Assign - Destruction",
                     },
                     {
                       id: 71,
-                      label: "View Table - Destruction"
-                    }
-                  ]
-                }
-              ]
+                      label: "View Table - Destruction",
+                    },
+                  ],
+                },
+              ],
             },
             {
               id: 4,
@@ -495,17 +492,17 @@ export default {
                   children: [
                     {
                       id: 46,
-                      label: "View - Role Type"
+                      label: "View - Role Type",
                     },
                     {
                       id: 47,
-                      label: "Add - Role Type"
+                      label: "Add - Role Type",
                     },
                     {
                       id: 48,
-                      label: "Update - Role Type"
-                    }
-                  ]
+                      label: "Update - Role Type",
+                    },
+                  ],
                 },
                 {
                   id: 16,
@@ -513,17 +510,17 @@ export default {
                   children: [
                     {
                       id: 49,
-                      label: "View - Role"
+                      label: "View - Role",
                     },
                     {
                       id: 50,
-                      label: "Add - Role"
+                      label: "Add - Role",
                     },
                     {
                       id: 51,
-                      label: "Update - Role"
-                    }
-                  ]
+                      label: "Update - Role",
+                    },
+                  ],
                 },
                 {
                   id: 17,
@@ -531,29 +528,29 @@ export default {
                   children: [
                     {
                       id: 52,
-                      label: "Add - Role"
+                      label: "Add - Role",
                     },
                     {
                       id: 53,
-                      label: "Update - Role"
+                      label: "Update - Role",
                     },
                     {
                       id: 54,
-                      label: "Disable - Role"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
+                      label: "Disable - Role",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
       ],
 
       ticked: [],
 
       roles: [],
 
-      roleTypes: []
+      roleTypes: [],
     };
   },
 
@@ -567,7 +564,7 @@ export default {
     totalPages() {
       const perPage = this.$route.query.per_page || 10;
       return Math.ceil(this.total / perPage);
-    }
+    },
   },
 
   methods: {
@@ -576,10 +573,10 @@ export default {
 
       this.$api
         .get("/basil/privilege/role/query")
-        .then(function(response) {
+        .then(function (response) {
           vm.roles = response.data.data;
         })
-        .catch(function(error) {
+        .catch(function (error) {
           // handle error
           console.log(error);
         });
@@ -592,7 +589,7 @@ export default {
 
       this.$api
         .get(link)
-        .then(response => {
+        .then((response) => {
           const roleData = response.data.data[0];
           this.modalFormData.roleTypeID = roleData.roleTypeID;
           this.modalFormData.roleName = roleData.roleName;
@@ -601,7 +598,7 @@ export default {
         .then(() => {
           this.showModal = true;
         })
-        .catch(function(error) {
+        .catch(function (error) {
           // handle error
           console.log(error);
         });
@@ -632,7 +629,7 @@ export default {
 
       this.$api
         .post(actionURL, { id, ...this.modalFormData, permissions })
-        .then(function(response) {
+        .then(function (response) {
           console.log(response);
           vm.showModal = false;
           vm.queryData();
@@ -643,7 +640,7 @@ export default {
       this.modalFormOptions.action = "Add";
       this.modalFormOptions.id = null;
 
-      Object.keys(this.modalFormData).forEach(prop => {
+      Object.keys(this.modalFormData).forEach((prop) => {
         this.modalFormData[prop] = null;
       });
 
@@ -657,10 +654,10 @@ export default {
 
       this.$api
         .get("/basil/privilege/role-type/query")
-        .then(function(response) {
+        .then(function (response) {
           vm.roleTypes = response.data.data;
         })
-        .catch(function(error) {
+        .catch(function (error) {
           // handle error
           console.log(error);
         });
@@ -669,7 +666,7 @@ export default {
     generatePermissionIDs(nodes, ticked) {
       const ids = [];
 
-      const generatePermissionIDsRec = function(nodes, ticked) {
+      const generatePermissionIDsRec = function (nodes, ticked) {
         let flag = false;
         for (const node of nodes) {
           if (!node.children || node.children.length === 0) {
@@ -695,8 +692,8 @@ export default {
 
     kebabRole(role) {
       return kebabCase(role);
-    }
-  }
+    },
+  },
 };
 </script>
 
