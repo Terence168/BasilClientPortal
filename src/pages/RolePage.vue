@@ -180,6 +180,8 @@ import BaseModal from "src/components/BaseModal.vue";
 
 import { kebabCase } from "lodash";
 
+import { useUserStore } from "stores/user";
+
 export default {
   components: { RoleCard, BaseModal },
 
@@ -692,6 +694,10 @@ export default {
 
     kebabRole(role) {
       return kebabCase(role);
+    },
+
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
     },
   },
 };

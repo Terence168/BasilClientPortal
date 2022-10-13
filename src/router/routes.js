@@ -52,6 +52,12 @@ const routes = [
     component: () => import("pages/LoginPage.vue"),
   },
 
+  {
+    path: "/activate-user/:token",
+    name: "activate-user",
+    component: () => import("pages/ActivateUserPage.vue"),
+  },
+
   // Always leave this as last one,
   // but you can also remove it
   {

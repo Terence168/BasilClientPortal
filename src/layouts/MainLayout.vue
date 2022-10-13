@@ -41,7 +41,7 @@
       <q-separator />
 
       <div
-        v-if="$uat"
+        v-if="uat"
         class="q-mt-md text-h4 text-weight-bold text-center text-red"
       >
         *** UAT Version ***
@@ -150,6 +150,7 @@ import BaseModal from "src/components/BaseModal.vue";
 import { format } from "quasar";
 const { capitalize } = format;
 
+import { uat } from "boot/axios";
 import { useUserStore } from "stores/user";
 
 import sha256 from "js-sha256";
@@ -169,6 +170,7 @@ export default {
       isPwd2: true,
       newPassword: null,
       currentPassword: null,
+      uat,
     };
   },
 

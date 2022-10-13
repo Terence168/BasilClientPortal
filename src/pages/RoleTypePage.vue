@@ -19,7 +19,7 @@
           Click on a column to sort the content of the table
           <q-space />
           <q-btn
-            v-if="$checkPermission('privilege.role-type.add')"
+            v-if="checkPermission('privilege.role-type.add')"
             icon="add"
             label="Add"
             color="primary"
@@ -95,6 +95,8 @@ import GenericTable from "src/components/GenericTable.vue";
 import GenericPagination from "src/components/GenericPagination.vue";
 import BaseModal from "src/components/BaseModal.vue";
 
+import { useUserStore } from "stores/user";
+
 export default {
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
 
@@ -132,8 +134,8 @@ export default {
     },
 
     permissions() {
-      const view = this.$checkPermission("privilege.role-type.view");
-      const update = this.$checkPermission("privilege.role-type.update");
+      const view = this.checkPermission("privilege.role-type.view");
+      const update = this.checkPermission("privilege.role-type.update");
 
       if (view || update) {
         return { view, update };
@@ -223,6 +225,10 @@ export default {
       this.modalFormOptions.action = "Update";
 
       this.populateFields(id);
+    },
+
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
     },
   },
 };

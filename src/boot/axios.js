@@ -1,7 +1,7 @@
 import { boot } from "quasar/wrappers";
 import axios from "axios";
 
-const uat = false;
+const uat = true;
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;

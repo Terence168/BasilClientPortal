@@ -11,14 +11,12 @@ export const useUserStore = defineStore("user", {
     sessionStartTime: 0,
   }),
   getters: {
-    loggedIn: (state) =>
-      !(
-        state.sessionStartTime === 0 ||
-        state.sessionStartTime +
-          import.meta.env.VITE_SESSION_DURATION * 60000 -
-          5000 <
-          Date.now()
-      ),
+    loggedIn: (state) => state.email !== "",
+
+    sessionTimeLeft: (state) =>
+      state.sessionStartTime +
+      import.meta.env.VITE_SESSION_DURATION * 60000 -
+      Date.now(),
   },
   actions: {
     login(username, password) {
@@ -50,6 +48,8 @@ export const useUserStore = defineStore("user", {
           this.email = user.email;
           this.company = user.companyName;
           this.permissions = user.permissions;
+
+          this.sessionStartTime = Date.now();
         })
         .then(() => this.router.push({ name: "user" }))
         .catch((error) => {
@@ -63,6 +63,10 @@ export const useUserStore = defineStore("user", {
     logout() {
       this.$reset();
       this.router.push({ name: "login" });
+    },
+
+    checkPermission(permission) {
+      return this.permissions.includes(permission);
     },
   },
   persist: true,
