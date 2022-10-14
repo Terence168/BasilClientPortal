@@ -68,6 +68,7 @@ security:
       - /api/v1/**
       - /user/**
       - /password/**
+      - /rma/**
 
   # CORS configuration
   cors:
