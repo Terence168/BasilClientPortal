@@ -1,7 +1,7 @@
 <template>
   <div class="activate-user">
     <div class="login-container">
-      <div class="column justify-center" style="height: 45vh">
+      <div class="column justify-center" style="height: 44vh">
         <div class="col-auto self-center q-py-md">
           <q-img
             style="width: 250px"
@@ -15,34 +15,23 @@
             Set your password
           </div>
         </div>
-        <q-form @submit="onSubmit" class="col q-gutter-y-sm">
+        <form ref="modalForm" @submit.prevent="onSubmit">
           <q-input
+            ref="newPassRef"
+            class="col q-mb-sm"
             outlined
-            v-model="usr"
-            label="Email"
-            lazy-rules
-            dense
-            :rules="[
-              (val) => (val && val.length > 0) || 'Email cannot be empty',
-              (val) => validateEmail(val) || 'Please enter a valid email',
-            ]"
-          >
-            <template v-slot:prepend>
-              <q-icon name="person" />
-            </template>
-          </q-input>
-
-          <q-input
-            v-model="pwd"
-            outlined
+            v-model="newPassword"
             label="Password"
             :type="isPwd ? 'password' : 'text'"
-            lazy-rules
+            hint="Password must be at least 8 characters long"
+            lazy-rules="ondemand"
             dense
+            :disable="!valid"
             :rules="[
               (val) => (val && val.length > 0) || 'Password cannot be empty',
               (val) =>
                 val.length > 8 || 'Password must contain at least 8 characters',
+              (val) => val === currentPassword || 'Passwords must match',
             ]"
           >
             <template v-slot:prepend>
@@ -57,17 +46,53 @@
             </template>
           </q-input>
 
-          <div>
-            <q-btn
-              class="full-width"
-              label="Login"
-              type="submit"
-              color="primary"
-              unelevated
-              no-caps
-            />
+          <q-input
+            ref="currentPassRef"
+            class="col q-mt-sm q-mb-sm"
+            outlined
+            v-model="currentPassword"
+            label="Repeat Password"
+            :type="isPwd2 ? 'password' : 'text'"
+            lazy-rules="ondemand"
+            dense
+            :disable="!valid"
+            :rules="[
+              (val) =>
+                (val && val.length > 0) || 'Repeat Password cannot be empty',
+              (val) =>
+                val.length > 8 ||
+                'Repeat Password must contain at least 8 characters',
+              (val) => val === newPassword || 'Passwords must match',
+            ]"
+          >
+            <template v-slot:prepend>
+              <q-icon name="lock" />
+            </template>
+            <template v-slot:append>
+              <q-icon
+                :name="isPwd2 ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="isPwd2 = !isPwd2"
+              />
+            </template>
+          </q-input>
+
+          <div class="row justify-center">
+            <div class="col">
+              <q-btn
+                class="q-mr-md full-width"
+                type="submit"
+                label="Set Password"
+                color="primary"
+                :disable="!valid"
+              >
+                <template v-slot:loading>
+                  <q-spinner-facebook />
+                </template>
+              </q-btn>
+            </div>
           </div>
-        </q-form>
+        </form>
       </div>
     </div>
   </div>
@@ -77,56 +102,79 @@
 import { uat } from "boot/axios";
 import { useUserStore } from "stores/user";
 import sha256 from "js-sha256";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { api } from "boot/axios";
+import { Notify } from "quasar";
 
 const user = useUserStore();
 
-const usr = ref(null);
-const pwd = ref(null);
-const isPwd = ref(true);
+const router = useRouter();
+const route = useRoute();
 
-const validateEmail = function (username) {
-  const re =
-    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(username).toLowerCase());
-};
+const newPassword = ref("");
+const newPassRef = ref(null);
+
+const currentPassword = ref("");
+const currentPassRef = ref(null);
+
+const isPwd = ref(true);
+const isPwd2 = ref(true);
+
+const valid = ref(false);
 
 const onSubmit = function () {
-  const username = usr.value;
-  const password = sha256(pwd.value);
+  newPassRef.value.validate();
+  currentPassRef.value.validate();
 
-  user.login(username, password);
+  if (newPassRef.value.hasError || currentPassRef.value.hasError) {
+    return;
+  }
+
+  const newPass = sha256(newPassword.value);
+  const token = route.params.token;
+
+  const actionURL = "user/activate";
+
+  api.post(actionURL, { token, password: newPass }).then(function (response) {
+    if (response.data.resultCode === 0) {
+      Notify.create("Password was successfully changed");
+      router.push({ name: "login" });
+    } else {
+      Notify.create({
+        type: "negative",
+        message: response.data.errorMessage,
+      });
+    }
+  });
 };
 
-// export default defineComponent({
-//   name: "LoginPage",
+const checkTokenValidity = function () {
+  const token = route.params.token;
 
-//   data() {
-//     return { username: null, password: null, isPwd: true };
-//   },
+  const actionURL = `password/token-valid?token=${token}`;
 
-//   methods: {
-//     onSubmit() {
-//       const username = this.username;
-//       const password = sha256(this.password);
-//       this.$store
-//         .dispatch("account/login", { username, password })
-//         .catch((err) => this.$q.notify(err.message));
-//     },
+  api
+    .get(actionURL)
+    .then(function (response) {
+      if (response.data.resultCode === 0) {
+        valid.value = true;
+      } else {
+        Notify.create({
+          type: "negative",
+          message: response.data.errorMessage,
+        });
+      }
+    })
+    .catch((error) => {
+      Notify.create({
+        type: "negative",
+        message: error.message,
+      });
+    });
+};
 
-//     onReset() {
-//       this.username = null;
-//       this.password = null;
-//       this.isPwd = true;
-//     },
-
-//     validateEmail(username) {
-//       const re =
-//         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-//       return re.test(String(username).toLowerCase());
-//     },
-//   },
-// });
+onMounted(() => checkTokenValidity());
 </script>
 
 <style lang="sass" scoped>
@@ -144,7 +192,8 @@ const onSubmit = function () {
   width: 500px
   vertical-align: middle
   margin: 0 auto
-  border-radius: 50px 50px 50px 50px
+  border-radius: 20px
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)
   padding: 0 40px
   background-color: white
 </style>
