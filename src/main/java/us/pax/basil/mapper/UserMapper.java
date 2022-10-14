@@ -15,6 +15,8 @@ package us.pax.basil.mapper;
  * ============================================================================
  */
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import us.pax.basil.dto.input.UserCreateDTO;
 import us.pax.basil.entity.User;
@@ -31,4 +33,19 @@ public interface UserMapper extends BaseMapper<User> {
     void setProgramName(String programName);
     void setReasonForChange(String reasonForChange);
     void createUser(UserCreateDTO user);
+    
+    List<User> queryList(int offset,
+                         int count,
+                         String sortColumns,
+                         String name,
+                         Integer company,
+                         String email,
+                         Integer status);
+
+    Integer getListCount(String name,
+                         Integer company,
+                         Integer status,
+                         String email);
+
+    User viewQuery(Integer id);
 }

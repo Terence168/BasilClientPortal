@@ -51,10 +51,8 @@ public class UserController {
 
     @ApiOperation(value = "Activate User", notes = "Permission Code: admin.user.create")
     @PostMapping("/activate")
-    public SqlResultDTO activateUser(HttpServletRequest request,
-    		                          @RequestParam(value="password", required=true) String password,
-    		                          @RequestParam(value="token", required=true) String token) {
-        return userService.activateUser(request, password, token);
+    public SqlResultDTO activateUser(HttpServletRequest request, User user) {
+        return userService.activateUser(request, user);
     }
 
     @PreAuthorize("hasAuthority('admin.user.delete')")
@@ -70,5 +68,28 @@ public class UserController {
     @GetMapping("/detail")
     public QueryResultArrayDTO getUserDetail(Authentication authentication) {
         return userService.getUserDetail(authentication);
+    }
+
+    @GetMapping("/query")
+    public QueryResultArrayDTO queryList(@RequestParam(value = "page", required = false) Integer currentPage,
+                                          @RequestParam(value = "per_page", required = false) Integer sizePerPage,
+                                          @RequestParam(value = "sort", required = false) String sortColumns,
+                                          @RequestParam(value = "name", required = false) String name,
+                                          @RequestParam(value = "company", required = false) Integer company,
+                                          @RequestParam(value = "email", required = false) String email,
+                                          @RequestParam(value = "status", required = false) Integer status) {
+        if (null == currentPage || 0 == currentPage) {
+            currentPage = 1; // show the first page by default
+        }
+
+        if (null == sizePerPage) {
+            sizePerPage = 10; // show 10 items per page by default
+        }
+        return userService.queryList(currentPage, sizePerPage, sortColumns, name, company, email, status);
+    }
+
+    @GetMapping("/view/query")
+    public QueryResultArrayDTO viewQuery (HttpServletRequest request) {
+        return userService.viewQuery(request);
     }
 }

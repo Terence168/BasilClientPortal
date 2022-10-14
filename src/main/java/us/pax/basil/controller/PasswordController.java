@@ -49,30 +49,20 @@ public class PasswordController {
     // Save password
     @PostMapping("/save")
     public SqlResultDTO savePassword(/*@Valid PasswordDto passwordDto*/) {
-
-    	/*
-        final String result = securityUserService.validatePasswordResetToken(passwordDto.getToken());
-
-        if(result != null) {
-            return new GenericResponse(messages.getMessage("auth.message." + result, null, locale));
-        }
-
-        Optional<User> user = userService.getUserByPasswordResetToken(passwordDto.getToken());
-        if(user.isPresent()) {
-            userService.changeUserPassword(user.get(), passwordDto.getNewPassword());
-            return new GenericResponse(messages.getMessage("message.resetPasswordSuc", null, locale));
-        } else {
-            return new GenericResponse(messages.getMessage("auth.message.invalid", null, locale));
-        }
-        */
-    	return passwordService.savePassword();
+        return passwordService.savePassword();
     }
 
     // Change user password
     @GetMapping("/reset")
     public SqlResultDTO resetPassword(final HttpServletRequest request, 
-    									@RequestParam(value="password", required = true) final String password,
-    									@RequestParam(value="token", required = true) final String token) {
+                                        @RequestParam(value="password", required = true) final String password,
+                                        @RequestParam(value="token", required = true) final String token) {
         return passwordService.resetPassword(request,password, token);
+    }
+
+    @GetMapping("/token-valid")
+    public SqlResultDTO resetPassword(final HttpServletRequest request, 
+                                       @RequestParam(value="token", required = true) final String token) {
+        return passwordService.tokenValid(token);
     }
 }

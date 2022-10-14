@@ -26,10 +26,19 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 
 public interface UserService extends IService<User> {
-	SqlResultDTO addUser(HttpServletRequest request, User user);
-	SqlResultDTO activateUser(HttpServletRequest request, String email, String token);
+    SqlResultDTO addUser(HttpServletRequest request, User user);
+    SqlResultDTO activateUser(HttpServletRequest request, User user);
 
     boolean checkPassword(String password, String passwordEncoder);
 
     QueryResultArrayDTO getUserDetail(Authentication authentication);
+    QueryResultArrayDTO queryList(Integer currentPage,
+                                  Integer sizePerPage,
+                                  String sortColumns,
+                                  String name, 
+                                  Integer company, 
+                                  String email, 
+                                  Integer status);
+
+    QueryResultArrayDTO viewQuery (HttpServletRequest request);
 }

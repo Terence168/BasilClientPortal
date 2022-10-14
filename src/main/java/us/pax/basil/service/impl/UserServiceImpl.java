@@ -39,7 +39,9 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -98,14 +100,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
           	MimeMessage mimeMsg = mailSender.createMimeMessage();
             mimeMsg = EmailUtil.constructTokenEmail(mimeMsg, 
-                                                     request, 
-                                                     token, 
-                                                     PasswordConstant.WELCOME_USER_HTML_FILE,
-                                                     PasswordConstant.WELCOME_USER_SUBJECT,
-                                                     PasswordConstant.FRONTEND_WELCOME_USER_URL,
-                                                     PasswordConstant.WELCOME_USER_LINK_TITLE,
-                                                     user,
-                                                     mailProperties.getUsername());
+                                                    request, 
+                                                    token, 
+                                                    PasswordConstant.WELCOME_USER_HTML_FILE,
+                                                    PasswordConstant.WELCOME_USER_SUBJECT,
+                                                    PasswordConstant.FRONTEND_WELCOME_USER_URL,
+                                                    PasswordConstant.WELCOME_USER_LINK_TITLE,
+                                                    user,
+                                                    mailProperties.getUsername());
     		mailSender.send(mimeMsg);
     	} catch(Exception e) {
     		return new SqlResultDTO(0, e.getMessage());
@@ -114,15 +116,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public SqlResultDTO activateUser(HttpServletRequest request, String password, String token) {
+    public SqlResultDTO activateUser(HttpServletRequest request, User user) {
     	try {
-    		User user = userMapper.getUserByToken(token);
-    		if (user == null) {
+    		String passToken = user.getPassToken();
+
+    		User userAcctInfo = userMapper.getUserByToken(passToken);
+    		if (userAcctInfo == null) {
     			return new SqlResultDTO(-200, "User account cannot be found for the specified token.");
     		}
-    		passwordMapper.savePassword(token, passwordEncoder.encode(password));
-    		passwordMapper.setStatus(token, StatusConstant.STATUS_ENABLED);
-    		passwordMapper.resetToken(token, UUID.randomUUID().toString());
+    		passwordMapper.savePassword(passToken, passwordEncoder.encode(user.getPassword()));
+    		passwordMapper.setStatus(passToken, StatusConstant.STATUS_ENABLED);
+    		passwordMapper.resetToken(passToken, UUID.randomUUID().toString());
     	} catch (Exception e) {
     		return new SqlResultDTO(-1, e.getMessage());
     	}
@@ -172,4 +176,46 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         return new QueryResultArrayDTO(jsonArray, permissions.size(), 0, "");
     }
+
+	@Override
+	public QueryResultArrayDTO queryList(Integer currentPage,
+			                              Integer sizePerPage,
+			                              String sortColumns,
+			                              String name, 
+			                              Integer company, 
+			                              String email, 
+			                              Integer status) {
+		
+		Integer total = userMapper.getListCount(name, company, status, email);
+
+		List<User> userList = userMapper.queryList((currentPage-1) * sizePerPage, 
+				                                   sizePerPage, 
+				                                   sortColumns, 
+				                                   name, 
+				                                   company, 
+				                                   email, 
+				                                   status);
+		
+		ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+
+		for (User user : userList) {
+             Map<String, Object> map = new HashMap<>();
+
+             map.put("uOid", user.getUOid());
+             map.put("name", user.getName());
+             map.put("company", user.getCompanyId());
+             map.put("email", user.getEmail());
+             map.put("status", user.getStatus());
+             
+             resultArray.add(map);
+		}
+        return new QueryResultArrayDTO(resultArray, total, 0, "");
+
+	}
+
+	@Override
+	public QueryResultArrayDTO viewQuery(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

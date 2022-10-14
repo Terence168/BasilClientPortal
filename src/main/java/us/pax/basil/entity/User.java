@@ -3,7 +3,6 @@ package us.pax.basil.entity;
 import java.sql.Timestamp;
 
 import io.swagger.annotations.ApiModel;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -11,7 +10,6 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@AllArgsConstructor
 @ApiModel(value="User Account Object", description="")
 public class User {
 	private Integer uOid;

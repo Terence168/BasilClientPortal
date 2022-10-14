@@ -70,6 +70,7 @@
 			PASS_TOKEN=#{token};
 	</select>
 
+
     <select id="getCompanyName" resultType="String">
     	SELECT
 			CUSTOMER_ORGANIZATION
@@ -77,5 +78,63 @@
 			BASIL_ODS_PRD.MASTER_CUSTOMER
 		WHERE
 			MC_OID=#{id};
+    </select>
+	<select id="getListCount" resultType="Integer">
+		SELECT
+			count(*)
+		FROM
+			BASIL_SEC_PRD.USERS
+    	<where>
+      		<if test="name != null">
+          		NAME LIKE concat('%',#{name},'%')
+      		</if>
+      		<if test="company != null">
+          		COMPANY_ID=#{company}
+      		</if>
+      		<if test="status != null">
+          		STATUS=,#{status}
+      		</if>
+      		<if test="email != null">
+        		EMAIL LIKE concat('%',#{email},'%')
+      		</if>
+    	</where>
+    </select>
+
+	<select id="queryList" resultType="us.pax.basil.entity.User">
+		SELECT
+			U_OID,
+			NAME,
+			COMPANY_ID,
+			EMAIL,
+			STATUS
+		FROM
+			BASIL_SEC_PRD.USERS
+    	<where>
+      		<if test="name != null">
+          		NAME LIKE concat('%',#{name},'%')
+      		</if>
+      		<if test="company != null">
+          		COMPANY_ID=#{company}
+      		</if>
+      		<if test="status != null">
+          		STATUS=#{status}
+      		</if>
+      		<if test="email != null">
+        		EMAIL LIKE concat('%',#{email},'%')
+      		</if>
+    	</where>
+    	<if test="sortColumns != null and sortColumns != ''">
+      		ORDER BY ${sortColumns}
+    	</if>
+    	LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
+	<select id="viewQuery" resultType="us.pax.basil.entity.User">
+		SELECT 
+			* 
+		FROM 
+			BASIL_SEC_PRD.USERS 
+		WHERE 
+			U_OID=#{id};
     </select>
 </mapper>

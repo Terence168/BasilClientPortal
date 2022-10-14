@@ -117,4 +117,13 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
 
         return new SqlResultDTO(0, "");
     }
+
+	@Override
+	public SqlResultDTO tokenValid(String token) {
+		User user = userMapper.getUserByToken(token);
+        if (user != null) {
+            return new SqlResultDTO(0, "");
+        } else
+            return new SqlResultDTO(-1, "Token does not exist.");
+	}
 }

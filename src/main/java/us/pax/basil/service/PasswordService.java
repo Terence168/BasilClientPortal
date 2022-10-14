@@ -7,7 +7,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.SqlResultDTO;
 
 public interface PasswordService extends IService<Integer> {
-	SqlResultDTO forgotPassword(HttpServletRequest request, String userEmail);
 	SqlResultDTO savePassword();
+	SqlResultDTO tokenValid(String token);
+	SqlResultDTO forgotPassword(HttpServletRequest request, String userEmail);
 	SqlResultDTO resetPassword(HttpServletRequest request, String password, String token);
 }
