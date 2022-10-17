@@ -43,6 +43,46 @@ const routes = [
           },
         ],
       },
+      {
+        path: "rma",
+        name: "rma",
+        component: () => import("pages/RMAPage.vue"),
+        meta: {
+          requiresAuth: true,
+          permissions: ["rma"],
+        },
+        children: [
+          {
+            path: "status",
+            name: "status",
+            component: () => import("pages/StatusPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["rma.status"],
+            },
+          },
+
+          {
+            path: "shipping",
+            name: "shipping",
+            component: () => import("pages/ShippingPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["rma.shipping"],
+            },
+          },
+
+          {
+            path: "quarantine",
+            name: "quarantine",
+            component: () => import("pages/QuarantinePage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["rma.quarantine"],
+            },
+          },
+        ],
+      },
     ],
   },
 

@@ -10,6 +10,7 @@
           indicator-color="primary"
           align="left"
         >
+          <q-tab name="RMAStatus" label="RMA Status" />
           <q-tab name="privilege" label="Privilege" />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
@@ -144,6 +145,7 @@
 </template>
 
 <script>
+import RMAStatusSubMenu from "src/components/RMAStatusSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
 import BaseModal from "src/components/BaseModal.vue";
 
@@ -160,7 +162,7 @@ const user = useUserStore();
 export default {
   name: "MainLayout",
 
-  components: { PrivilegeSubMenu, BaseModal },
+  components: { RMAStatusSubMenu, PrivilegeSubMenu, BaseModal },
 
   data() {
     return {

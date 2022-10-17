@@ -66,7 +66,11 @@ export const useUserStore = defineStore("user", {
     },
 
     checkPermission(permission) {
-      return this.permissions.includes(permission);
+      if (this.permissions) {
+        return this.permissions.includes(permission);
+      } else {
+        return false;
+      }
     },
   },
   persist: true,
