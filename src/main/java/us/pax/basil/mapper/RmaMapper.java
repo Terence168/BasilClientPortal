@@ -18,7 +18,6 @@ package us.pax.basil.mapper;
  * ============================================================================
  */
 
-import java.sql.Timestamp;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -26,24 +25,27 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import us.pax.basil.entity.rma.Shipped;
 
 public interface RmaMapper extends BaseMapper<Integer> {
-	List<Shipped> getStatus(int offset,
-                         	 int count,
-                         	 String sortColumns,
-                         	 Long rmaNumber,
-                         	 Integer serialNumber,
-                         	 Integer partNumber);
+	List<Shipped> getStatus(Integer offset,
+                         	Integer count,
+                         	String sortColumns,
+                         	Long rmaNumber,
+                         	String serialNumber,
+                         	String partNumber);
 
-	List<Shipped> getShipped(int offset,
-                         	 int count,
-                         	 String sortColumns,
-                         	 Long rmaNumber,
-                         	 Integer serialNumber,
-                         	 Integer partNumber);
+	Integer getShippedTotal();
 
-	List<Shipped> getQuarantine(int offset,
-                         	    int count,
+	List<Shipped> getShipped(Integer offset,
+                         	 Integer count,
+                         	 String sortColumns,
+                         	 Integer id,
+                         	 Long rmaNumber,
+                         	 String serialNumber,
+                         	 String partNumber);
+
+	List<Shipped> getQuarantine(Integer offset,
+                         	    Integer count,
                          	    String sortColumns,
                          	    Long rmaNumber,
-                         	    Integer serialNumber,
-                         	    Integer partNumber);
+                         	    String serialNumber,
+                         	    String partNumber);
 }

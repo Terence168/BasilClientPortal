@@ -15,6 +15,7 @@ public interface RmaService extends IService<Integer> {
 	QueryResultArrayDTO shippedQuery(Integer currentPage,
 									 Integer sizePerPage, 
 									 String sortColumns, 
+									 Integer id,
 									 Long rmaNumber, 
 									 String serialNumber, 
 									 String partNumber);

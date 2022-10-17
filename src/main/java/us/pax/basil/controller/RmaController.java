@@ -56,6 +56,7 @@ public class RmaController {
     public QueryResultArrayDTO shipped (@RequestParam(value = "page", required = false) Integer currentPage,
                                          @RequestParam(value = "per_page", required = false) Integer sizePerPage,
                                          @RequestParam(value = "sort", required = false) String sortColumns,
+                                         @RequestParam(value = "id", required = false) Integer id,
                                          @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
                                          @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                          @RequestParam(value = "partNumber", required = false) String partNumber) {
@@ -66,7 +67,7 @@ public class RmaController {
         if (null == sizePerPage) {
             sizePerPage = 10; // show 10 items per page by default
         }
-        return rmaService.shippedQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber);
+        return rmaService.shippedQuery(currentPage, sizePerPage, sortColumns, id, rmaNumber, serialNumber, partNumber);
     }
 
     // @PreAuthorize("hasAuthority('admin.user.delete')")

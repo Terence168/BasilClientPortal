@@ -2,6 +2,30 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="us.pax.basil.mapper.RmaMapper">
 
+<select id="getShippedTotal" resultType="Integer">
+		SELECT
+			count(*)
+		FROM
+    		BASIL_ODS_PRD.MASTER_ORDER mo
+		    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+		    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+		    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+		    JOIN BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
+		    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
+		    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+		<where>
+			<if test="rmaNumber != null">
+				mo.MC_OID = #{rmaNumber}
+			</if>
+			<if test="serialNumber != null">
+				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+			</if>
+			<if test="partNumber != null">
+				AND STATUS LIKE concat('%',#{partNumber},'%')
+			</if>
+		</where>
+</select>
+
 <select id="getShipped" resultType="us.pax.basil.entity.rma.Shipped">
 SELECT
     ship.SHIP_DATE as shipDate,
@@ -19,10 +43,23 @@ FROM
     JOIN BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
     JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
     JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
-WHERE
-    mo.MC_OID = 321 
-ORDER BY ship.SHIP_DATE DESC;
-
+<where>
+	<if test="id != null">
+		mo.MC_OID = #{id}
+	</if>
+	<if test="rmaNumber != null">
+		mo.MO_OID = #{rmaNumber}
+	</if>
+	<if test="serialNumber != null">
+		AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+	</if>
+	<if test="partNumber != null">
+		AND part.PART_NUMBER LIKE concat('%',#{partNumber},'%')
+	</if>
+    	AND xm.STATUS = 113
+</where>
+	ORDER BY ship.SHIP_DATE DESC
+    LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
 </select>
 
 </mapper>

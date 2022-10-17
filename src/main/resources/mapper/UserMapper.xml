@@ -92,7 +92,7 @@
           		COMPANY_ID=#{company}
       		</if>
       		<if test="status != null">
-          		STATUS=,#{status}
+          		STATUS=#{status}
       		</if>
       		<if test="email != null">
         		EMAIL LIKE concat('%',#{email},'%')

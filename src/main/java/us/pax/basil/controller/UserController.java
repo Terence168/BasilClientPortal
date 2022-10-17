@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = "Basil API Interface")
 @RestController
 @RequestMapping("/user")
-@AllArgsConstructor
+//@AllArgsConstructor
 public class UserController {
 
     @Autowired
