@@ -51,7 +51,7 @@ public class UserController {
 
     @ApiOperation(value = "Activate User", notes = "Permission Code: admin.user.create")
     @PostMapping("/activate")
-    public SqlResultDTO activateUser(HttpServletRequest request, User user) {
+    public SqlResultDTO activateUser(HttpServletRequest request, @RequestBody  User user) {
         return userService.activateUser(request, user);
     }
 

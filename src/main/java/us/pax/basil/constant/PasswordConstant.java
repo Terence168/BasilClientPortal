@@ -13,10 +13,6 @@ public class PasswordConstant {
 	public final static String FORGOT_PASSWORD_HTML_FILE= "html/forgot.html";
     public final static String WELCOME_USER_HTML_FILE="html/welcome.html";
 
-	public final static String FRONTEND_CHANGE_PASSWORD_URL="/basil/<frontend change password URL>/";
-	public final static String FRONTEND_RESET_PASSWORD_URL= "/basil/<frontend reset password URL>/";
-    public final static String FRONTEND_WELCOME_USER_URL="/basil/<frontend welcome user URL>/";
-
     public static final Integer EXPIRATION=3600000;  // 1 hour to respond
     public static final String NEW_USER_PASSWORD="Pax4Future!@";
 

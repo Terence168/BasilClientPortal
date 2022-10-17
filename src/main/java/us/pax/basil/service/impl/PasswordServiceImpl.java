@@ -24,6 +24,7 @@ import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.mapper.PasswordMapper;
 import us.pax.basil.mapper.UserMapper;
+import us.pax.basil.property.FrontEndProperties;
 import us.pax.basil.property.MailProperties;
 import us.pax.basil.service.PasswordService;
 import us.pax.basil.utils.EmailUtil;
@@ -45,6 +46,9 @@ import org.springframework.stereotype.Service;
 public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> implements PasswordService {
     @Autowired
     private JavaMailSender mailSender;
+    
+    @Autowired
+    private FrontEndProperties frontEndProperties;
     
     @Autowired
     private MailProperties mailProperties;
@@ -82,7 +86,7 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
 	                                                     token, 
 	                                                     PasswordConstant.FORGOT_PASSWORD_HTML_FILE,
 	                                                     PasswordConstant.PASSWORD_CHANGE_EMAIL_SUBJECT,
-	                                                     PasswordConstant.FRONTEND_CHANGE_PASSWORD_URL,
+	                                                     frontEndProperties.getChange(),
 	                                                     PasswordConstant.CHANGE_PASSWORD_LINK_TITLE,
 	                                                     user, 
 	                                                     mailProperties.getUsername());

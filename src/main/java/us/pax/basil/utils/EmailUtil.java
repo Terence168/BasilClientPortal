@@ -37,7 +37,7 @@ public class EmailUtil {
         String htmlBody = readHtml(htmlFile);
         
         htmlBody = htmlBody.replace("xxx", user.getName());
-        htmlBody = htmlBody.replace("yyy", getAppUrl(request) + frontEndUrl + "?token=" + token);
+        htmlBody = htmlBody.replace("yyy", frontEndUrl + token);
         
         htmlBody = htmlBody.replace("zzz",linkTitle);
 

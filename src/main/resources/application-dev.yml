@@ -36,11 +36,8 @@ spring:
     
   mail:
     host: smtp.office365.com
-    #host: smtp.mail.yahoo.com
     port: 587
     protocol: smtp
-    #username: "craiglistsd@yahoo.com"
-    #password: "pkdlzrqnvoptifgm"
     username: "basil@pax.us"
     password: "Pax4Future!@"
     properties:
@@ -121,3 +118,10 @@ http_pool:
   connection_request_timeout: 1000
   socket_timeout: 65000
   validate_after_inactivity: 2000
+  
+frontend:  
+  urls:
+    activate: http://localhost:9000/#/activate-user/
+    change: http://localhost:9000/#/activate-user/
+    forgot: http://localhost:9000/#/activate-user/
+    reset: http://localhost:9000/#/activate-user/

@@ -17,8 +17,8 @@ public class User {
 	private Integer companyId;
 	private String email;
 	private String password;
-	private String passToken;
-	private Timestamp passTokenExp;
+	private String token;
+	private Timestamp tokenExp;
 	private String remark;
 	private Integer status;
 	private String createdDate;

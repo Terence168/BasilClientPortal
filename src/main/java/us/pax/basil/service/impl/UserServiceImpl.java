@@ -24,6 +24,7 @@ import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.mapper.PasswordMapper;
 import us.pax.basil.mapper.UserMapper;
+import us.pax.basil.property.FrontEndProperties;
 import us.pax.basil.property.MailProperties;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.UserService;
@@ -61,6 +62,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private JavaMailSender mailSender;
     
     @Autowired
+    private FrontEndProperties frontEndProperties;
+
+    @Autowired
     private MailProperties mailProperties;
 
     @Autowired
@@ -93,8 +97,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 	        final String token = UUID.randomUUID().toString();
 	        
-	        user.setPassToken(token);
-	        user.setPassTokenExp(new Timestamp(System.currentTimeMillis() + PasswordConstant.EXPIRATION));
+	        user.setToken(token);
+	        user.setTokenExp(new Timestamp(System.currentTimeMillis() + PasswordConstant.EXPIRATION));
 
 	        userMapper.addUser(user);
 
@@ -104,7 +108,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                                                     token, 
                                                     PasswordConstant.WELCOME_USER_HTML_FILE,
                                                     PasswordConstant.WELCOME_USER_SUBJECT,
-                                                    PasswordConstant.FRONTEND_WELCOME_USER_URL,
+                                                    frontEndProperties.getActivate(),
                                                     PasswordConstant.WELCOME_USER_LINK_TITLE,
                                                     user,
                                                     mailProperties.getUsername());
@@ -118,7 +122,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public SqlResultDTO activateUser(HttpServletRequest request, User user) {
     	try {
-    		String passToken = user.getPassToken();
+    		String passToken = user.getToken();
 
     		User userAcctInfo = userMapper.getUserByToken(passToken);
     		if (userAcctInfo == null) {
