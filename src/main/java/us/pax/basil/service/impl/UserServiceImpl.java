@@ -167,7 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         
         map.put("name", details.getUsername());
         map.put("email", details.getEmailAddress());
-        map.put("companyName", details.getCompanyName());
+        map.put("companyId", details.getCompanyId());
         
         ArrayList<String> permissions = new ArrayList<>();
         

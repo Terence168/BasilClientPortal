@@ -10,12 +10,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value="RMA Shipped Object", description="")
 public class Shipped {
-	String shipDate;
-	String partNumber;
-	String serialNumber;
-	Long rmaNumber;
-	String trackingNumber;
-	String reportedIssue;
-	String faultCode;
+	private String shipDate;
+	private String partNumber;
+	private String serialNumber;
+	private Long rmaNumber;
+	private String trackingNumber;
+	private String reportedIssue;
+	private String faultCode;
 
 }

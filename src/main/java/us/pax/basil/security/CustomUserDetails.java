@@ -30,7 +30,7 @@ public class CustomUserDetails extends User {
 
     private Integer userId;
     private String emailAddress;
-    private String companyName;
+    private Integer companyId;
 
 	public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
@@ -44,8 +44,8 @@ public class CustomUserDetails extends User {
 		this.emailAddress = emailAddress;
 		return this;
     }
-	public CustomUserDetails setCompanyName(String companyName) {
-		this.companyName = companyName;
+	public CustomUserDetails setCompanyId(Integer id) {
+		this.companyId = id;
 		return this;
     }
 }

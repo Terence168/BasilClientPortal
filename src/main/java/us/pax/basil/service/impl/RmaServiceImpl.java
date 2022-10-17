@@ -23,13 +23,16 @@ import us.pax.basil.constant.PasswordConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.rma.Quarantine;
 import us.pax.basil.entity.rma.Shipped;
 import us.pax.basil.mapper.PasswordMapper;
 import us.pax.basil.mapper.RmaMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.property.MailProperties;
+import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.PasswordService;
 import us.pax.basil.service.RmaService;
+import us.pax.basil.utils.AuthUtil;
 import us.pax.basil.utils.EmailUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -66,27 +69,31 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	public QueryResultArrayDTO shippedQuery(Integer currentPage, 
 			                                 Integer sizePerPage, 
 			                                 String sortColumns, 
-			                                 Integer id,
 			                                 Long rmaNumber, 
 			                                 String serialNumber, 
-			                                 String partNumber) {
+			                                 String model) {
 		/*
    		String [] receivedDates = {null,null};
    		if (dateReceived != null)
    			receivedDates = DateTimeUtil.getStartEnd(dateReceived, DateTimeUtil.PATTERN_YYYYMMDD_WITH_SLASH, "~");
 		*/
+        CustomUserDetails user = AuthUtil.getUser();
+        Integer companyId = null;
+        
+        if (user != null)
+        	companyId = user.getCompanyId();
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
 		try {
-			Integer total = rmaMapper.getShippedTotal();
+			Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, model);
 	
-			List<Shipped> shippedList = rmaMapper.getShipped(currentPage, 
+			List<Shipped> shippedList = rmaMapper.getShipping(currentPage, 
 					                                         sizePerPage, 
 					                                         buildSortString(sortColumns),
-					                                         id,
+					                                         companyId,
 					                                         rmaNumber, 
 					                                         serialNumber, 
-					                                         partNumber);
+					                                         model);
 
 			for (Shipped shipped: shippedList) { 
 				Map<String, Object> shippedMap = new HashMap<>();
@@ -108,10 +115,46 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	}
 
 	@Override
-	public QueryResultArrayDTO quarantineQuery(Integer currentPage, Integer sizePerPage, String sortColumns,
-			Long rmaNumber, String serialNumber, String partNumber) {
-		// TODO Auto-generated method stub
-		return null;
+	public QueryResultArrayDTO quarantineQuery(Integer currentPage, 
+			                                    Integer sizePerPage, 
+			                                    String sortColumns, 
+			                                    Long rmaNumber, 
+			                                    String serialNumber, 
+			                                    String model) {
+        CustomUserDetails user = AuthUtil.getUser();
+        Integer companyId=null;
+        if (user != null)
+        	companyId = user.getCompanyId();
+
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+		try {
+			Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, serialNumber, model);
+	
+			List<Quarantine> quarantineList = rmaMapper.getQuarantine(currentPage, 
+					                                         	sizePerPage, 
+					                                         buildSortString(sortColumns),
+					                                         companyId,
+					                                         rmaNumber, 
+					                                         serialNumber, 
+					                                         model);
+
+			for (Quarantine quarantine: quarantineList) { 
+				Map<String, Object> quarantineMap = new HashMap<>();
+	
+				quarantineMap.put("quarantineDate", quarantine.getQuarantineDate());
+				quarantineMap.put("partNumber", quarantine.getPartNumber());
+				quarantineMap.put("serialNumber", quarantine.getSerialNumber());
+				quarantineMap.put("rmaNumber", quarantine.getRmaNumber());
+				quarantineMap.put("customerContact", quarantine.getCustomerContact());
+				quarantineMap.put("techNotes", quarantine.getTechNotes());
+				quarantineMap.put("faultCode", quarantine.getFaultCode());
+	
+				resultArray.add(quarantineMap);
+			}
+	        return new QueryResultArrayDTO(resultArray, total, 0, "");
+		} catch(Exception e) {
+			return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+		}
 	}
 
     private String buildSortString(String sortColumns) {

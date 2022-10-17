@@ -10,5 +10,12 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value="RMA Quarantine Object", description="")
 public class Quarantine {
+	private String quarantineDate;
+	private String partNumber;
+	private String serialNumber;
+	private Long rmaNumber;
+	private String customerContact;
+	private String techNotes;
+	private String faultCode;
 
 }

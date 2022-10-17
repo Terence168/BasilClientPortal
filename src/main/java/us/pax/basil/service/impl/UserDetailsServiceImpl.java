@@ -70,6 +70,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new CustomUserDetails(user.getName(), user.getPassword(), authorities)
                 .setUserId(user.getUOid())
                 .setEmailAddress(user.getEmail())
-                .setCompanyName(userMapper.getCompanyName(user.getCompanyId()));
+                .setCompanyId(user.getCompanyId());
     }
 }

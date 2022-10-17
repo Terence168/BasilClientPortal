@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import us.pax.basil.entity.rma.Quarantine;
 import us.pax.basil.entity.rma.Shipped;
 
 public interface RmaMapper extends BaseMapper<Integer> {
@@ -32,9 +33,10 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	String serialNumber,
                          	String partNumber);
 
-	Integer getShippedTotal();
+	Integer getQuarantineTotal(Integer id, Long rmaNumber, String serialNumber, String partNumber);
+	Integer getShippingTotal(Integer id, Long rmaNumber, String serialNumber, String partNumber);
 
-	List<Shipped> getShipped(Integer offset,
+	List<Shipped> getShipping(Integer offset,
                          	 Integer count,
                          	 String sortColumns,
                          	 Integer id,
@@ -42,9 +44,10 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	 String serialNumber,
                          	 String partNumber);
 
-	List<Shipped> getQuarantine(Integer offset,
+	List<Quarantine> getQuarantine(Integer offset,
                          	    Integer count,
                          	    String sortColumns,
+                         	    Integer id,
                          	    Long rmaNumber,
                          	    String serialNumber,
                          	    String partNumber);

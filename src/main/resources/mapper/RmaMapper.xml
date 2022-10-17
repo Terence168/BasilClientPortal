@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="us.pax.basil.mapper.RmaMapper">
 
-<select id="getShippedTotal" resultType="Integer">
+<select id="getShippingTotal" resultType="Integer">
 		SELECT
 			count(*)
 		FROM
@@ -14,6 +14,9 @@
 		    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
 		    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 		<where>
+			<if test="id != null">
+				mo.MC_OID = #{id}
+			</if>
 			<if test="rmaNumber != null">
 				mo.MC_OID = #{rmaNumber}
 			</if>
@@ -23,10 +26,11 @@
 			<if test="partNumber != null">
 				AND STATUS LIKE concat('%',#{partNumber},'%')
 			</if>
+    		AND xm.STATUS = 113
 		</where>
 </select>
 
-<select id="getShipped" resultType="us.pax.basil.entity.rma.Shipped">
+<select id="getShipping" resultType="us.pax.basil.entity.rma.Shipped">
 SELECT
     ship.SHIP_DATE as shipDate,
     part.PART_NUMBER_SHORT as partNumber,
@@ -59,6 +63,70 @@ FROM
     	AND xm.STATUS = 113
 </where>
 	ORDER BY ship.SHIP_DATE DESC
+    LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+</select>
+
+<select id="getQuarantineTotal" resultType="Integer">
+	SELECT
+		count(*)
+	FROM
+	    BASIL_ODS_PRD.MASTER_ORDER mo
+	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+	    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
+	    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+	    LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_CONTACT_NEEDED
+	<where>
+		<if test="id != null">
+			mo.MC_OID = #{id}
+		</if>
+		<if test="rmaNumber != null">
+			mo.MO_OID = #{rmaNumber}
+		</if>
+		<if test="serialNumber != null">
+			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+		</if>
+		<if test="partNumber != null">
+			AND part.PART_NUMBER LIKE concat('%',#{partNumber},'%')
+		</if>
+	    	AND xm.STATUS = 108
+	</where>
+</select>
+
+<select id="getQuarantine" resultType="us.pax.basil.entity.rma.Quarantine">
+SELECT
+    xm.QUARANTINE_DATE as quarantineDate,
+    part.PART_NUMBER_SHORT as partNumber,
+    msn.SERIAL_NUMBER as serialNumber,
+    mo.MO_OID as rmaNumber,
+    sav.VALUE as customerContact,
+    xm.TECH_NOTES as techNotes,
+    fault.VALUE AS faultCode
+FROM
+    BASIL_ODS_PRD.MASTER_ORDER mo
+    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
+    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+    LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_CONTACT_NEEDED
+<where>
+	<if test="id != null">
+		mo.MC_OID = #{id}
+	</if>
+	<if test="rmaNumber != null">
+		mo.MO_OID = #{rmaNumber}
+	</if>
+	<if test="serialNumber != null">
+		AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+	</if>
+	<if test="partNumber != null">
+		AND part.PART_NUMBER LIKE concat('%',#{partNumber},'%')
+	</if>
+    	AND xm.STATUS = 108
+</where>
+	ORDER BY xm.QUARANTINE_DATE DESC
     LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
 </select>
 
