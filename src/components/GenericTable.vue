@@ -10,7 +10,7 @@
             :class="{
               sortable: column.sortable,
               sorted: sort[column.id],
-              'sort-desc': sort[column.id] && sort[column.id].desc
+              'sort-desc': sort[column.id] && sort[column.id].desc,
             }"
             @click="sortField(column.id)"
           >
@@ -28,7 +28,7 @@
           v-for="(row, index) in tableData.rows"
           :key="`${row.id}${index}`"
           :class="{
-            attention: row.materialSort !== undefined && !row.materialSort
+            attention: row.materialSort !== undefined && !row.materialSort,
           }"
         >
           <td v-if="bulkAssign">
@@ -101,20 +101,20 @@ export default {
   data() {
     return {
       bulkAssignIDs: [],
-      sort: {}
+      sort: {},
     };
   },
 
   watch: {
-    bulkAssignIDs: function(val) {
+    bulkAssignIDs: function (val) {
       this.$emit("update:ids", val);
-    }
+    },
   },
 
   computed: {
     selectAll: {
       // getter
-      get: function() {
+      get: function () {
         let allSelected = true;
         let someSelected = false;
         let selectedRow;
@@ -129,7 +129,7 @@ export default {
         return allSelected === someSelected ? allSelected : null;
       },
       // setter
-      set: function(checkAll) {
+      set: function (checkAll) {
         if (checkAll) {
           for (let { id } of this.tableData.rows) {
             if (!this.bulkAssignIDs.includes(id)) {
@@ -144,8 +144,8 @@ export default {
             }
           }
         }
-      }
-    }
+      },
+    },
   },
 
   created() {
@@ -156,16 +156,16 @@ export default {
     for (const sortingOption of initialSort) {
       const [field, desc] = sortingOption.split(".");
 
-      this.$set(this.sort, field, { desc });
+      this.sort[field] = { desc };
     }
   },
 
   methods: {
     sortField(id) {
-      if (!this.tableData.columns.find(row => id === row.id).sortable) return;
+      if (!this.tableData.columns.find((row) => id === row.id).sortable) return;
 
       if (!this.sort[id]) {
-        this.$set(this.sort, id, { desc: false });
+        this.sort[id] = { desc: false };
       } else if (!this.sort[id].desc) {
         this.sort[id].desc = true;
       } else {
@@ -200,8 +200,8 @@ export default {
       if (resolved.href !== this.$route.fullPath) {
         this.$router.push({ path: this.$route.path, query });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
