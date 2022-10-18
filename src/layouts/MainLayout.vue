@@ -198,7 +198,7 @@ export default {
       const newPassword = sha256(this.newPassword);
       const currentPassword = sha256(this.currentPassword);
 
-      const actionURL = "/basil/privilege/user/password-change";
+      const actionURL = "user/password-change";
 
       const vm = this;
       this.$api

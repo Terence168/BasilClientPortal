@@ -2,7 +2,7 @@
   <div class="q-mx-lg">
     <div class="generic-container">
       <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        Shipping
+        Quarantine
       </div>
 
       <q-separator />
@@ -64,14 +64,18 @@ export default {
 
       tableData: {
         columns: [
-          { id: "shipDate", label: "Ship Date", sortable: false },
+          { id: "quarantineDate", label: "Quarantine Date", sortable: false },
           { id: "partNumber", label: "Part Number Short", sortable: true },
           { id: "serialNumber", label: "Serial Number", sortable: false },
           { id: "rmaNumber", label: "Ticket Number", sortable: true },
-          { id: "trackingNumber", label: "Ticket Number", sortable: false },
           {
-            id: "reportedIssue",
-            label: "Customer Reported Issue",
+            id: "customerContact",
+            label: "Customer Contact Needed",
+            sortable: false,
+          },
+          {
+            id: "techNotes",
+            label: "Tech Notes",
             sortable: false,
           },
           { id: "faultCode", label: "Fault Code", sortable: false },
@@ -104,7 +108,7 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/rma/shipped" + window.location.search)
+        .get("/rma/quarantine" + window.location.search)
         .then(function (response) {
           vm.tableData.rows = response.data.data;
           vm.total = response.data.total;
