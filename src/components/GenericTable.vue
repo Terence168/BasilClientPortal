@@ -169,7 +169,7 @@ export default {
       } else if (!this.sort[id].desc) {
         this.sort[id].desc = true;
       } else {
-        this.$delete(this.sort, id);
+        delete this.sort[id];
       }
       this.buildQuery();
     },

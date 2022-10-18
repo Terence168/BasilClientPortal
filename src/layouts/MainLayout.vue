@@ -167,7 +167,7 @@ export default {
   data() {
     return {
       showModal: false,
-      tab: "privilege",
+      tab: "RMAStatus",
       isPwd: true,
       isPwd2: true,
       newPassword: null,

@@ -22,11 +22,7 @@
         </div>
         <div class="q-pt-md">
           <div class="row justify-center">
-            <GenericTable
-              style="max-width: 100%"
-              :tableData="tableData"
-              :permissions="permissions"
-            />
+            <GenericTable style="max-width: 100%" :tableData="tableData" />
           </div>
 
           <GenericPagination :pages="totalPages" :total="total" />
@@ -91,17 +87,6 @@ export default {
       const perPage = this.$route.query.per_page || 10;
       return Math.ceil(this.total / perPage);
     },
-
-    permissions() {
-      const view = this.checkPermission("privilege.role-type.view");
-      const update = this.checkPermission("privilege.role-type.update");
-
-      if (view || update) {
-        return { view, update };
-      }
-
-      return null;
-    },
   },
 
   created() {
@@ -127,26 +112,6 @@ export default {
         .catch(function (error) {
           // handle error
           console.log(error);
-        });
-    },
-
-    onSubmit(id) {
-      if (this.modalFormOptions.action === "View") return;
-
-      let actionURL;
-      if (this.modalFormOptions.action === "Add")
-        actionURL = "/basil/privilege/role-type/add";
-      else if (this.modalFormOptions.action === "Update")
-        actionURL = "/basil/privilege/role-type/update";
-      else console.log("Should not be here :(");
-
-      const vm = this;
-      this.$api
-        .post(actionURL, { id, ...this.modalFormData })
-        .then(function (response) {
-          console.log(response);
-          vm.showModal = false;
-          vm.queryData();
         });
     },
 
