@@ -3,10 +3,19 @@
 <mapper namespace="us.pax.basil.mapper.SupportAttributeMapper">
     <select id="getValue" resultType="java.util.HashMap">
     	SELECT
-           SAV_OID AS value, VALUE AS label
+           SAV_OID AS value, 
+           VALUE AS label
         FROM
            BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES
         WHERE
            SA_OID = #{oid,jdbcType=INTEGER};
+    </select>
+
+    <select id="getCompanyInfo" resultType="java.util.HashMap">
+		SELECT
+   			MC_OID as value,
+   			CUSTOMER_ORGANIZATION as label
+   		FROM 
+   			BASIL_ODS_PRD.MASTER_CUSTOMER
     </select>
 </mapper>

@@ -22,4 +22,5 @@ import us.pax.basil.entity.LabelValuePair;
 
 public interface SupportAttributeMapper extends BaseMapper<LabelValuePair> {
     ArrayList<Map<String, Object>> getValue(Integer oid);
+    ArrayList<Map<String, Object>> getCompanyInfo();
 }

@@ -58,104 +58,104 @@ import org.springframework.stereotype.Service;
 public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements RmaService {
     private RmaMapper rmaMapper;
 
-	@Override
-	public QueryResultArrayDTO statusQuery(Integer currentPage, Integer sizePerPage, String sortColumns, Long rmaNumber,
-			String serialNumber, String partNumber) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public QueryResultArrayDTO statusQuery(Integer currentPage, Integer sizePerPage, String sortColumns, Long rmaNumber,
+            String serialNumber, String partNumber) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public QueryResultArrayDTO shippedQuery(Integer currentPage, 
-			                                 Integer sizePerPage, 
-			                                 String sortColumns, 
-			                                 Long rmaNumber, 
-			                                 String serialNumber, 
-			                                 String model) {
-		/*
-   		String [] receivedDates = {null,null};
-   		if (dateReceived != null)
-   			receivedDates = DateTimeUtil.getStartEnd(dateReceived, DateTimeUtil.PATTERN_YYYYMMDD_WITH_SLASH, "~");
-		*/
+    @Override
+    public QueryResultArrayDTO shippedQuery(Integer currentPage, 
+                                             Integer sizePerPage, 
+                                             String sortColumns, 
+                                             Long rmaNumber, 
+                                             String serialNumber, 
+                                             String model) {
+        /*
+           String [] receivedDates = {null,null};
+           if (dateReceived != null)
+               receivedDates = DateTimeUtil.getStartEnd(dateReceived, DateTimeUtil.PATTERN_YYYYMMDD_WITH_SLASH, "~");
+        */
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = null;
         
         if (user != null)
-        	companyId = user.getCompanyId();
+            companyId = user.getCompanyId();
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-		try {
-			Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, model);
-	
-			List<Shipped> shippedList = rmaMapper.getShipping(currentPage, 
-					                                         sizePerPage, 
-					                                         buildSortString(sortColumns),
-					                                         companyId,
-					                                         rmaNumber, 
-					                                         serialNumber, 
-					                                         model);
+        try {
+            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, model);
+    
+            List<Shipped> shippedList = rmaMapper.getShipping((currentPage - 1) * sizePerPage,
+                                                              sizePerPage, 
+                                                              buildSortString(sortColumns),
+                                                              companyId,
+                                                              rmaNumber, 
+                                                              serialNumber, 
+                                                              model);
 
-			for (Shipped shipped: shippedList) { 
-				Map<String, Object> shippedMap = new HashMap<>();
-	
-				shippedMap.put("shipDate", shipped.getShipDate());
-				shippedMap.put("partNumber", shipped.getPartNumber());
-				shippedMap.put("serialNumber", shipped.getSerialNumber());
-				shippedMap.put("rmaNumber", shipped.getRmaNumber());
-				shippedMap.put("trackingNumber", shipped.getTrackingNumber());
-				shippedMap.put("reportedIssue", shipped.getReportedIssue());
-				shippedMap.put("faultCode", shipped.getFaultCode());
-	
-				resultArray.add(shippedMap);
-			}
-	        return new QueryResultArrayDTO(resultArray, total, 0, "");
-		} catch(Exception e) {
-			return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
-		}
-	}
+            for (Shipped shipped: shippedList) { 
+                Map<String, Object> shippedMap = new HashMap<>();
+    
+                shippedMap.put("shipDate", shipped.getShipDate());
+                shippedMap.put("partNumber", shipped.getPartNumber());
+                shippedMap.put("serialNumber", shipped.getSerialNumber());
+                shippedMap.put("rmaNumber", shipped.getRmaNumber());
+                shippedMap.put("trackingNumber", shipped.getTrackingNumber());
+                shippedMap.put("reportedIssue", shipped.getReportedIssue());
+                shippedMap.put("faultCode", shipped.getFaultCode());
+    
+                resultArray.add(shippedMap);
+            }
+            return new QueryResultArrayDTO(resultArray, total, 0, "");
+        } catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
 
-	@Override
-	public QueryResultArrayDTO quarantineQuery(Integer currentPage, 
-			                                    Integer sizePerPage, 
-			                                    String sortColumns, 
-			                                    Long rmaNumber, 
-			                                    String serialNumber, 
-			                                    String model) {
+    @Override
+    public QueryResultArrayDTO quarantineQuery(Integer currentPage, 
+                                                Integer sizePerPage, 
+                                                String sortColumns, 
+                                                Long rmaNumber, 
+                                                String serialNumber, 
+                                                String model) {
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId=null;
         if (user != null)
-        	companyId = user.getCompanyId();
+            companyId = user.getCompanyId();
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-		try {
-			Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, serialNumber, model);
-	
-			List<Quarantine> quarantineList = rmaMapper.getQuarantine(currentPage, 
-					                                         	sizePerPage, 
-					                                         buildSortString(sortColumns),
-					                                         companyId,
-					                                         rmaNumber, 
-					                                         serialNumber, 
-					                                         model);
+        try {
+            Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, serialNumber, model);
+    
+            List<Quarantine> quarantineList = rmaMapper.getQuarantine((currentPage - 1) * sizePerPage,
+                                                                      sizePerPage, 
+                                                                      buildSortString(sortColumns),
+                                                                      companyId,
+                                                                      rmaNumber, 
+                                                                      serialNumber, 
+                                                                      model);
 
-			for (Quarantine quarantine: quarantineList) { 
-				Map<String, Object> quarantineMap = new HashMap<>();
-	
-				quarantineMap.put("quarantineDate", quarantine.getQuarantineDate());
-				quarantineMap.put("partNumber", quarantine.getPartNumber());
-				quarantineMap.put("serialNumber", quarantine.getSerialNumber());
-				quarantineMap.put("rmaNumber", quarantine.getRmaNumber());
-				quarantineMap.put("customerContact", quarantine.getCustomerContact());
-				quarantineMap.put("techNotes", quarantine.getTechNotes());
-				quarantineMap.put("faultCode", quarantine.getFaultCode());
-	
-				resultArray.add(quarantineMap);
-			}
-	        return new QueryResultArrayDTO(resultArray, total, 0, "");
-		} catch(Exception e) {
-			return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
-		}
-	}
+            for (Quarantine quarantine: quarantineList) { 
+                Map<String, Object> quarantineMap = new HashMap<>();
+    
+                quarantineMap.put("quarantineDate", quarantine.getQuarantineDate());
+                quarantineMap.put("partNumber", quarantine.getPartNumber());
+                quarantineMap.put("serialNumber", quarantine.getSerialNumber());
+                quarantineMap.put("rmaNumber", quarantine.getRmaNumber());
+                quarantineMap.put("customerContact", quarantine.getCustomerContact());
+                quarantineMap.put("techNotes", quarantine.getTechNotes());
+                quarantineMap.put("faultCode", quarantine.getFaultCode());
+    
+                resultArray.add(quarantineMap);
+            }
+            return new QueryResultArrayDTO(resultArray, total, 0, "");
+        } catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
 
     private String buildSortString(String sortColumns) {
         if (null == sortColumns) {
@@ -182,25 +182,13 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
             switch (fields[0]) {
                 case "rmaNumber":
-                    col = col.replace("rmaNumber", "MO_OID");
+                    col = col.replace("rmaNumber", "rmaNumber");
                     break;
                 case "serialNumber":
-                    col = col.replace("serialNumber", "SERIAL_NUMBER");
+                    col = col.replace("serialNumber", "serialNumber");
                     break;
                 case "partNumber":
-                    col = col.replace("partNumber", "PART_NUMBER");
-                    break;
-                case "trackingNumber":
-                    col = col.replace("trackingNumber", "TRACKING_NUMBER");
-                    break;
-                case "reportedIssue":
-                    col = col.replace("reportedIssue", "CUSTOMER_REPORTED_ISSUE_EXT");
-                    break;
-                case "faultCode":
-                    col = col.replace("faultCode", "faultCode");
-                    break;
-                case "shipDate":
-                    col = col.replace("shipDate", "shipDate");
+                    col = col.replace("partNumber", "partNumber");
                     break;
                 default:
                     log.warn("Ignoring invalid sort field: {}", col);

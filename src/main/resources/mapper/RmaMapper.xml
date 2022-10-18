@@ -18,7 +18,7 @@
 				mo.MC_OID = #{id}
 			</if>
 			<if test="rmaNumber != null">
-				mo.MC_OID = #{rmaNumber}
+				mo.MO_OID = #{rmaNumber}
 			</if>
 			<if test="serialNumber != null">
 				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
@@ -52,17 +52,19 @@ FROM
 		mo.MC_OID = #{id}
 	</if>
 	<if test="rmaNumber != null">
-		mo.MO_OID = #{rmaNumber}
+		AND mo.MO_OID = #{rmaNumber}
 	</if>
 	<if test="serialNumber != null">
 		AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 	</if>
 	<if test="partNumber != null">
-		AND part.PART_NUMBER LIKE concat('%',#{partNumber},'%')
+		AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 	</if>
     	AND xm.STATUS = 113
 </where>
-	ORDER BY ship.SHIP_DATE DESC
+    <if test="sortColumns != null and sortColumns != ''">
+      ORDER BY ${sortColumns}
+    </if>
     LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
 </select>
 
@@ -82,13 +84,13 @@ FROM
 			mo.MC_OID = #{id}
 		</if>
 		<if test="rmaNumber != null">
-			mo.MO_OID = #{rmaNumber}
+			AND mo.MO_OID = #{rmaNumber}
 		</if>
 		<if test="serialNumber != null">
 			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 		</if>
 		<if test="partNumber != null">
-			AND part.PART_NUMBER LIKE concat('%',#{partNumber},'%')
+			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 		</if>
 	    	AND xm.STATUS = 108
 	</where>
@@ -116,17 +118,19 @@ FROM
 		mo.MC_OID = #{id}
 	</if>
 	<if test="rmaNumber != null">
-		mo.MO_OID = #{rmaNumber}
+		AND mo.MO_OID = #{rmaNumber}
 	</if>
 	<if test="serialNumber != null">
 		AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 	</if>
 	<if test="partNumber != null">
-		AND part.PART_NUMBER LIKE concat('%',#{partNumber},'%')
+		AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 	</if>
     	AND xm.STATUS = 108
 </where>
-	ORDER BY xm.QUARANTINE_DATE DESC
+    <if test="sortColumns != null and sortColumns != ''">
+      ORDER BY ${sortColumns}
+    </if>
     LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
 </select>
 

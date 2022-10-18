@@ -21,4 +21,5 @@ import us.pax.basil.entity.LabelValuePair;
 
 public interface SupportAttributeService extends IService<LabelValuePair> {
     QueryResultArrayDTO getDropDown(Integer id);
+    QueryResultArrayDTO getCompanyInfo();
 }

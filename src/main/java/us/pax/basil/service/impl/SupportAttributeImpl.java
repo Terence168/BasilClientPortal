@@ -43,4 +43,14 @@ public class SupportAttributeImpl extends ServiceImpl<SupportAttributeMapper, La
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
+
+	@Override
+	public QueryResultArrayDTO getCompanyInfo() {
+        try {
+            ArrayList<Map<String, Object>> dropDown = supportAttributeMapper.getCompanyInfo();
+            return new QueryResultArrayDTO(dropDown, dropDown.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+	}
 }
