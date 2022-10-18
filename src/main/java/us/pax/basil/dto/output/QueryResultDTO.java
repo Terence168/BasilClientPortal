@@ -19,18 +19,18 @@ import java.util.Map;
 import us.pax.basil.utils.SqlResults;
 
 public class QueryResultDTO extends SqlResults{
-    private Map<String, Integer> data;
+    private Map<String, Object> data;
     
-    public QueryResultDTO(Map<String, Integer> data, int resultCode, String errorMessage) {
+    public QueryResultDTO(Map<String, Object> data, int resultCode, String errorMessage) {
         this.data = data;
         this.resultCode = resultCode;
         this.errorMessage = errorMessage;
     }
 
-    public Map<String, Integer> getData() {
+    public Map<String, Object> getData() {
         return data;
     }
-    public void setData(Map<String, Integer> data) {
+    public void setData(Map<String, Object> data) {
         this.data = data;
     }
 }

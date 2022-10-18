@@ -134,4 +134,26 @@ FROM
     LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
 </select>
 
+<select id="getPartNumberTier1" resultType="us.pax.basil.entity.rma.PartNumberTier1">
+	SELECT 
+	    part.PART_NUMBER_SHORT as partNumber,
+	    SUM(IF(xm.STATUS = 107, 1, 0)) AS inventory,
+	    SUM(IF(xm.STATUS = 110, 1, 0)) AS outForRepair,
+	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
+	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
+	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
+	    COUNT(mo.MO_OID) AS TOTAL
+	FROM
+	    BASIL_ODS_PRD.MASTER_ORDER mo
+	        JOIN
+	    BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+	        JOIN
+	    BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+	        JOIN
+	    BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+	WHERE
+	    mo.MC_OID = #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+	GROUP BY part.PART_NUMBER_SHORT;
+</select>
+
 </mapper>

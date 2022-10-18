@@ -17,11 +17,11 @@ package us.pax.basil.controller;
 
 
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.service.RmaService;
 import io.swagger.annotations.Api;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Api(tags = "Basil API Interface")
@@ -48,6 +48,11 @@ public class RmaController {
             sizePerPage = 10; // show 10 items per page by default
         }
         return rmaService.statusQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber);
+    }
+
+    @GetMapping("/status/tier1")
+    public QueryResultArrayDTO statusTier1() {
+        return rmaService.statusTier1();
     }
 
 

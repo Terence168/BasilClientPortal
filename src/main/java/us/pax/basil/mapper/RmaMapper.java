@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import us.pax.basil.entity.rma.PartNumberTier1;
 import us.pax.basil.entity.rma.Quarantine;
 import us.pax.basil.entity.rma.Shipped;
 
@@ -51,4 +52,6 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	    Long rmaNumber,
                          	    String serialNumber,
                          	    String partNumber);
+	
+	List<PartNumberTier1> getPartNumberTier1(Integer id);
 }

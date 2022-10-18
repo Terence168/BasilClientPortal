@@ -19,37 +19,21 @@ package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
-import us.pax.basil.constant.PasswordConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.SqlResultDTO;
-import us.pax.basil.entity.User;
+import us.pax.basil.entity.rma.PartNumberTier1;
 import us.pax.basil.entity.rma.Quarantine;
 import us.pax.basil.entity.rma.Shipped;
-import us.pax.basil.mapper.PasswordMapper;
 import us.pax.basil.mapper.RmaMapper;
-import us.pax.basil.mapper.UserMapper;
-import us.pax.basil.property.MailProperties;
 import us.pax.basil.security.CustomUserDetails;
-import us.pax.basil.service.PasswordService;
 import us.pax.basil.service.RmaService;
 import us.pax.basil.utils.AuthUtil;
-import us.pax.basil.utils.EmailUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
-import javax.mail.internet.MimeMessage;
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -204,4 +188,34 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         log.info("Sorting String: [{}]", sb.toString());
         return sb.toString();
     }
+
+	@Override
+	public QueryResultArrayDTO statusTier1() {
+        CustomUserDetails user = AuthUtil.getUser();
+        Integer companyId = null;
+        
+        if (user != null)
+            companyId = user.getCompanyId();
+
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId);
+        try {
+        	for (PartNumberTier1 part: partNumberList) {
+        		Map<String, Object> result = new HashMap<>();
+
+		    	result.put("partNumber", part.getPartNumber());
+		    	result.put("inventory", part.getInventory());
+		    	result.put("outForRepair", part.getOutForRepair());
+		    	result.put("quarantine", part.getQuarantine());
+    			result.put("awaitingQaCa", part.getAwaitingQaCa());
+    			result.put("readyToShip", part.getReadyToShip());
+    			
+    			resultArray.add(result);
+        	}
+
+        	return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        }catch(Exception e) {
+        	return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+	}
 }
