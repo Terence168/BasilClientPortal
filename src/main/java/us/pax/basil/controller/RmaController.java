@@ -17,7 +17,6 @@ package us.pax.basil.controller;
 
 
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.service.RmaService;
 import io.swagger.annotations.Api;
 
@@ -53,6 +52,11 @@ public class RmaController {
     @GetMapping("/status/tier1")
     public QueryResultArrayDTO statusTier1() {
         return rmaService.statusTier1();
+    }
+
+    @GetMapping("/status/tier2")
+    public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = false) String partNumber) {
+        return rmaService.statusTier2(partNumber);
     }
 
 

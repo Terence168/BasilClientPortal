@@ -145,15 +145,32 @@ FROM
 	    COUNT(mo.MO_OID) AS TOTAL
 	FROM
 	    BASIL_ODS_PRD.MASTER_ORDER mo
-	        JOIN
-	    BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
-	        JOIN
-	    BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
-	        JOIN
-	    BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	WHERE
 	    mo.MC_OID = #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
 	GROUP BY part.PART_NUMBER_SHORT;
+</select>
+
+<select id="getRmaNumberTier2" resultType="us.pax.basil.entity.rma.RmaNumberTier2">
+	SELECT
+	    mo.MO_OID as rmaNumber,
+	    SUM(IF(xm.STATUS = 107, 1, 0)) AS inventory,
+	    SUM(IF(xm.STATUS = 110, 1, 0)) AS outForRepair,
+	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
+	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
+	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
+	    COUNT(msn.SERIAL_NUMBER) AS total
+	FROM
+	    BASIL_ODS_PRD.MASTER_ORDER mo
+	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+	WHERE
+	    mo.MC_OID = #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID
+	HAVING part.PART_NUMBER_SHORT = #{partNumber};
 </select>
 
 </mapper>

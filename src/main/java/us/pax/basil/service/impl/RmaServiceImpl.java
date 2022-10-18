@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.entity.rma.PartNumberTier1;
 import us.pax.basil.entity.rma.Quarantine;
+import us.pax.basil.entity.rma.RmaNumberTier2;
 import us.pax.basil.entity.rma.Shipped;
 import us.pax.basil.mapper.RmaMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -209,6 +210,36 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 		    	result.put("quarantine", part.getQuarantine());
     			result.put("awaitingQaCa", part.getAwaitingQaCa());
     			result.put("readyToShip", part.getReadyToShip());
+    			
+    			resultArray.add(result);
+        	}
+
+        	return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        }catch(Exception e) {
+        	return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+	}
+
+	@Override
+	public QueryResultArrayDTO statusTier2(String partNumber) {
+        CustomUserDetails user = AuthUtil.getUser();
+        Integer companyId = null;
+        
+        if (user != null)
+            companyId = user.getCompanyId();
+
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(192, partNumber);
+        try {
+        	for (RmaNumberTier2 rma: rmaNumberList) {
+        		Map<String, Object> result = new HashMap<>();
+
+		    	result.put("rmaNumber", rma.getRmaNumber());
+		    	result.put("inventory", rma.getInventory());
+		    	result.put("outForRepair", rma.getOutForRepair());
+		    	result.put("quarantine", rma.getQuarantine());
+    			result.put("awaitingQaCa", rma.getAwaitingQaCa());
+    			result.put("readyToShip", rma.getReadyToShip());
     			
     			resultArray.add(result);
         	}
