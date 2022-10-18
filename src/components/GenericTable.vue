@@ -86,6 +86,17 @@
               ></q-btn> -->
             </span>
 
+            <span style="cursor: pointer" v-if="column.id === 'techNotes'">
+              {{ row[column.id].slice(0, 50).trim() + "..." }}
+              <q-tooltip
+                class="bg-primary text-body2 shadow-4"
+                max-width="500px"
+                :offset="[10, 10]"
+              >
+                {{ row[column.id] }}
+              </q-tooltip>
+            </span>
+
             <span v-else>{{ row[column.id] }}</span>
           </td>
         </tr>
