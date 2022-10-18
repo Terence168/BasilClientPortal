@@ -23,6 +23,7 @@ import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.entity.rma.PartNumberTier1;
 import us.pax.basil.entity.rma.Quarantine;
 import us.pax.basil.entity.rma.RmaNumberTier2;
+import us.pax.basil.entity.rma.SerialNumberTier3;
 import us.pax.basil.entity.rma.Shipped;
 import us.pax.basil.mapper.RmaMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -210,6 +211,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 		    	result.put("quarantine", part.getQuarantine());
     			result.put("awaitingQaCa", part.getAwaitingQaCa());
     			result.put("readyToShip", part.getReadyToShip());
+    			result.put("total", part.getTotal());
     			
     			resultArray.add(result);
         	}
@@ -229,7 +231,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             companyId = user.getCompanyId();
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(192, partNumber);
+        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber);
         try {
         	for (RmaNumberTier2 rma: rmaNumberList) {
         		Map<String, Object> result = new HashMap<>();
@@ -240,6 +242,37 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 		    	result.put("quarantine", rma.getQuarantine());
     			result.put("awaitingQaCa", rma.getAwaitingQaCa());
     			result.put("readyToShip", rma.getReadyToShip());
+    			result.put("total", rma.getTotal());
+    			
+    			resultArray.add(result);
+        	}
+
+        	return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        }catch(Exception e) {
+        	return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+	}
+
+	@Override
+	public QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber) {
+        CustomUserDetails user = AuthUtil.getUser();
+        Integer companyId = null;
+        
+        if (user != null)
+            companyId = user.getCompanyId();
+
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId, rmaNumber, partNumber);
+        try {
+        	for (SerialNumberTier3 serialNumber: serialNumberList) {
+        		Map<String, Object> result = new HashMap<>();
+
+		    	result.put("serialNumber", serialNumber.getSerialNumber());
+		    	result.put("inventory", serialNumber.getInventory());
+		    	result.put("outForRepair", serialNumber.getOutForRepair());
+		    	result.put("quarantine", serialNumber.getQuarantine());
+    			result.put("awaitingQaCa", serialNumber.getAwaitingQaCa());
+    			result.put("readyToShip", serialNumber.getReadyToShip());
     			
     			resultArray.add(result);
         	}

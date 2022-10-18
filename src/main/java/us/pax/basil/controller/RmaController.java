@@ -55,8 +55,14 @@ public class RmaController {
     }
 
     @GetMapping("/status/tier2")
-    public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = false) String partNumber) {
+    public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = true) String partNumber) {
         return rmaService.statusTier2(partNumber);
+    }
+
+    @GetMapping("/status/tier3")
+    public QueryResultArrayDTO statusTier3(@RequestParam(value = "rmaNumber", required = true) Long rmaNumber,
+    										@RequestParam(value = "partNumber", required = true) String partNumber) {
+        return rmaService.statusTier3(rmaNumber, partNumber);
     }
 
 

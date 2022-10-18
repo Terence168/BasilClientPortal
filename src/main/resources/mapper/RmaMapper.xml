@@ -173,4 +173,24 @@ FROM
 	HAVING part.PART_NUMBER_SHORT = #{partNumber};
 </select>
 
+<select id="getSerialNumberTier3" resultType="us.pax.basil.entity.rma.SerialNumberTier3">
+    SELECT
+        msn.SERIAL_NUMBER as serialNumber,
+        IF(xm.STATUS = 107, 1, 0) AS inventory,
+        IF(xm.STATUS = 110, 1, 0) AS outForRepair,
+        IF(xm.STATUS = 108, 1, 0) AS quarantine,
+        IF(xm.STATUS = 111, 1, 0) AS awaitingQaCa,
+        IF(xm.STATUS = 112, 1, 0) AS readyToShip
+    FROM
+        BASIL_ODS_PRD.MASTER_ORDER mo
+        JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+        JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+        JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+    WHERE
+        mo.MC_OID = #{id}
+            AND xm.STATUS IN (107, 110, 108, 111, 112)
+    		AND part.PART_NUMBER_SHORT = #{partNumber}
+            AND mo.MO_OID = #{rmaNumber}
+</select>
+
 </mapper>
