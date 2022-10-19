@@ -274,7 +274,7 @@ export default {
           { id: "email", label: "Email", sortable: true },
           { id: "registerTime", label: "Register Time", sortable: true },
           { id: "lastLogin", label: "Last Login", sortable: true },
-          { id: "status", label: "User Status", sortable: true },
+          { id: "statusStr", label: "User Status", sortable: true },
 
           { id: "userActions", label: "Actions", sortable: false },
         ],
