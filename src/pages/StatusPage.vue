@@ -2,7 +2,7 @@
   <div class="q-mx-lg">
     <div class="generic-container">
       <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        RMA Status
+        General Information
       </div>
 
       <q-separator />
@@ -18,21 +18,40 @@
     <div class="q-mt-lg generic-container">
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg">
         <div class="row items-center text-subtitle1 text-weight-medium">
-          Click on a column to sort the content of the table
+          Click on a box to show detailed info
         </div>
-        <div class="q-pt-md">
-          <div class="row justify-center">
-            <GenericTable
-              @detailed-view="detailedView"
-              @update-data="updateData"
-              style="width: 400px"
-              :tableData="tableData"
-              :permissions="permissions"
-            />
-          </div>
 
-          <GenericPagination :pages="totalPages" :total="total" />
+        <div
+          class="row"
+          style="
+            max-width: 1100px;
+            margin: 0 auto;
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 1000;
+          "
+        >
+          <div class="col-3"></div>
+          <div class="col-9">
+            <div class="row shadow-2 text-body1 text-center q-py-xs">
+              <div class="col-2">Inventory</div>
+              <div class="col-2">Out for Repair</div>
+              <div class="col-2">Quarantine</div>
+              <div class="col-2">Awaiting QA/CA</div>
+              <div class="col-2">Ready to Ship</div>
+              <div class="col-2 text-weight-bold">Total</div>
+            </div>
+          </div>
         </div>
+
+        <StatusBox
+          v-for="part in partSummary"
+          :key="part.partNumber"
+          category="partNumber"
+          :level="1"
+          :data="part"
+        />
       </div>
     </div>
   </div>
@@ -40,13 +59,12 @@
 
 <script>
 import FilterOptions from "src/components/FilterOptions.vue";
-import GenericTable from "src/components/GenericTable.vue";
-import GenericPagination from "src/components/GenericPagination.vue";
 
 import { useUserStore } from "stores/user";
+import StatusBox from "src/components/StatusBox.vue";
 
 export default {
-  components: { FilterOptions, GenericTable, GenericPagination },
+  components: { FilterOptions, StatusBox },
 
   data() {
     return {
@@ -58,24 +76,13 @@ export default {
         submitting: false,
       },
 
-      modalFormData: {
-        name: null,
-      },
+      partSummary: [],
 
       filterFields: [
-        { id: "rma", label: "RMA Number" },
-        { id: "serial", label: "Serial Number" },
-        { id: "model", label: "Model Number Short" },
+        { id: "rmaNumber", label: "RMA Number" },
+        { id: "serialNumber", label: "Serial Number" },
+        { id: "partNumber", label: "Model Number Short" },
       ],
-
-      tableData: {
-        columns: [
-          { id: "rmaNumber", label: "Ticket Number", sortable: true },
-          { id: "rmaNumber", label: "Ticket Number", sortable: true },
-        ],
-        rows: [],
-      },
-      total: 0,
     };
   },
 
@@ -83,17 +90,6 @@ export default {
     totalPages() {
       const perPage = this.$route.query.per_page || 10;
       return Math.ceil(this.total / perPage);
-    },
-
-    permissions() {
-      const view = this.checkPermission("privilege.role-type.view");
-      const update = this.checkPermission("privilege.role-type.update");
-
-      if (view || update) {
-        return { view, update };
-      }
-
-      return null;
     },
   },
 
@@ -112,71 +108,14 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/basil/privilege/role-type/query" + window.location.search)
+        .get("/rma/status/tier1" + window.location.search)
         .then(function (response) {
-          vm.tableData.rows = response.data.data;
-          vm.total = response.data.total;
+          vm.partSummary = response.data.data;
         })
         .catch(function (error) {
           // handle error
           console.log(error);
         });
-    },
-
-    onSubmit(id) {
-      if (this.modalFormOptions.action === "View") return;
-
-      let actionURL;
-      if (this.modalFormOptions.action === "Add")
-        actionURL = "/basil/privilege/role-type/add";
-      else if (this.modalFormOptions.action === "Update")
-        actionURL = "/basil/privilege/role-type/update";
-      else console.log("Should not be here :(");
-
-      const vm = this;
-      this.$api
-        .post(actionURL, { id, ...this.modalFormData })
-        .then(function (response) {
-          console.log(response);
-          vm.showModal = false;
-          vm.queryData();
-        });
-    },
-
-    pickData(id) {
-      return this.tableData.rows.find((row) => row.id === id);
-    },
-
-    populateFields(id) {
-      this.modalFormOptions.id = id;
-      const originalData = this.pickData(id);
-
-      console.log(originalData);
-
-      this.modalFormData.name = originalData.roleType;
-
-      this.showModal = true;
-    },
-
-    addData() {
-      this.modalFormOptions.action = "Add";
-      this.modalFormOptions.id = null;
-
-      this.modalFormData.name = null;
-
-      this.showModal = true;
-    },
-
-    detailedView(id) {
-      this.modalFormOptions.action = "View";
-
-      this.populateFields(id);
-    },
-
-    updateData(id) {
-      this.modalFormOptions.action = "Update";
-
-      this.populateFields(id);
     },
 
     checkPermission(permission) {
