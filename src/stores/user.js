@@ -46,12 +46,12 @@ export const useUserStore = defineStore("user", {
 
           this.username = user.name;
           this.email = user.email;
-          this.company = user.companyName;
+          this.company = user.companyId;
           this.permissions = user.permissions;
 
           this.sessionStartTime = Date.now();
         })
-        .then(() => this.router.push({ name: "user" }))
+        .then(() => this.router.push({ name: "status" }))
         .catch((error) => {
           Notify.create({
             type: "negative",
@@ -62,7 +62,9 @@ export const useUserStore = defineStore("user", {
 
     logout() {
       this.$reset();
-      this.router.push({ name: "login" });
+      api.get("logout").then(() => {
+        this.router.push({ name: "login" });
+      });
     },
 
     checkPermission(permission) {

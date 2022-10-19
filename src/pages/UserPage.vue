@@ -264,18 +264,17 @@ export default {
 
       filterFields: [
         { id: "userName", label: "User Name" },
-        { id: "registerTime", label: "Register Time", type: "dateRange" },
         { id: "email", label: "Email" },
         { id: "lastLogin", label: "Last Login", type: "dateRange" },
       ],
 
       tableData: {
         columns: [
-          { id: "userName", label: "User Name", sortable: true },
+          { id: "user", label: "User Name", sortable: true },
           { id: "email", label: "Email", sortable: true },
           { id: "registerTime", label: "Register Time", sortable: true },
           { id: "lastLogin", label: "Last Login", sortable: true },
-          // { id: "userStatus", label: "User Status", sortable: true },
+          { id: "status", label: "User Status", sortable: true },
 
           { id: "userActions", label: "Actions", sortable: false },
         ],
@@ -297,11 +296,7 @@ export default {
   },
 
   created() {
-    // this.queryData();
-    // this.populateRoles();
-    // this.populateDivisionDropdown();
-    // this.populateTitleDropdown();
-    // this.populateStatusDropdown();
+    this.queryData();
   },
 
   watch: {
@@ -315,7 +310,7 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/basil/privilege/user/query" + window.location.search)
+        .get("privilege/user/query" + window.location.search)
         .then(function (response) {
           vm.tableData.rows = response.data.data;
           vm.total = response.data.total;
