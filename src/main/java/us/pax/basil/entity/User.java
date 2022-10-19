@@ -21,6 +21,7 @@ public class User {
 	private Timestamp tokenExp;
 	private String remark;
 	private Integer status;
+	private String statusStr;
 	private String created;
 	private String creator;
 	private String modified;

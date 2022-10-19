@@ -85,7 +85,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	        //user.setPassword(passwordEncoder.encode(PasswordConstant.NEW_USER_PASSWORD));
 	        user.setPassword(passwordEncoder.encode("Pax4Future!@"));
 	
-	        user.setStatus(StatusConstant.USER_INACTIVE);
+	        user.setStatus(StatusConstant.DISABLED);
 	
 	        CustomUserDetails userDetails = AuthUtil.getUser();
 	        
@@ -129,7 +129,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     			return new SqlResultDTO(-200, "User account cannot be found for the specified token.");
     		}
     		passwordMapper.savePassword(passToken, passwordEncoder.encode(user.getPassword()));
-    		passwordMapper.setStatus(passToken, StatusConstant.STATUS_ENABLED);
+    		passwordMapper.setStatus(passToken, StatusConstant.ACTIVE);
     		passwordMapper.resetToken(passToken, UUID.randomUUID().toString());
     	} catch (Exception e) {
     		return new SqlResultDTO(-1, e.getMessage());
@@ -148,15 +148,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         
         Integer userStatus = userMapper.getUserStatus(details.getUserId());
         
-        if (userStatus.equals(StatusConstant.USER_DISABLED) == true) {
+        if (userStatus.equals(StatusConstant.DISABLED) == true) {
             return new QueryResultArrayDTO(null, 0, -55, "User account is currently disabled.");
-        } else if (userStatus.equals(StatusConstant.STATUS_NOT_ENABLE) == true) {
-            return new QueryResultArrayDTO(null, 0, -55, "User account is currently not enabled.");
-        } else if (userStatus.equals(StatusConstant.STATUS_DISABLED) == true ){
-            return new QueryResultArrayDTO(null, 0, -55, "User account is currently disabled.");
-        } else if (userStatus.equals(StatusConstant.STATUS_DELETED) == true) {
-            return new QueryResultArrayDTO(null, 0, -55, "User account is currently deleted.");
-        } else if (userStatus.equals(StatusConstant.USER_INACTIVE) == true) {
+        } else if (userStatus.equals(StatusConstant.INACTIVE) == true) {
             return new QueryResultArrayDTO(null, 0, -55, "User account is currently inactive.");
         }
 
@@ -206,11 +200,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			for (User user : userList) {
 	             Map<String, Object> map = new HashMap<>();
 	
-	             map.put("uOid", user.getUOid());
+	             map.put("id", user.getUOid());
 	             map.put("name", user.getName());
 	             map.put("company", user.getCompanyId());
 	             map.put("email", user.getEmail());
 	             map.put("status", user.getStatus());
+	             map.put("statusStr", user.getStatusStr());
 	             
 	             resultArray.add(map);
 			}
@@ -252,11 +247,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			for (User user : userList) {
 	             Map<String, Object> map = new HashMap<>();
 	
+	             map.put("id", user.getUOid());
 	             map.put("user", user.getName());
 	             map.put("email", user.getEmail());
 	             map.put("registerTime", user.getCreated());
 	             map.put("lastLogin", user.getLastLoginDate());
 	             map.put("status", user.getStatus());
+	             map.put("statusStr", user.getStatusStr());
 	             
 	             resultArray.add(map);
 			}

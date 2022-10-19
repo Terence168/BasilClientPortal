@@ -137,7 +137,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             
             if (userDetails == null) {
                 log.info("PrivilegeServiceImpl::AddRole(): *** User not logged in");
-                return new SqlResultDTO(-1, StatusConstant.LOGIN_EXPIRED);
+                return new SqlResultDTO(-1, "User not logged in.");
             }
 
             role.setCreator(userDetails.getUserId());

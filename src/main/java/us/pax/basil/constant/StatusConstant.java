@@ -16,12 +16,7 @@ package us.pax.basil.constant;
  */
 
 public class StatusConstant {
-    public final static Integer STATUS_NOT_ENABLE = 1;
-    public final static Integer STATUS_DISABLED = 2;
-    public final static Integer STATUS_ENABLED = 3;
-    public final static Integer STATUS_DELETED = 0;
-    public final static String LOGIN_EXPIRED = "User login session expired.";
-
-    public final static Integer USER_INACTIVE = 547;
-    public final static Integer USER_DISABLED = 549;
+    public final static Integer ACTIVE = 1;
+    public final static Integer DISABLED = 2;
+    public final static Integer INACTIVE = 3;
 }

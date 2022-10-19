@@ -130,7 +130,12 @@
 			NAME,
 			COMPANY_ID,
 			EMAIL,
-			STATUS
+			STATUS,
+			(CASE
+        		WHEN STATUS = 1 THEN 'Active'
+        		WHEN STATUS = 2 THEN 'Disabled'
+        		WHEN STATUS = 3 THEN 'Inactive'
+    		END) statusStr
 		FROM
 			BASIL_SEC_PRD.USERS
     	<where>
@@ -155,11 +160,17 @@
 
 	<select id="queryPrivilegeList" resultType="us.pax.basil.entity.User">
 		SELECT
+		    U_OID,
 			NAME,
 			EMAIL,
 			CREATED,
 			LAST_LOGIN_DATE,
-			STATUS
+			STATUS,
+			(CASE
+        		WHEN STATUS = 1 THEN 'Active'
+        		WHEN STATUS = 2 THEN 'Disabled'
+        		WHEN STATUS = 3 THEN 'Inactive'
+    		END) statusStr
 		FROM
 			BASIL_SEC_PRD.USERS
     	<where>
