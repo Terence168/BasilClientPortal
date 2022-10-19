@@ -28,9 +28,9 @@
     </insert>
     
     <update id="setLastLogin">
-		UPDATE EMPLOYEE_MASTER
-			SET LAST_LOGIN_DATE = NOW()
-		WHERE EMP_OID=#{empOid,jdbcType=INTEGER}
+		UPDATE BASIL_SEC_PRD.USERS
+			SET LAST_LOGIN_DATE = CURRENT_TIMESTAMP()
+		WHERE U_OID=#{uOid}
     </update>
 
     <update id="setUserId">
@@ -70,7 +70,6 @@
 			PASS_TOKEN=#{token};
 	</select>
 
-
     <select id="getCompanyName" resultType="String">
     	SELECT
 			CUSTOMER_ORGANIZATION
@@ -79,6 +78,7 @@
 		WHERE
 			MC_OID=#{id};
     </select>
+
 	<select id="getListCount" resultType="Integer">
 		SELECT
 			count(*)
@@ -96,6 +96,30 @@
       		</if>
       		<if test="email != null">
         		EMAIL LIKE concat('%',#{email},'%')
+      		</if>
+    	</where>
+    </select>
+
+	<select id="getPrivilegeListCount" resultType="Integer">
+		SELECT
+			count(*)
+		FROM
+			BASIL_SEC_PRD.USERS
+    	<where>
+      		<if test="name != null">
+          		NAME LIKE concat('%',#{name},'%')
+      		</if>
+      		<if test="email != null">
+        		EMAIL LIKE concat('%',#{email},'%')
+      		</if>
+      		<if test="registerTime != null">
+        		CREATED = #{registerTime}
+      		</if>
+      		<if test="lastLogin != null">
+        		LAST_LOGIN_DATE = #{lastLogin}
+      		</if>
+      		<if test="status != null">
+        		STATUS = #{status}
       		</if>
     	</where>
     </select>
@@ -121,6 +145,38 @@
       		</if>
       		<if test="email != null">
         		EMAIL LIKE concat('%',#{email},'%')
+      		</if>
+    	</where>
+    	<if test="sortColumns != null and sortColumns != ''">
+      		ORDER BY ${sortColumns}
+    	</if>
+    	LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
+	<select id="queryPrivilegeList" resultType="us.pax.basil.entity.User">
+		SELECT
+			NAME,
+			EMAIL,
+			CREATED,
+			LAST_LOGIN_DATE,
+			STATUS
+		FROM
+			BASIL_SEC_PRD.USERS
+    	<where>
+      		<if test="name != null">
+          		NAME LIKE concat('%',#{name},'%')
+      		</if>
+      		<if test="email != null">
+        		EMAIL LIKE concat('%',#{email},'%')
+      		</if>
+      		<if test="registerTime != null">
+        		CREATED = #{registerTime}
+      		</if>
+      		<if test="lastLogin != null">
+        		LAST_LOGIN_DATE = #{lastLogin}
+      		</if>
+      		<if test="status != null">
+        		STATUS = #{status}
       		</if>
     	</where>
     	<if test="sortColumns != null and sortColumns != ''">

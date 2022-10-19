@@ -190,36 +190,79 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			                              String email, 
 			                              Integer status) {
 		
-		Integer total = userMapper.getListCount(name, company, status, email);
-
-		List<User> userList = userMapper.queryList((currentPage-1) * sizePerPage, 
-				                                   sizePerPage, 
-				                                   sortColumns, 
-				                                   name, 
-				                                   company, 
-				                                   email, 
-				                                   status);
-		
-		ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-
-		for (User user : userList) {
-             Map<String, Object> map = new HashMap<>();
-
-             map.put("uOid", user.getUOid());
-             map.put("name", user.getName());
-             map.put("company", user.getCompanyId());
-             map.put("email", user.getEmail());
-             map.put("status", user.getStatus());
-             
-             resultArray.add(map);
+		try {
+			Integer total = userMapper.getListCount(name, company, status, email);
+	
+			List<User> userList = userMapper.queryList((currentPage-1) * sizePerPage, 
+					                                   sizePerPage, 
+					                                   sortColumns, 
+					                                   name, 
+					                                   company, 
+					                                   email, 
+					                                   status);
+			
+			ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+	
+			for (User user : userList) {
+	             Map<String, Object> map = new HashMap<>();
+	
+	             map.put("uOid", user.getUOid());
+	             map.put("name", user.getName());
+	             map.put("company", user.getCompanyId());
+	             map.put("email", user.getEmail());
+	             map.put("status", user.getStatus());
+	             
+	             resultArray.add(map);
+			}
+	        return new QueryResultArrayDTO(resultArray, total, 0, "");
+		} catch(Exception e) {
+			return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
 		}
-        return new QueryResultArrayDTO(resultArray, total, 0, "");
-
 	}
 
 	@Override
 	public QueryResultArrayDTO viewQuery(HttpServletRequest request) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public QueryResultArrayDTO queryPrivilegeUsers(Integer currentPage, 
+												    Integer sizePerPage, String sortColumns, 
+												    String userName, 
+												    String email, 
+												    String registerTime, 
+												    String lastLogin,
+												    Integer status) {
+
+		try {
+			Integer total = userMapper.getPrivilegeListCount(userName, email, registerTime, lastLogin, status);
+	
+			List<User> userList = userMapper.queryPrivilegeList((currentPage-1) * sizePerPage, 
+					                                   sizePerPage, 
+					                                   sortColumns, 
+					                                   userName, 
+					                                   email, 
+					                                   registerTime, 
+					                                   lastLogin,
+					                                   status);
+			
+			ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+	
+			for (User user : userList) {
+	             Map<String, Object> map = new HashMap<>();
+	
+	             map.put("user", user.getName());
+	             map.put("email", user.getEmail());
+	             map.put("registerTime", user.getCreated());
+	             map.put("lastLogin", user.getLastLoginDate());
+	             map.put("status", user.getStatus());
+	             
+	             resultArray.add(map);
+			}
+	        return new QueryResultArrayDTO(resultArray, total, 0, "");
+		} catch(Exception e) {
+			return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+		}
 	}
 }

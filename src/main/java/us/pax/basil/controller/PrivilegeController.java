@@ -38,6 +38,7 @@ import us.pax.basil.entity.privilege.UserAddUpdate;
 import us.pax.basil.service.EmployeeService;
 import us.pax.basil.service.PrivilegeService;
 import us.pax.basil.service.SupportAttributeService;
+import us.pax.basil.service.UserService;
 
 @RestController
 @RequestMapping("/privilege")
@@ -46,7 +47,7 @@ import us.pax.basil.service.SupportAttributeService;
 public class PrivilegeController {
 
     private PrivilegeService privilegeService;
-    private EmployeeService employeeService;
+    private UserService userService;
     private SupportAttributeService supportAttributeService;
     private EntityManager entityManager;
 
@@ -124,7 +125,7 @@ public class PrivilegeController {
      * @param lastLogin The query filter with last login date-time specified
      * @return the {@link QueryResultArrayDTO} which stores the desired list of users
      */
-    @PreAuthorize("hasAuthority('privilege.user')")
+    //@PreAuthorize("hasAuthority('privilege.user')")
     @GetMapping("/user/query")
     public QueryResultArrayDTO userQuery(@RequestParam(value = "page", required = false) Integer currentPage,
                                          @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -132,7 +133,8 @@ public class PrivilegeController {
                                          @RequestParam(value = "userName", required = false) String userName,
                                          @RequestParam(value = "email", required = false) String email,
                                          @RequestParam(value = "registerTime", required = false) String registerTime,
-                                         @RequestParam(value = "lastLogin", required = false) String lastLogin) {
+                                         @RequestParam(value = "lastLogin", required = false) String lastLogin,
+                                         @RequestParam(value = "status", required = false) Integer status) {
         if (null == currentPage) {
             currentPage = 1; // show the first page by default
         }
@@ -141,13 +143,14 @@ public class PrivilegeController {
             sizePerPage = 10; // show 10 items per page by default
         }
 
-        return employeeService.pageQueryUser(currentPage,
-                                             sizePerPage,
-                                             sort,
-                                             userName,
-                                             email,
-                                             registerTime,
-                                             lastLogin);
+        return userService.queryPrivilegeUsers(currentPage,
+                                                sizePerPage,
+                                                sort,
+                                                userName,
+                                                email,
+                                                registerTime,
+                                                lastLogin,
+                                                status);
     }
 
     //

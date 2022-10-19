@@ -28,7 +28,7 @@ public interface UserMapper extends BaseMapper<User> {
 	User getUserByToken(String token);
 	String getCompanyName(Integer id);
 	void addUser(User user);
-    void setLastLogin(Integer empOid);
+    void setLastLogin(Integer uOid);
     void setUserId(String userId);
     void setProgramName(String programName);
     void setReasonForChange(String reasonForChange);
@@ -41,6 +41,21 @@ public interface UserMapper extends BaseMapper<User> {
                          Integer company,
                          String email,
                          Integer status);
+
+    List<User> queryPrivilegeList(int offset,
+                         int count,
+                         String sortColumns,
+                         String name,
+                         String email,
+                         String registerTime,
+                         String lastLogin,
+                         Integer status);
+
+    Integer getPrivilegeListCount(String name, 
+    		                      String email, 
+    		                      String registerTime, 
+    		                      String lastLogin,
+                         		  Integer status);
 
     Integer getListCount(String name,
                          Integer company,

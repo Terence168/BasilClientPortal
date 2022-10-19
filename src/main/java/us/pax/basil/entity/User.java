@@ -21,9 +21,10 @@ public class User {
 	private Timestamp tokenExp;
 	private String remark;
 	private Integer status;
-	private String createdDate;
+	private String created;
 	private String creator;
-	private String modifiedDate;
+	private String modified;
 	private String modifier;
+	private String lastLoginDate;
 	private Integer version;
 }

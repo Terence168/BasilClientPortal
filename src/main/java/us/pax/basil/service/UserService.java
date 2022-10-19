@@ -40,5 +40,14 @@ public interface UserService extends IService<User> {
                                   String email, 
                                   Integer status);
 
+    QueryResultArrayDTO queryPrivilegeUsers(Integer currentPage,
+                                  Integer sizePerPage,
+                                  String sortColumns,
+                                  String userName, 
+                                  String email, 
+                                  String registerTime, 
+                                  String lastLogin,
+                                  Integer status);
+
     QueryResultArrayDTO viewQuery (HttpServletRequest request);
 }
