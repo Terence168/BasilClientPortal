@@ -34,9 +34,7 @@
           placeholder="Search"
           @input="updateUserNumber"
         >
-          <template v-if="text" v-slot:append
-            ><q-icon name="search"
-          /></template>
+          <template v-slot:append><q-icon name="search" /></template>
         </q-input>
       </template>
     </q-table>
