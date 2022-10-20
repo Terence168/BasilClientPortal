@@ -127,6 +127,34 @@
           dense
         />
 
+        <q-checkbox
+          v-model="modalFormData.standardUser"
+          label="Standard User?"
+          :true-value="1"
+          :false-value="0"
+        />
+
+        <q-select
+          v-if="modalFormData.standardUser === 0"
+          name="customerId"
+          class="q-mb-sm"
+          outlined
+          use-input
+          v-model="modalFormData.customerName"
+          :options="customers"
+          label="Customer"
+          hint="Minimum 3 characters to trigger filtering"
+          @filter="filterCustomerFn"
+          :readonly="modalFormOptions.action === 'View'"
+          dense
+        >
+          <template v-slot:no-option>
+            <q-item>
+              <q-item-section class="text-grey"> No results </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
+
         <div class="q-mb-sm text-weight-bold">Assign Roles</div>
 
         <div class="q-mb-sm">
@@ -212,7 +240,11 @@ export default {
         name: null,
         email: null,
         status: null,
+        customerName: null,
+        standardUser: null,
       },
+
+      customers: [],
 
       allRoles: [],
 
@@ -296,6 +328,8 @@ export default {
           this.modalFormData.name = userData.name;
           this.modalFormData.email = userData.email;
           this.modalFormData.status = userData.status;
+          this.modalFormData.standardUser = userData.standardUser;
+          this.modalFormData.customerName = userData.customerName;
           this.rolesSelected = userData.roles;
         })
         .then(() => {
@@ -341,6 +375,8 @@ export default {
         this.modalFormData[prop] = null;
       });
 
+      this.modalFormData.standardUser = 1;
+
       this.rolesSelected = [];
 
       this.showModal = true;
@@ -353,6 +389,27 @@ export default {
         .get("privilege/user/all-roles")
         .then(function (response) {
           vm.allRoles = response.data.data;
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        });
+    },
+
+    filterCustomerFn(val, update, abort) {
+      if (val.length < 3) {
+        abort();
+        return;
+      }
+
+      const link = "user/customers?customerName=" + val;
+
+      this.$api
+        .get(link)
+        .then((response) => {
+          update(() => {
+            this.customers = response.data.data;
+          });
         })
         .catch(function (error) {
           // handle error
