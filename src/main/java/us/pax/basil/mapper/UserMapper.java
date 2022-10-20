@@ -20,6 +20,7 @@ import java.util.List;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import us.pax.basil.dto.input.UserCreateDTO;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Company;
 
 public interface UserMapper extends BaseMapper<User> {
 
@@ -54,6 +55,8 @@ public interface UserMapper extends BaseMapper<User> {
                          String registerTime,
                          String lastLogin,
                          Integer status);
+
+    List<Company> queryCompanyList(String name);
 
     Integer getPrivilegeListCount(String name, 
     		                      String email, 

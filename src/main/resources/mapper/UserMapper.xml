@@ -115,6 +115,19 @@
 			U_OID=#{id};
 	</select>
 
+	<select id="queryCompanyList" resultType="us.pax.basil.entity.customer.Company">
+		SELECT 
+			MC_OID as id, 
+			CUSTOMER_ORGANIZATION as organization, 
+			CLIENT_GROUP AS clientGroupId, 
+			sav.VALUE AS clientGroup 
+		FROM 
+			BASIL_ODS_PRD.MASTER_CUSTOMER co 
+			LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = co.CLIENT_GROUP 
+		WHERE 
+			CUSTOMER_ORGANIZATION LIKE concat('%',#{name},'%')
+	</select>
+
     <select id="getCompanyName" resultType="String">
     	SELECT
 			CUSTOMER_ORGANIZATION

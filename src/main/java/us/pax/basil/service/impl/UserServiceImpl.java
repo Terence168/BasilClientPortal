@@ -18,11 +18,16 @@ package us.pax.basil.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import lombok.extern.log4j.Log4j2;
+import us.pax.basil.constant.ClientGroupConstant;
+import us.pax.basil.constant.CustomerConstant;
+import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PasswordConstant;
+import us.pax.basil.constant.QueryUtilsConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Company;
 import us.pax.basil.mapper.PasswordMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.property.FrontEndProperties;
@@ -31,6 +36,8 @@ import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.UserService;
 import us.pax.basil.utils.AuthUtil;
 import us.pax.basil.utils.EmailUtil;
+import us.pax.basil.utils.QueryAttributes;
+import us.pax.basil.utils.QueryUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -48,6 +55,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.mail.internet.MimeMessage;
+import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
 @Log4j2
@@ -250,7 +258,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	             Map<String, Object> map = new HashMap<>();
 	
 	             map.put("id", user.getId());
-	             map.put("user", user.getName());
+	             map.put("name", user.getName());
 	             map.put("email", user.getEmail());
 	             map.put("registerTime", user.getCreated());
 	             map.put("lastLogin", user.getLastLoginDate());
@@ -315,4 +323,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         log.info("Sorting String: [{}]", sb.toString());
         return sb.toString();
     }
+
+	@Override
+	public QueryResultArrayDTO queryCompany(String name) {
+        try {
+        	
+        	List<Company> companyList = userMapper.queryCompanyList(name);
+
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+
+            for (Company company: companyList) {
+                Map<String, Object> mm = new LinkedHashMap<String, Object>();
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, company.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, company.getOrganization());
+                mm.put(ClientGroupConstant.ID, company.getClientGroupId()); 
+                mm.put(ClientGroupConstant.GROUP, company.getClientGroup());
+
+               jsonArray.add(mm);
+            }
+            
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        }catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+	}
 }

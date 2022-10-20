@@ -304,7 +304,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         try {
             User user = userMapper.getUserById(id);
             Map<String, Object> m = new HashMap<>();
-            m.put("user", user.getName());
+            m.put("name", user.getName());
             m.put("email", user.getEmail());
             m.put("registerTime", user.getCreated());
             m.put("lastLogin", user.getLastLoginDate());

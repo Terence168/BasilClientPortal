@@ -24,6 +24,8 @@ import com.paxcq.cloud.common.dto.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+
+import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,8 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    private EntityManager entityManager;
 
     //@PreAuthorize("hasAuthority('admin.user.create')")
     @ApiOperation(value = "Create User", notes = "Permission Code: admin.user.create")
@@ -89,5 +93,12 @@ public class UserController {
     @GetMapping("/view/query")
     public QueryResultArrayDTO viewQuery (HttpServletRequest request) {
         return userService.viewQuery(request);
+    }
+
+    // Query customer drop-down
+    //@PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
+    @GetMapping("/customers")
+    public QueryResultArrayDTO customerDropDown(@RequestParam(value = "customerName", required = true) String name) {
+        return userService.queryCompany(name);
     }
 }

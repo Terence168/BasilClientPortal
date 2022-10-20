@@ -47,8 +47,8 @@ public class CustomerConstant {
                                                          "CLIENT_GROUP AS CLIENT_GROUP_ID, " +
                                                          "sav.VALUE AS CLIENT_GROUP " +
                                                      "FROM " +
-                                                         "MASTER_CUSTOMER co " +
-                                                         "LEFT JOIN SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = co.CLIENT_GROUP " +
+                                                         "BASIL_ODS_PRD.MASTER_CUSTOMER co " +
+                                                         "LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = co.CLIENT_GROUP " +
                                                      "WHERE " +
                                                          "CUSTOMER_ORGANIZATION LIKE '%" + QueryUtilsConstant.REPLACE_STRING1 + "%'";
     
