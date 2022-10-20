@@ -214,331 +214,47 @@ export default {
           children: [
             {
               id: 1,
-              label: "Basic Information",
+              label: "User Control Access",
               children: [
                 {
-                  id: 5,
-                  label: "Customer",
+                  id: 2,
+                  label: "Role Type List",
                   children: [
                     {
-                      id: 24,
-                      label: "View - Customer",
-                    },
-                    {
-                      id: 25,
-                      label: "Add - Customer",
-                    },
-                    {
-                      id: 26,
-                      label: "Update - Customer",
-                    },
-                  ],
-                },
-                {
-                  id: 6,
-                  label: "Material",
-                  children: [
-                    {
-                      id: 27,
-                      label: "View - Material",
-                    },
-                    {
-                      id: 28,
-                      label: "Add - Material",
-                    },
-                    {
-                      id: 29,
-                      label: "Update - Material",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              id: 2,
-              label: "RMA Management",
-              children: [
-                {
-                  id: 7,
-                  label: "RMA Inventory",
-                  children: [
-                    {
-                      id: 30,
-                      label: "View - Inventory",
-                    },
-                    {
-                      id: 31,
-                      label: "Upload File - Inventory",
-                    },
-                    {
-                      id: 32,
-                      label: "Add - Inventory",
-                    },
-                    {
-                      id: 33,
-                      label: "Update - Inventory",
-                    },
-                  ],
-                },
-                {
-                  id: 8,
-                  label: "RMA Scheduling",
-                  children: [
-                    {
-                      id: 34,
-                      label: "View - Scheduling",
-                    },
-                    {
-                      id: 35,
-                      label: "Update - Scheduling",
-                    },
-                  ],
-                },
-                {
-                  id: 9,
-                  label: "RMA Shipping",
-                  children: [
-                    {
-                      id: 36,
-                      label: "View - Shipping",
-                    },
-                    {
-                      id: 37,
-                      label: "Upload File - Shipping",
-                    },
-                    {
-                      id: 38,
-                      label: "Update - Shipping",
-                    },
-                  ],
-                },
-                {
-                  id: 10,
-                  label: "RMA Invoice",
-                  children: [
-                    {
-                      id: 39,
-                      label: "View - Invoice",
-                    },
-                    {
-                      id: 40,
-                      label: "Update - Invoice",
-                    },
-                  ],
-                },
-                {
-                  id: 11,
-                  label: "RMA Settings",
-                  children: [
-                    {
-                      id: 18,
-                      label: "Fault Code",
-                      children: [
-                        {
-                          id: 55,
-                          label: "View - Fault Code",
-                        },
-                        {
-                          id: 56,
-                          label: "Add - Fault Code",
-                        },
-                        {
-                          id: 57,
-                          label: "Update - Fault Code",
-                        },
-                      ],
-                    },
-                    {
-                      id: 19,
-                      label: "Reported Issue",
-                      children: [
-                        {
-                          id: 58,
-                          label: "Add - Reported Issue",
-                        },
-                        {
-                          id: 59,
-                          label: "Update - Reported Issue",
-                        },
-                      ],
-                    },
-                    {
-                      id: 20,
-                      label: "Status",
-                      children: [
-                        {
-                          id: 60,
-                          label: "Add - Status",
-                        },
-                        {
-                          id: 61,
-                          label: "Update - Status",
-                        },
-                      ],
-                    },
-                    {
-                      id: 21,
-                      label: "Location",
-                      children: [
-                        {
-                          id: 62,
-                          label: "Add - Location",
-                        },
-                        {
-                          id: 63,
-                          label: "Update - Location",
-                        },
-                      ],
-                    },
-                    {
-                      id: 22,
-                      label: "Part Number",
-                      children: [
-                        {
-                          id: 64,
-                          label: "Add - Part Number",
-                        },
-                        {
-                          id: 65,
-                          label: "Update - Part Number",
-                        },
-                      ],
-                    },
-                    {
-                      id: 23,
-                      label: "Priority",
-                      children: [
-                        {
-                          id: 66,
-                          label: "Add - Priority",
-                        },
-                        {
-                          id: 67,
-                          label: "Save Order - Priority",
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              id: 3,
-              label: "Technician Input",
-              children: [
-                {
-                  id: 12,
-                  label: "Scheduled Work",
-                  children: [
-                    {
-                      id: 41,
-                      label: "View - Scheduled Work",
-                    },
-                    {
-                      id: 42,
-                      label: "Update - Scheduled Work",
-                    },
-                  ],
-                },
-                {
-                  id: 13,
-                  label: "QA/CA",
-                  children: [
-                    {
-                      id: 43,
-                      label: "View - QA/CA",
-                    },
-                    {
-                      id: 44,
-                      label: "Update - QA/CA",
-                    },
-                  ],
-                },
-                {
-                  id: 14,
-                  label: "Repair Record",
-                  children: [
-                    {
-                      id: 45,
-                      label: "View - Repair Record",
-                    },
-                  ],
-                },
-                {
-                  id: 68,
-                  label: "Material Destruction",
-                  children: [
-                    {
-                      id: 69,
-                      label: "Create Record - Destruction",
-                    },
-                    {
-                      id: 70,
-                      label: "Bulk Assign - Destruction",
-                    },
-                    {
-                      id: 71,
-                      label: "View Table - Destruction",
-                    },
-                  ],
-                },
-              ],
-            },
-            {
-              id: 4,
-              label: "Privilege Settings",
-              children: [
-                {
-                  id: 15,
-                  label: "Role Type",
-                  children: [
-                    {
-                      id: 46,
-                      label: "View - Role Type",
-                    },
-                    {
-                      id: 47,
+                      id: 5,
                       label: "Add - Role Type",
                     },
                     {
-                      id: 48,
+                      id: 6,
                       label: "Update - Role Type",
                     },
                   ],
                 },
                 {
-                  id: 16,
-                  label: "Role",
+                  id: 3,
+                  label: "Role List",
                   children: [
                     {
-                      id: 49,
-                      label: "View - Role",
-                    },
-                    {
-                      id: 50,
+                      id: 7,
                       label: "Add - Role",
                     },
                     {
-                      id: 51,
+                      id: 8,
                       label: "Update - Role",
                     },
                   ],
                 },
                 {
-                  id: 17,
-                  label: "User",
+                  id: 4,
+                  label: "User List",
                   children: [
                     {
-                      id: 52,
-                      label: "Add - Role",
+                      id: 9,
+                      label: "Add - User",
                     },
                     {
-                      id: 53,
-                      label: "Update - Role",
-                    },
-                    {
-                      id: 54,
-                      label: "Disable - Role",
+                      id: 10,
+                      label: "Update - User",
                     },
                   ],
                 },
