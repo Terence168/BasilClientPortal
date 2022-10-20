@@ -19,16 +19,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import lombok.extern.log4j.Log4j2;
 import us.pax.basil.constant.ClientGroupConstant;
-import us.pax.basil.constant.CustomerConstant;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PasswordConstant;
-import us.pax.basil.constant.QueryUtilsConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Company;
 import us.pax.basil.mapper.PasswordMapper;
+import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.property.FrontEndProperties;
 import us.pax.basil.property.MailProperties;
@@ -36,8 +35,6 @@ import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.UserService;
 import us.pax.basil.utils.AuthUtil;
 import us.pax.basil.utils.EmailUtil;
-import us.pax.basil.utils.QueryAttributes;
-import us.pax.basil.utils.QueryUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -55,7 +52,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.mail.internet.MimeMessage;
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
 @Log4j2
@@ -67,6 +63,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired
     private PasswordMapper passwordMapper;
+
+    @Autowired
+    private PrivilegeMapper privilegeMapper;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -95,8 +94,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	        //user.setPassword(passwordEncoder.encode(PasswordConstant.NEW_USER_PASSWORD));
 	        user.setPassword(passwordEncoder.encode("Pax4Future!@"));
 	
-	        user.setStatus(StatusConstant.DISABLED);
-	
 	        CustomUserDetails userDetails = AuthUtil.getUser();
 	        
 	        if (userDetails == null)
@@ -111,6 +108,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	        user.setTokenExp(new Timestamp(System.currentTimeMillis() + PasswordConstant.EXPIRATION));
 
 	        userMapper.addUser(user);
+	        
+            for (Integer i: user.getRoles()) {
+                privilegeMapper.addUserRole(user.getId(), i);
+            }
 
           	MimeMessage mimeMsg = mailSender.createMimeMessage();
             mimeMsg = EmailUtil.constructTokenEmail(mimeMsg, 

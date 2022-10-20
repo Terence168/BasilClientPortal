@@ -32,6 +32,7 @@ public interface UserMapper extends BaseMapper<User> {
     void updateUser(User user);
 
 	String getCompanyName(Integer id);
+	Company getCompanyInfo(Integer id);
 	void addUser(User user);
     void setLastLogin(Integer id);
     void setUserId(String userId);

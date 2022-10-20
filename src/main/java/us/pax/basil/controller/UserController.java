@@ -25,7 +25,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +40,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    private EntityManager entityManager;
 
     //@PreAuthorize("hasAuthority('admin.user.create')")
     @ApiOperation(value = "Create User", notes = "Permission Code: admin.user.create")

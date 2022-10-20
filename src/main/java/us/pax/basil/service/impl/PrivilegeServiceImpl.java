@@ -19,11 +19,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import us.pax.basil.constant.ClientGroupConstant;
+import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PrivilegeConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Company;
 import us.pax.basil.entity.privilege.*;
 import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.RoleEntityMapper;
@@ -310,6 +313,15 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             m.put("lastLogin", user.getLastLoginDate());
             m.put("status", user.getStatus());
             m.put("statusStr", user.getStatusStr());
+            
+            Company company = userMapper.getCompanyInfo(user.getCompanyId());
+            Map<String, Object> mm = new HashMap<>();
+
+            mm.put(DropDownConstant.DROPDOWN_VALUE, company.getId());
+            mm.put(DropDownConstant.DROPDOWN_LABEL, company.getOrganization());
+            mm.put(ClientGroupConstant.ID, company.getClientGroupId()); 
+            mm.put(ClientGroupConstant.GROUP, company.getClientGroup());
+            m.put("customerName", mm);
 
             List<Integer> roles =  privilegeMapper.getUserRoles(id);
 

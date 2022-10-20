@@ -35,8 +35,6 @@ import us.pax.basil.entity.User;
 import us.pax.basil.entity.privilege.PasswordChange;
 import us.pax.basil.entity.privilege.Role;
 import us.pax.basil.entity.privilege.RoleType;
-import us.pax.basil.entity.privilege.UserAddUpdate;
-import us.pax.basil.service.EmployeeService;
 import us.pax.basil.service.PrivilegeService;
 import us.pax.basil.service.SupportAttributeService;
 import us.pax.basil.service.UserService;
@@ -166,10 +164,10 @@ public class PrivilegeController {
     //
     // userAdd() - Retrieve customer information based on the parameters passed in.
     //
-    @PreAuthorize("hasAuthority('privilege.user.add')")
+    //@PreAuthorize("hasAuthority('privilege.user.add')")
     @PostMapping("/user/add")
-    public SqlResultDTO userAdd(@RequestBody User user) {
-        return privilegeService.addUser(user);
+    public SqlResultDTO userAdd(HttpServletRequest request, @RequestBody User user) {
+        return userService.addUser(request, user);
     }
 
     //
