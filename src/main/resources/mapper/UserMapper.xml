@@ -23,8 +23,9 @@
 
     <insert id="addUser" parameterType="us.pax.basil.entity.User">
     	INSERT 
-    		INTO BASIL_SEC_PRD.USERS (NAME, COMPANY_ID, EMAIL, PASSWORD, PASS_TOKEN, PASS_TOKEN_EXP, STATUS, CREATOR, MODIFIER)
-    		VALUES(#{name}, #{companyId}, #{email}, #{password}, #{token}, #{tokenExp}, #{status}, #{creator}, #{creator});
+    		INTO 
+    		   BASIL_SEC_PRD.USERS (NAME, COMPANY_ID, EMAIL, PASSWORD, PASS_TOKEN, PASS_TOKEN_EXP, STATUS, CREATOR, MODIFIER, STANDARD_USER)
+    		VALUES(#{name}, #{companyId}, #{email}, #{password}, #{token}, #{tokenExp}, #{status}, #{creator}, #{creator}, #{standardUser});
     </insert>
     
     <update id="setLastLogin">
@@ -282,6 +283,7 @@
     		NAME=#{name}, 
     		EMAIL=#{email},
     		STATUS=#{status},
+    		STANDARD_USER=#{standardUser},
     		MODIFIED=CURRENT_TIMESTAMP()
    		WHERE 
    			U_OID=#{id};

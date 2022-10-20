@@ -28,6 +28,9 @@ import javax.servlet.http.HttpServletResponse;
 public class AuthenticationFailHandler extends SimpleUrlAuthenticationFailureHandler {
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {
-        ResponseUtil.out(response, Result.error(e.getMessage()));
+    	//
+    	// Commented out due to 2 error messages being displayed(Bad Credentials, Incorrect username/password
+    	//
+        //ResponseUtil.out(response, Result.error(e.getMessage()));
     }
 }

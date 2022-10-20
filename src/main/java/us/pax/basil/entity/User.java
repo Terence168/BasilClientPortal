@@ -28,5 +28,6 @@ public class User {
 	private String modifier;
 	private String lastLoginDate;
 	private Integer [] roles;
+	private Integer standardUser;
 	private Integer version;
 }

@@ -122,7 +122,7 @@ http_pool:
   
 frontend:  
   urls:
-    activate: http://localhost:9000/#/activate-user/
-    change: http://localhost:9000/#/activate-user/
-    forgot: http://localhost:9000/#/activate-user/
-    reset: http://localhost:9000/#/activate-user/
+    activate: http://localhost:9000/activate-user/
+    change: http://localhost:9000/activate-user/
+    forgot: http://localhost:9000/activate-user/
+    reset: http://localhost:9000/activate-user/
