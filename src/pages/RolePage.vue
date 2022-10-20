@@ -574,7 +574,7 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/basil/privilege/role/query")
+        .get("/privilege/role/query")
         .then(function (response) {
           vm.roles = response.data.data;
         })
@@ -587,7 +587,7 @@ export default {
     populateFields(id) {
       this.modalFormOptions.id = id;
 
-      const link = "/basil/privilege/role/view/query?id=" + id;
+      const link = "/privilege/role/view/query?id=" + id;
 
       this.$api
         .get(link)
@@ -617,9 +617,9 @@ export default {
 
       let actionURL;
       if (this.modalFormOptions.action === "Add")
-        actionURL = "/basil/privilege/role/add";
+        actionURL = "/privilege/role/add";
       else if (this.modalFormOptions.action === "Update")
-        actionURL = "/basil/privilege/role/update";
+        actionURL = "/privilege/role/update";
       else console.log("Should not be here :(");
 
       const vm = this;
@@ -655,7 +655,7 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/basil/privilege/role-type/query")
+        .get("/privilege/role-type/query")
         .then(function (response) {
           vm.roleTypes = response.data.data;
         })

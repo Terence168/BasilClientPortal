@@ -160,7 +160,7 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/basil/privilege/role-type/query" + window.location.search)
+        .get("/privilege/role-type/query" + window.location.search)
         .then(function (response) {
           vm.tableData.rows = response.data.data;
           vm.total = response.data.total;
@@ -176,9 +176,9 @@ export default {
 
       let actionURL;
       if (this.modalFormOptions.action === "Add")
-        actionURL = "/basil/privilege/role-type/add";
+        actionURL = "/privilege/role-type/add";
       else if (this.modalFormOptions.action === "Update")
-        actionURL = "/basil/privilege/role-type/update";
+        actionURL = "/privilege/role-type/update";
       else console.log("Should not be here :(");
 
       const vm = this;
