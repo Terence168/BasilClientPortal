@@ -399,7 +399,7 @@ export default {
       return this.$api
         .get("privilege/user/all-roles")
         .then(function (response) {
-          vm.allRoles = response.data.data;
+          vm.allRoles = response.data.data || [];
         })
         .catch(function (error) {
           // handle error
