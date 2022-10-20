@@ -2,7 +2,7 @@
   <div class="q-mx-lg">
     <div class="generic-container">
       <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        User
+        User Control
       </div>
 
       <q-separator />
@@ -110,32 +110,8 @@
           class="q-mb-sm"
           outlined
           v-model="modalFormData.email"
-          label="Pax Email"
+          label="Email"
           :readonly="modalFormOptions.action === 'View'"
-          dense
-        />
-
-        <q-select
-          class="q-mb-sm"
-          outlined
-          :options="division"
-          v-model="modalFormData.division"
-          label="Division"
-          :readonly="modalFormOptions.action === 'View'"
-          map-options
-          emit-value
-          dense
-        />
-
-        <q-select
-          class="q-mb-sm"
-          outlined
-          :options="title"
-          v-model="modalFormData.title"
-          label="Title"
-          :readonly="modalFormOptions.action === 'View'"
-          map-options
-          emit-value
           dense
         />
 
@@ -143,22 +119,11 @@
           class="q-mb-sm"
           outlined
           :options="status"
-          v-model="modalFormData.employeeStatus"
-          label="Employee Status"
+          v-model="modalFormData.status"
+          label="Status"
           :readonly="modalFormOptions.action === 'View'"
           map-options
           emit-value
-          dense
-        />
-
-        <q-input
-          class="q-mb-sm"
-          outlined
-          v-model.number="modalFormData.burdenRate"
-          mask="#.##"
-          reverse-fill-mask
-          label="Burden Rate"
-          :readonly="modalFormOptions.action === 'View'"
           dense
         />
 
@@ -246,21 +211,18 @@ export default {
       modalFormData: {
         name: null,
         email: null,
-        division: null,
-        title: null,
-        employeeStatus: null,
-        burdenRate: null,
+        status: null,
       },
 
       allRoles: [],
 
       rolesSelected: [],
 
-      division: [],
-
-      title: [],
-
-      status: [],
+      status: [
+        { value: 1, label: "Active" },
+        { value: 2, label: "Disabled" },
+        { value: 3, label: "Inactive" },
+      ],
 
       filterFields: [
         { id: "name", label: "User Name" },
@@ -330,8 +292,10 @@ export default {
         .get(link)
         .then((response) => {
           const userData = response.data.data[0];
+
           this.modalFormData.name = userData.name;
           this.modalFormData.email = userData.email;
+          this.modalFormData.status = userData.status;
           this.rolesSelected = userData.roles;
         })
         .then(() => {
