@@ -150,8 +150,10 @@ export default {
   },
 
   watch: {
-    $route() {
-      this.queryData();
+    $route(newRoute, oldRoute) {
+      if (newRoute.path === oldRoute.path) {
+        this.queryData();
+      }
     },
   },
 
