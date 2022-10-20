@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.entity.User;
 import us.pax.basil.entity.privilege.PasswordChange;
 import us.pax.basil.entity.privilege.Role;
 import us.pax.basil.entity.privilege.RoleType;
@@ -43,7 +44,7 @@ public interface PrivilegeService extends IService<RoleType> {
     // user
     QueryResultArrayDTO viewQueryUser(Integer id);
 
-    SqlResultDTO addUser(UserAddUpdate user);
-    SqlResultDTO updateUser(UserAddUpdate user);
+    SqlResultDTO addUser(User user);
+    SqlResultDTO updateUser(User user);
     SqlResultDTO changePassword(PasswordChange passwordChange);
 }

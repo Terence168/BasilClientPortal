@@ -30,7 +30,7 @@
     <update id="setLastLogin">
 		UPDATE BASIL_SEC_PRD.USERS
 			SET LAST_LOGIN_DATE = CURRENT_TIMESTAMP()
-		WHERE U_OID=#{uOid}
+		WHERE U_OID=#{id}
     </update>
 
     <update id="setUserId">
@@ -54,7 +54,19 @@
 
 	<select id="getUserByEmail" resultType="us.pax.basil.entity.User">
 		SELECT 
-			* 
+			U_OID as id,
+			NAME,
+			COMPANY_ID,
+			EMAIL,
+			STATUS,
+			(CASE
+        		WHEN STATUS = 1 THEN 'Active'
+        		WHEN STATUS = 2 THEN 'Disabled'
+        		WHEN STATUS = 3 THEN 'Inactive'
+    		END) statusStr,
+    		CREATED,
+    		PASSWORD,
+    		LAST_LOGIN_DATE as lastLoginDate
 		FROM 
 			BASIL_SEC_PRD.USERS 
 		WHERE 
@@ -63,11 +75,44 @@
 
 	<select id="getUserByToken" resultType="us.pax.basil.entity.User">
 		SELECT 
-			* 
+			U_OID as id,
+			NAME,
+			COMPANY_ID,
+			EMAIL,
+			STATUS,
+			(CASE
+        		WHEN STATUS = 1 THEN 'Active'
+        		WHEN STATUS = 2 THEN 'Disabled'
+        		WHEN STATUS = 3 THEN 'Inactive'
+    		END) statusStr,
+    		CREATED,
+    		PASSWORD,
+    		LAST_LOGIN_DATE as lastLoginDate
 		FROM 
 			BASIL_SEC_PRD.USERS 
 		WHERE 
 			PASS_TOKEN=#{token};
+	</select>
+
+	<select id="getUserById" resultType="us.pax.basil.entity.User">
+		SELECT 
+			U_OID as id,
+			NAME,
+			COMPANY_ID,
+			EMAIL,
+			STATUS,
+			(CASE
+        		WHEN STATUS = 1 THEN 'Active'
+        		WHEN STATUS = 2 THEN 'Disabled'
+        		WHEN STATUS = 3 THEN 'Inactive'
+    		END) statusStr,
+    		CREATED,
+    		PASSWORD,
+    		LAST_LOGIN_DATE as lastLoginDate
+		FROM 
+			BASIL_SEC_PRD.USERS 
+		WHERE 
+			U_OID=#{id};
 	</select>
 
     <select id="getCompanyName" resultType="String">
@@ -89,13 +134,13 @@
           		NAME LIKE concat('%',#{name},'%')
       		</if>
       		<if test="company != null">
-          		COMPANY_ID=#{company}
+          		AND COMPANY_ID=#{company}
       		</if>
       		<if test="status != null">
-          		STATUS=#{status}
+          		AND STATUS=#{status}
       		</if>
       		<if test="email != null">
-        		EMAIL LIKE concat('%',#{email},'%')
+        		AND EMAIL LIKE concat('%',#{email},'%')
       		</if>
     	</where>
     </select>
@@ -110,23 +155,23 @@
           		NAME LIKE concat('%',#{name},'%')
       		</if>
       		<if test="email != null">
-        		EMAIL LIKE concat('%',#{email},'%')
+        		AND EMAIL LIKE concat('%',#{email},'%')
       		</if>
       		<if test="registerTime != null">
-        		CREATED = #{registerTime}
+        		AND CREATED = #{registerTime}
       		</if>
       		<if test="lastLogin != null">
-        		LAST_LOGIN_DATE = #{lastLogin}
+        		AND LAST_LOGIN_DATE = #{lastLogin}
       		</if>
       		<if test="status != null">
-        		STATUS = #{status}
+        		AND STATUS = #{status}
       		</if>
     	</where>
     </select>
 
 	<select id="queryList" resultType="us.pax.basil.entity.User">
 		SELECT
-			U_OID,
+			U_OID as id,
 			NAME,
 			COMPANY_ID,
 			EMAIL,
@@ -143,13 +188,13 @@
           		NAME LIKE concat('%',#{name},'%')
       		</if>
       		<if test="company != null">
-          		COMPANY_ID=#{company}
+          		AND COMPANY_ID=#{company}
       		</if>
       		<if test="status != null">
-          		STATUS=#{status}
+          		AND STATUS=#{status}
       		</if>
       		<if test="email != null">
-        		EMAIL LIKE concat('%',#{email},'%')
+        		AND EMAIL LIKE concat('%',#{email},'%')
       		</if>
     	</where>
     	<if test="sortColumns != null and sortColumns != ''">
@@ -160,7 +205,7 @@
 
 	<select id="queryPrivilegeList" resultType="us.pax.basil.entity.User">
 		SELECT
-		    U_OID,
+		    U_OID as id,
 			NAME,
 			EMAIL,
 			CREATED,
@@ -178,16 +223,16 @@
           		NAME LIKE concat('%',#{name},'%')
       		</if>
       		<if test="email != null">
-        		EMAIL LIKE concat('%',#{email},'%')
+        		AND EMAIL LIKE concat('%',#{email},'%')
       		</if>
       		<if test="registerTime != null">
-        		CREATED = #{registerTime}
+        		AND CREATED = #{registerTime}
       		</if>
       		<if test="lastLogin != null">
-        		LAST_LOGIN_DATE = #{lastLogin}
+        		AND LAST_LOGIN_DATE = #{lastLogin}
       		</if>
       		<if test="status != null">
-        		STATUS = #{status}
+        		AND STATUS = #{status}
       		</if>
     	</where>
     	<if test="sortColumns != null and sortColumns != ''">
@@ -204,4 +249,16 @@
 		WHERE 
 			U_OID=#{id};
     </select>
+    
+    <update id="updateUser" parameterType="us.pax.basil.entity.User">
+    	UPDATE BASIL_SEC_PRD.USERS
+    	SET 
+    		NAME=#{name}, 
+    		EMAIL=#{email},
+    		STATUS=#{status},
+    		MODIFIED=CURRENT_TIMESTAMP()
+   		WHERE 
+   			U_OID=#{id};
+    </update>
+    
 </mapper>

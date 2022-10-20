@@ -31,6 +31,7 @@ import us.pax.basil.constant.PrivilegeConstant;
 import us.pax.basil.constant.SupportAttributeConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.entity.User;
 import us.pax.basil.entity.privilege.PasswordChange;
 import us.pax.basil.entity.privilege.Role;
 import us.pax.basil.entity.privilege.RoleType;
@@ -68,13 +69,13 @@ public class PrivilegeController {
 
     // QueryCustomer() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    @PreAuthorize("hasAuthority('privilege.role-type.view')")
+    //@PreAuthorize("hasAuthority('privilege.role-type.view')")
     @GetMapping("/role-type/query")
     public QueryResultArrayDTO queryRoleType(HttpServletRequest request) {
         return privilegeService.queryRoleType(entityManager, PrivilegeConstant.queryColumnMapping, request);
     }
 
-    @PreAuthorize("hasAuthority('privilege.role.add')")
+    //@PreAuthorize("hasAuthority('privilege.role.add')")
     @PostMapping("/role/add")
     public SqlResultDTO addRole(@RequestBody Role role) {
         return privilegeService.AddRole(role);
@@ -90,7 +91,7 @@ public class PrivilegeController {
 
     // QueryCustomer() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    @PreAuthorize("hasAuthority('privilege.role')")
+    //@PreAuthorize("hasAuthority('privilege.role')")
     @GetMapping("/role/query")
     public QueryResultArrayDTO queryRole(HttpServletRequest request) {
         return privilegeService.QueryRole(request);
@@ -98,7 +99,7 @@ public class PrivilegeController {
 
     // View() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    @PreAuthorize("hasAuthority('privilege.role.view')")
+    //@PreAuthorize("hasAuthority('privilege.role.view')")
     @GetMapping("/role/view/query")
     public QueryResultArrayDTO roleViewQuery(HttpServletRequest request, @RequestParam String id) {
         return privilegeService.ViewQueryRole(request, id);
@@ -156,7 +157,7 @@ public class PrivilegeController {
     //
     // userViewQuery() - Retrieve customer information based on the parameters passed in.
     //
-    @PreAuthorize("hasAuthority('privilege.user')")
+    //@PreAuthorize("hasAuthority('privilege.user')")
     @GetMapping("/user/view/query")
     public QueryResultArrayDTO userViewQuery(@RequestParam Integer id) {
         return privilegeService.viewQueryUser(id);
@@ -167,16 +168,16 @@ public class PrivilegeController {
     //
     @PreAuthorize("hasAuthority('privilege.user.add')")
     @PostMapping("/user/add")
-    public SqlResultDTO userAdd(@RequestBody UserAddUpdate user) {
+    public SqlResultDTO userAdd(@RequestBody User user) {
         return privilegeService.addUser(user);
     }
 
     //
     // userUpdate() - Retrieve customer information based on the parameters passed in.
     //
-    @PreAuthorize("hasAuthority('privilege.user.update')")
+    //@PreAuthorize("hasAuthority('privilege.user.update')")
     @PostMapping("/user/update")
-    public SqlResultDTO userUpdate(@RequestBody UserAddUpdate user) {
+    public SqlResultDTO userUpdate(@RequestBody User user) {
         return privilegeService.updateUser(user);
     }
 

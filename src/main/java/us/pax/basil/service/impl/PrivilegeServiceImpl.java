@@ -23,6 +23,7 @@ import us.pax.basil.constant.PrivilegeConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.entity.User;
 import us.pax.basil.entity.privilege.*;
 import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.RoleEntityMapper;
@@ -140,7 +141,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 return new SqlResultDTO(-1, "User not logged in.");
             }
 
-            role.setCreator(userDetails.getUserId());
+            role.setCreator(userDetails.getUsername());
 
             privilegeMapper.addRole(role);
 
@@ -184,8 +185,8 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             List<Map<String, Object>> rolesTitles = privilegeMapper.getRoleIdAndTitle();
             for (Map<String, Object> roleTitle: rolesTitles) {
                 Map<String, Object> roleMap = new HashMap<>();
-                roleMap.put(PrivilegeConstant.ID, roleTitle.get(PrivilegeConstant.ROLE_ID));
-                roleMap.put(PrivilegeConstant.NAME, roleTitle.get(PrivilegeConstant.TITLE_STRING_UPPERCASE));
+                roleMap.put(PrivilegeConstant.ID, roleTitle.get("R_OID"));
+                roleMap.put(PrivilegeConstant.NAME, roleTitle.get("NAME"));
     
                 ArrayList<Map<String, Object>> userArray = new ArrayList<>();
     
@@ -277,12 +278,12 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     // addUser()
     //
     @Override
-    public SqlResultDTO addUser(UserAddUpdate user) {
+    public SqlResultDTO addUser(User user) {
         try { 
             CustomUserDetails userDetails = AuthUtil.getUser();
             assert userDetails != null;
             user.setCreator(userDetails.getUsername());
-            privilegeMapper.addUser(user);
+            userMapper.addUser(user);
             
             for (Integer i: user.getRoles()) {
                 privilegeMapper.addUserRole(user.getId(), i);
@@ -301,15 +302,14 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     public QueryResultArrayDTO viewQueryUser(Integer id) {
         ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
         try {
-            UserQuery userQuery = privilegeMapper.getUser(id);
+            User user = userMapper.getUserById(id);
             Map<String, Object> m = new HashMap<>();
-            m.put(PrivilegeConstant.ID, userQuery.getEmp_oid());
-            m.put(PrivilegeConstant.USERNAME, userQuery.getName());
-            m.put(PrivilegeConstant.EMAIL, userQuery.getEmail());
-            m.put(PrivilegeConstant.DIVISION_STRING, userQuery.getDivision());
-            m.put(PrivilegeConstant.TITLE_STRING, userQuery.getTitle());
-            m.put(PrivilegeConstant.EMPLOYEE_STATUS, userQuery.getEmp_status());
-            m.put(PrivilegeConstant.BURDEN_RATE, userQuery.getBr_per_hour());
+            m.put("user", user.getName());
+            m.put("email", user.getEmail());
+            m.put("registerTime", user.getCreated());
+            m.put("lastLogin", user.getLastLoginDate());
+            m.put("status", user.getStatus());
+            m.put("statusStr", user.getStatusStr());
 
             List<Integer> roles =  privilegeMapper.getUserRoles(id);
 
@@ -328,17 +328,21 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     // updateUser()
     //
     @Override
-    public SqlResultDTO updateUser(UserAddUpdate user) {
+    public SqlResultDTO updateUser(User user) {
         try { 
             HistoryUtil.setHistorySessionInfo(userMapper, "PrivilegeMapper.xml:updateUser","User Update");
 
-            privilegeMapper.updateUser(user);
+            if (user.getStatus() == null)
+            	user.setStatus(StatusConstant.DISABLED);
+
+            userMapper.updateUser(user);
 
             privilegeMapper.deleteUserRoles(user.getId());
             
             for (Integer i: user.getRoles()) {
                 privilegeMapper.addUserRole(user.getId(), i);
             }
+
             return new SqlResultDTO(0, "");
         } catch(Exception e) {
             log.info("PrivilegeServiceImpl::addUser(): ***exception: {}", e.getCause().getMessage());

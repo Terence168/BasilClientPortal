@@ -18,7 +18,7 @@
 				mo.MC_OID = #{id}
 			</if>
 			<if test="rmaNumber != null">
-				mo.MO_OID = #{rmaNumber}
+				AND mo.MO_OID = #{rmaNumber}
 			</if>
 			<if test="serialNumber != null">
 				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')

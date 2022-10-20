@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value="User Account Object", description="")
 public class User {
-	private Integer uOid;
+	private Integer id;
 	private String name;
 	private Integer companyId;
 	private String email;
@@ -27,5 +27,6 @@ public class User {
 	private String modified;
 	private String modifier;
 	private String lastLoginDate;
+	private Integer [] roles;
 	private Integer version;
 }

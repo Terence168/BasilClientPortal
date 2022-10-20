@@ -17,6 +17,7 @@ package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
+import lombok.extern.log4j.Log4j2;
 import us.pax.basil.constant.PasswordConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
@@ -49,6 +50,7 @@ import java.util.UUID;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 
+@Log4j2
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
@@ -200,7 +202,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			for (User user : userList) {
 	             Map<String, Object> map = new HashMap<>();
 	
-	             map.put("id", user.getUOid());
+	             map.put("id", user.getId());
 	             map.put("name", user.getName());
 	             map.put("company", user.getCompanyId());
 	             map.put("email", user.getEmail());
@@ -235,7 +237,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	
 			List<User> userList = userMapper.queryPrivilegeList((currentPage-1) * sizePerPage, 
 					                                   sizePerPage, 
-					                                   sortColumns, 
+					                                   buildSortString(sortColumns), 
 					                                   userName, 
 					                                   email, 
 					                                   registerTime, 
@@ -247,7 +249,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			for (User user : userList) {
 	             Map<String, Object> map = new HashMap<>();
 	
-	             map.put("id", user.getUOid());
+	             map.put("id", user.getId());
 	             map.put("user", user.getName());
 	             map.put("email", user.getEmail());
 	             map.put("registerTime", user.getCreated());
@@ -262,4 +264,55 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
 		}
 	}
+
+    private String buildSortString(String sortColumns) {
+        if (null == sortColumns) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String[] sortCols = sortColumns.split(",");
+        for (String col : sortCols) {
+            String[] fields = col.split("\\.");
+            if (fields.length > 2) {
+                log.warn("Ignoring invalid sort field: {}", col);
+                continue;
+            }
+
+            if (fields.length == 2) {
+                if (fields[1].equalsIgnoreCase("asc") || fields[1].equalsIgnoreCase("desc")) {
+                    col = col.replace(".", " ");
+                } else {
+                    log.warn("Ignoring invalid sort field: {}", col);
+                    continue;
+                }
+            }
+
+            switch (fields[0]) {
+                case "email":
+                    col = col.replace("email", "EMAIL");
+                    break;
+                case "user":
+                    col = col.replace("user", "NAME");
+                    break;
+                case "registerTime":
+                    col = col.replace("registerTime", "CREATED");
+                    break;
+                case "lastLogin":
+                    col = col.replace("lastLogin", "LAST_LOGIN_DATE");
+                    break;
+                default:
+                    log.warn("Ignoring invalid sort field: {}", col);
+                    continue;
+            }
+
+            sb.append(col).append(",");
+        }
+
+        if (sb.length() != 0) {
+            sb.deleteCharAt(sb.length() - 1); // remove the comma at the end of the sort string
+        }
+        log.info("Sorting String: [{}]", sb.toString());
+        return sb.toString();
+    }
 }

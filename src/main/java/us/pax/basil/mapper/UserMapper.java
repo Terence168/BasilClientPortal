@@ -26,9 +26,13 @@ public interface UserMapper extends BaseMapper<User> {
     Integer getUserStatus(Integer id);
 	User getUserByEmail(String email);
 	User getUserByToken(String token);
+    User getUserById(Integer id);
+    
+    void updateUser(User user);
+
 	String getCompanyName(Integer id);
 	void addUser(User user);
-    void setLastLogin(Integer uOid);
+    void setLastLogin(Integer id);
     void setUserId(String userId);
     void setProgramName(String programName);
     void setReasonForChange(String reasonForChange);
@@ -61,6 +65,4 @@ public interface UserMapper extends BaseMapper<User> {
                          Integer company,
                          Integer status,
                          String email);
-
-    User viewQuery(Integer id);
 }

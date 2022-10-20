@@ -20,7 +20,7 @@ import java.util.Map;
 import us.pax.basil.utils.ColumnMapping;
 
 public class PrivilegeConstant {
-    public final static String SQL_QUERY_ROLE_TYPE = "SELECT RT_ID as id, NAME as roleType FROM ROLE_TYPE";
+    public final static String SQL_QUERY_ROLE_TYPE = "SELECT RT_OID as id, NAME as roleType FROM BASIL_SEC_PRD.ROLE_TYPES";
 
     public final static String BURDEN_RATE="burdenRate";
     public final static String DIVISION_STRING="division";

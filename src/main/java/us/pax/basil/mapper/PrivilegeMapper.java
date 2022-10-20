@@ -18,9 +18,10 @@ package us.pax.basil.mapper;
 import java.util.List;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+import us.pax.basil.entity.User;
 import us.pax.basil.entity.privilege.Role;
 import us.pax.basil.entity.privilege.RoleType;
-import us.pax.basil.entity.privilege.UserAddUpdate;
 import us.pax.basil.entity.privilege.UserQuery;
 
 public interface PrivilegeMapper extends BaseMapper<RoleType> {
@@ -39,12 +40,12 @@ public interface PrivilegeMapper extends BaseMapper<RoleType> {
     List<Map<String, Object>> getRoleTypeIdsNames();
     List<Map<String, Object>> getRoleIdsNames(Integer roleTypeId);
     
-    UserQuery getUser(Integer id); 
+    User getUser(Integer id); 
     List<UserQuery>getUsers(); 
-    void addUser(UserAddUpdate user);
-    void addUserRole(String user_id, Integer role_id);
-    void deleteUserRoles(String user_id);
+    void addUser(User user);
+    void addUserRole(Integer user_id, Integer role_id);
+    void deleteUserRoles(Integer user_id);
     List<Integer> getUserRoles(Integer id);
-    void updateUser(UserAddUpdate user);
+    void updateUser(User user);
     void changePassword(Integer id, String newPassword);
 }

@@ -30,7 +30,7 @@ import lombok.experimental.Accessors;
 public class Role {
 	private Integer id;
 	private String roleName;
-	private Integer creator;
+	private String creator;
 	private Integer roleTypeID;
 	private Integer [] permissions;
 
