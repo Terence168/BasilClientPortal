@@ -264,7 +264,7 @@ export default {
 
       tableData: {
         columns: [
-          { id: "user", label: "User Name", sortable: true },
+          { id: "name", label: "User Name", sortable: true },
           { id: "email", label: "Email", sortable: true },
           { id: "registerTime", label: "Register Time", sortable: true },
           { id: "lastLogin", label: "Last Login", sortable: true },
