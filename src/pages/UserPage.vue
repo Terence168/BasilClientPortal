@@ -285,7 +285,9 @@ export default {
     },
 
     filteredRoles() {
-      return this.allRoles.filter((roleType) => roleType.roles.length > 0);
+      return this.allRoles
+        ? this.allRoles.filter((roleType) => roleType.roles.length > 0)
+        : [];
     },
   },
 
@@ -331,6 +333,9 @@ export default {
           this.modalFormData.standardUser = userData.standardUser;
           this.modalFormData.customerName = userData.customerName;
           this.rolesSelected = userData.roles;
+        })
+        .then(() => {
+          return this.populateRoles();
         })
         .then(() => {
           this.showModal = true;
@@ -380,12 +385,18 @@ export default {
       this.rolesSelected = [];
 
       this.showModal = true;
+
+      this.populateRoles();
     },
 
     populateRoles() {
+      if (this.allRoles.length > 0) {
+        return;
+      }
+
       const vm = this;
 
-      this.$api
+      return this.$api
         .get("privilege/user/all-roles")
         .then(function (response) {
           vm.allRoles = response.data.data;
