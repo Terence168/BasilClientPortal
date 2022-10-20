@@ -100,7 +100,7 @@
         <q-input
           class="q-mb-sm"
           outlined
-          v-model="modalFormData.userName"
+          v-model="modalFormData.name"
           label="First and Last Name"
           :readonly="modalFormOptions.action === 'View'"
           dense
@@ -244,7 +244,7 @@ export default {
       },
 
       modalFormData: {
-        userName: null,
+        name: null,
         email: null,
         division: null,
         title: null,
@@ -263,7 +263,7 @@ export default {
       status: [],
 
       filterFields: [
-        { id: "userName", label: "User Name" },
+        { id: "name", label: "User Name" },
         { id: "email", label: "Email" },
         { id: "lastLogin", label: "Last Login", type: "dateRange" },
       ],
@@ -324,18 +324,14 @@ export default {
     populateFields(id) {
       this.modalFormOptions.id = id;
 
-      const link = "/basil/privilege/user/view/query?id=" + id;
+      const link = "privilege/user/view/query?id=" + id;
 
       this.$api
         .get(link)
         .then((response) => {
           const userData = response.data.data[0];
-          this.modalFormData.userName = userData.userName;
+          this.modalFormData.name = userData.name;
           this.modalFormData.email = userData.email;
-          this.modalFormData.division = userData.division;
-          this.modalFormData.title = userData.title;
-          this.modalFormData.employeeStatus = userData.employeeStatus;
-          this.modalFormData.burdenRate = userData.burdenRate;
           this.rolesSelected = userData.roles;
         })
         .then(() => {
@@ -358,9 +354,9 @@ export default {
 
       let actionURL;
       if (this.modalFormOptions.action === "Add")
-        actionURL = "/basil/privilege/user/add";
+        actionURL = "privilege/user/add";
       else if (this.modalFormOptions.action === "Update")
-        actionURL = "/basil/privilege/user/update";
+        actionURL = "privilege/user/update";
       else console.log("Should not be here :(");
 
       const vm = this;
@@ -390,48 +386,9 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/basil/privilege/user/all-roles")
+        .get("privilege/user/all-roles")
         .then(function (response) {
           vm.allRoles = response.data.data;
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-        });
-    },
-
-    populateDivisionDropdown() {
-      const link = "/basil/privilege/division/drop-down";
-      return this.$api
-        .get(link)
-        .then((response) => {
-          this.division = response.data.data;
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-        });
-    },
-
-    populateTitleDropdown() {
-      const link = "/basil/privilege/title/drop-down";
-      return this.$api
-        .get(link)
-        .then((response) => {
-          this.title = response.data.data;
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-        });
-    },
-
-    populateStatusDropdown() {
-      const link = "/basil/privilege/status/drop-down";
-      return this.$api
-        .get(link)
-        .then((response) => {
-          this.status = response.data.data;
         })
         .catch(function (error) {
           // handle error
