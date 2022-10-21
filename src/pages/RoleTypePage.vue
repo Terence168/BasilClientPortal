@@ -19,7 +19,6 @@
           Click on a column to sort the content of the table
           <q-space />
           <q-btn
-            v-if="checkPermission('privilege.role-type.add')"
             icon="add"
             label="Add"
             color="primary"
@@ -137,11 +136,12 @@ export default {
       const view = this.checkPermission("privilege.role-type.view");
       const update = this.checkPermission("privilege.role-type.update");
 
-      if (view || update) {
-        return { view, update };
-      }
+      return { view: false, update: true };
+      // if (view || update) {
+      //   return { view, update };
+      // }
 
-      return null;
+      // return null;
     },
   },
 
