@@ -16,23 +16,29 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("ROLE_TYPE")
+@TableName("BASIL_SEC_PRD.ROLE_TYPES")
 @ApiModel(value="ROLE TYPE Object", description="ROLE TYPE Table")
 public class RoleTypeEntity extends Model<RoleTypeEntity> {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "Role Type ID")
-    @TableId(value = "RT_ID", type = IdType.AUTO)
-    private Integer rtId;
+    @TableId(value = "RT_OID", type = IdType.AUTO)
+    private Integer rtOid;
 
     @ApiModelProperty(value = "Name")
     private String name;
 
+    @ApiModelProperty(value = "Created")
+    private LocalDateTime created;
+
     @ApiModelProperty(value = "Creator")
     private Integer creator;
 
-    @ApiModelProperty(value = "updated")
-    private LocalDateTime updated;
+    @ApiModelProperty(value = "Modified")
+    private LocalDateTime modified;
+
+    @ApiModelProperty(value = "Modifier")
+    private String modifier;
 
     @ApiModelProperty(value = "version")
     @Version

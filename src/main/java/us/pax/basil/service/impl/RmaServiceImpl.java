@@ -57,7 +57,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                              String sortColumns, 
                                              Long rmaNumber, 
                                              String serialNumber, 
-                                             String model) {
+                                             String partNumber) {
         /*
            String [] receivedDates = {null,null};
            if (dateReceived != null)
@@ -71,7 +71,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, model);
+            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, partNumber);
     
             List<Shipped> shippedList = rmaMapper.getShipping((currentPage - 1) * sizePerPage,
                                                               sizePerPage, 
@@ -79,7 +79,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                                               companyId,
                                                               rmaNumber, 
                                                               serialNumber, 
-                                                              model);
+                                                              partNumber);
 
             for (Shipped shipped: shippedList) { 
                 Map<String, Object> shippedMap = new HashMap<>();

@@ -228,10 +228,10 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 if (!doOnce) {
                     doOnce = true;
                     trpMap.put(PrivilegeConstant.ID, id);
-                    trpMap.put(PrivilegeConstant.ROLE_NAME, titleRoleIdPrivId.get(PrivilegeConstant.TITLE_STRING_UPPERCASE));
-                    trpMap.put(PrivilegeConstant.ROLE_TYPE_ID, titleRoleIdPrivId.get(PrivilegeConstant.RT_ID));
+                    trpMap.put(PrivilegeConstant.ROLE_NAME, titleRoleIdPrivId.get("NAME"));
+                    trpMap.put(PrivilegeConstant.ROLE_TYPE_ID, titleRoleIdPrivId.get("RT_OID"));
                 }
-                permissions.add((Integer)titleRoleIdPrivId.get(PrivilegeConstant.PRIVILEGE_ID));
+                permissions.add((Integer)titleRoleIdPrivId.get("P_OID"));
             }
             trpMap.put(PrivilegeConstant.PERMISSIONS, permissions);
             returnArray.add(trpMap);
@@ -247,18 +247,18 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             ArrayList<Map<String, Object>> allRoleList = new ArrayList<>();
 
             QueryWrapper<RoleTypeEntity> roleTypeWrapper = new QueryWrapper<>();
-            roleTypeWrapper.select("RT_ID", "NAME");
+            roleTypeWrapper.select("RT_OID", "NAME");
             List<RoleTypeEntity> roleTypeList = roleTypeMapper.selectList(roleTypeWrapper);
             for (RoleTypeEntity roleType : roleTypeList) {
                 QueryWrapper<RoleEntity> roleWrapper = new QueryWrapper<>();
-                roleWrapper.select("ROLE_ID", "TITLE").eq("RT_ID", roleType.getRtId());
+                roleWrapper.select("R_OID", "NAME").eq("RT_OID", roleType.getRtOid());
                 List<RoleEntity> roleList = roleMapper.selectList(roleWrapper);
 
                 List<Map<String, Object>> roleInfo = new ArrayList<>();
                 for (RoleEntity role : roleList) {
                     Map<String, Object> roleMap = new HashMap<>();
-                    roleMap.put(PrivilegeConstant.ID, role.getRoleId());
-                    roleMap.put(PrivilegeConstant.ROLE_NAME, role.getTitle());
+                    roleMap.put(PrivilegeConstant.ID, role.getROid());
+                    roleMap.put(PrivilegeConstant.ROLE_NAME, role.getName());
                     roleInfo.add(roleMap);
                 }
 
@@ -315,6 +315,10 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             m.put("statusStr", user.getStatusStr());
             
             Company company = userMapper.getCompanyInfo(user.getCompanyId());
+            if (company == null) {
+            	return new QueryResultArrayDTO(null, 0, -1, "Company ID: " + user.getCompanyId() + " does not exist.");
+            }
+
             Map<String, Object> mm = new HashMap<>();
 
             mm.put(DropDownConstant.DROPDOWN_VALUE, company.getId());

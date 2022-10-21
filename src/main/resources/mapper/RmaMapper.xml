@@ -24,7 +24,7 @@
 				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 			</if>
 			<if test="partNumber != null">
-				AND STATUS LIKE concat('%',#{partNumber},'%')
+				AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 			</if>
     		AND xm.STATUS = 113
 		</where>

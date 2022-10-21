@@ -34,13 +34,15 @@
     </select>
     
     <select id="getTitleRtIdPrivId" resultType="java.util.HashMap">
-    	SELECT
-    		TITLE, RT_ID, PRIVILEGE_ID
+        	SELECT
+    		r.NAME, 
+            r.RT_OID, 
+            P_OID
 		FROM
-    		USER_ROLES
-        	LEFT JOIN XREF_ROLE_PRIVILEGE USING (ROLE_ID)
-        	LEFT JOIN USER_PRIVILEGES USING (PRIVILEGE_ID)
-		WHERE ROLE_ID = #{role_id,jdbcType=INTEGER} AND LEVEL = 4;
+    		BASIL_SEC_PRD.ROLES r
+        	LEFT JOIN BASIL_SEC_PRD.XREF_ROLE_PRIVILEGE USING (R_OID)
+        	LEFT JOIN BASIL_SEC_PRD.PRIVILEGES USING (P_OID)
+		WHERE R_OID = #{role_id} AND PARENT_OID = 4;
     </select>
     
     <update id= "updateRoleType">
