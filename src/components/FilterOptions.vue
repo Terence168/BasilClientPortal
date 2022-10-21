@@ -193,7 +193,7 @@ export default {
         return;
       }
 
-      const link = "/basil/customer/drop-down?customerName=" + val;
+      const link = "user/customers?customerName=" + val;
 
       this.$api
         .get(link)
