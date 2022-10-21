@@ -81,7 +81,7 @@ public class PrivilegeController {
 
     // UpdateCustomer() - Update customer information.  Required fields will be manually
     //                    checked so that a SQLResultDTO can be returned.
-    @PreAuthorize("hasAuthority('privilege.role.update')")
+    //@PreAuthorize("hasAuthority('privilege.role.update')")
     @PostMapping("/role/update")
     public SqlResultDTO updateRole(@RequestBody Role role) {
         return privilegeService.UpdateRole(role);
@@ -99,7 +99,7 @@ public class PrivilegeController {
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
     //@PreAuthorize("hasAuthority('privilege.role.view')")
     @GetMapping("/role/view/query")
-    public QueryResultArrayDTO roleViewQuery(HttpServletRequest request, @RequestParam String id) {
+    public QueryResultArrayDTO roleViewQuery(HttpServletRequest request, @RequestParam Integer id) {
         return privilegeService.ViewQueryRole(request, id);
     }
 

@@ -38,7 +38,7 @@ public interface PrivilegeService extends IService<RoleType> {
     SqlResultDTO AddRole(Role role);
     SqlResultDTO UpdateRole(Role role);
     QueryResultArrayDTO QueryRole(HttpServletRequest request);
-    QueryResultArrayDTO ViewQueryRole(HttpServletRequest request, String id);
+    QueryResultArrayDTO ViewQueryRole(HttpServletRequest request, Integer id);
     QueryResultArrayDTO queryAllRoles();
 
     // user

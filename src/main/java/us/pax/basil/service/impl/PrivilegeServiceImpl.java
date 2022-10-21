@@ -215,11 +215,11 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     // ViewQueryRole()
     //
     @Override
-    public QueryResultArrayDTO ViewQueryRole(HttpServletRequest request, String id) {
+    public QueryResultArrayDTO ViewQueryRole(HttpServletRequest request, Integer id) {
         ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
 
         try {
-            List<Map<String, Object>> titlesRoleIdsPrivIds = privilegeMapper.getTitleRtIdPrivId(Integer.valueOf(id));
+            List<Map<String, Object>> titlesRoleIdsPrivIds = privilegeMapper.getTitleRtIdPrivId(id);
             boolean doOnce=false;
             Map<String, Object> trpMap = new HashMap<>();
             List<Integer> permissions =  new ArrayList<>();
@@ -350,6 +350,9 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
 
             if (user.getStatus() == null)
             	user.setStatus(StatusConstant.DISABLED);
+
+            if (user.getStandardUser() == null)
+            	user.setStandardUser(0);
 
             userMapper.updateUser(user);
 

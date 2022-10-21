@@ -42,7 +42,7 @@
     		BASIL_SEC_PRD.ROLES r
         	LEFT JOIN BASIL_SEC_PRD.XREF_ROLE_PRIVILEGE USING (R_OID)
         	LEFT JOIN BASIL_SEC_PRD.PRIVILEGES USING (P_OID)
-		WHERE R_OID = #{role_id} AND PARENT_OID = 4;
+		WHERE R_OID = #{role_id} AND LEVEL = 4;
     </select>
     
     <update id= "updateRoleType">
@@ -54,8 +54,11 @@
     </update>
     
     <update id="updateRole">
-    	UPDATE BASIL_ODS_PRD.USER_ROLES 
-    	SET TITLE=#{role_name,jdbcType=VARCHAR}, RT_ID=#{role_type_id,jdbcType=INTEGER} where ROLE_ID=#{role_id,jdbcType=INTEGER};
+    	UPDATE BASIL_SEC_PRD.ROLES 
+    	SET 
+    		NAME=#{role_name}, 
+    		RT_OID=#{role_type_id} 
+    	where R_OID=#{role_id};
     </update>
 
     <insert id="addRole" useGeneratedKeys="true" parameterType="us.pax.basil.entity.privilege.Role" keyProperty="id">
@@ -70,7 +73,7 @@
 	
 	<delete id="deleteRolePermissions">
 		DELETE FROM BASIL_SEC_PRD.XREF_ROLE_PRIVILEGE 
-			WHERE ROLE_ID = #{role_id,jdbcType=INTEGER};
+			WHERE R_OID = #{role_id};
 	</delete>
 
 	<select id="getUser" resultType="us.pax.basil.entity.privilege.UserQuery">
