@@ -15,8 +15,8 @@ const api = axios.create({
   baseURL:
     process.env.NODE_ENV === "production"
       ? uat
-        ? "https://client.basiluat.paxcenters.com:8989/api/v1"
-        : "https://client.basil.paxcenters.com/api/v1"
+        ? "https://basilclientuat.paxcenters.com:8989/api/v1"
+        : "https://basilclient.paxcenters.com/api/v1"
       : "http://localhost:8081/api/v1",
   withCredentials: true,
 });
