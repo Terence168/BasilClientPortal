@@ -70,9 +70,9 @@ const expandCategory = function (categoryValue) {
     style="max-width: 1100px; margin: 0 auto"
   >
     <div class="col-3 text-body1 text-weight-bold" style="padding-left: 10px">
-      <span v-if="level === 1" class="text-subtitle2 text-grey-5">Model#:</span>
+      <span v-if="level === 1" class="text-subtitle2 text-grey-5">Model:</span>
       <span v-if="level === 2" class="q-ml-md text-subtitle2 text-grey-5"
-        >RMA#:</span
+        >Ticket#:</span
       >
       <span v-if="level === 3" class="q-ml-xl text-subtitle2 text-grey-5"
         >SN:</span

@@ -10,7 +10,7 @@
           indicator-color="primary"
           align="left"
         >
-          <q-tab name="RMAStatus" label="RMA Status" />
+          <q-tab name="RMAStatus" label="Ticket Status" />
           <q-tab name="privilege" label="Privilege" />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">

@@ -57,7 +57,7 @@ export default {
       },
 
       filterFields: [
-        { id: "rmaNumber", label: "RMA Number" },
+        { id: "rmaNumber", label: "Ticket Number" },
         { id: "serialNumber", label: "Serial Number" },
         { id: "partNumber", label: "Model Number Short" },
       ],
@@ -65,7 +65,7 @@ export default {
       tableData: {
         columns: [
           { id: "quarantineDate", label: "Quarantine Date", sortable: false },
-          { id: "partNumber", label: "Part Number Short", sortable: true },
+          { id: "partNumber", label: "Model Number Short", sortable: true },
           { id: "serialNumber", label: "Serial Number", sortable: false },
           { id: "rmaNumber", label: "Ticket Number", sortable: true },
           {

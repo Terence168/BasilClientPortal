@@ -79,7 +79,7 @@ export default {
       partSummary: [],
 
       filterFields: [
-        { id: "rmaNumber", label: "RMA Number" },
+        { id: "rmaNumber", label: "Ticket Number" },
         { id: "serialNumber", label: "Serial Number" },
         { id: "partNumber", label: "Model Number Short" },
       ],

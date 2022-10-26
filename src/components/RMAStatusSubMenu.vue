@@ -1,6 +1,6 @@
 <template>
   <q-list class="q-pa-lg text-secondary text-subtitle1">
-    <div class="q-ml-md q-mb-sm section-title">RMA Status Options</div>
+    <div class="q-ml-md q-mb-sm section-title">Ticket Status Options</div>
 
     <q-item
       class="list-item"
