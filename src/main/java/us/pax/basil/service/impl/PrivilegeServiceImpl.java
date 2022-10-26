@@ -313,19 +313,22 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             m.put("lastLogin", user.getLastLoginDate());
             m.put("status", user.getStatus());
             m.put("statusStr", user.getStatusStr());
-            
-            Company company = userMapper.getCompanyInfo(user.getCompanyId());
-            if (company == null) {
-            	return new QueryResultArrayDTO(null, 0, -1, "Company ID: " + user.getCompanyId() + " does not exist.");
+            m.put("standardUser", user.getStandardUser());
+
+            if(user.getStandardUser() == 1) {
+                Company company = userMapper.getCompanyInfo(user.getCompanyId());
+                if (company == null) {
+                    return new QueryResultArrayDTO(null, 0, -1, "Company ID: " + user.getCompanyId() + " does not exist.");
+                }
+
+                Map<String, Object> mm = new HashMap<>();
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, company.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, company.getOrganization());
+                mm.put(ClientGroupConstant.ID, company.getClientGroupId());
+                mm.put(ClientGroupConstant.GROUP, company.getClientGroup());
+                m.put("customerName", mm);
             }
-
-            Map<String, Object> mm = new HashMap<>();
-
-            mm.put(DropDownConstant.DROPDOWN_VALUE, company.getId());
-            mm.put(DropDownConstant.DROPDOWN_LABEL, company.getOrganization());
-            mm.put(ClientGroupConstant.ID, company.getClientGroupId()); 
-            mm.put(ClientGroupConstant.GROUP, company.getClientGroup());
-            m.put("customerName", mm);
 
             List<Integer> roles =  privilegeMapper.getUserRoles(id);
 

@@ -109,7 +109,8 @@
     		END) statusStr,
     		CREATED,
     		PASSWORD,
-    		LAST_LOGIN_DATE as lastLoginDate
+    		LAST_LOGIN_DATE as lastLoginDate,
+			STANDARD_USER
 		FROM 
 			BASIL_SEC_PRD.USERS 
 		WHERE 
@@ -284,6 +285,7 @@
     		EMAIL=#{email},
     		STATUS=#{status},
     		STANDARD_USER=#{standardUser},
+			COMPANY_ID=#{companyId},
     		MODIFIED=CURRENT_TIMESTAMP()
    		WHERE 
    			U_OID=#{id};
