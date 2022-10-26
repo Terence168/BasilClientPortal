@@ -35,7 +35,9 @@ const expandCategory = function (categoryValue) {
     return;
   }
 
-  const params = new URLSearchParams([[category, categoryValue]]);
+  const params = new URLSearchParams(window.location.search);
+
+  params.set(category, categoryValue);
 
   if (props.level === 2) {
     params.set("partNumber", props.parent);

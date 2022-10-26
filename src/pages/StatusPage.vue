@@ -47,7 +47,7 @@
 
         <StatusBox
           v-for="part in partSummary"
-          :key="part.partNumber"
+          :key="part.partNumber + '-' + Date.now()"
           category="partNumber"
           :level="1"
           :data="part"
@@ -79,9 +79,9 @@ export default {
       partSummary: [],
 
       filterFields: [
+        { id: "partNumber", label: "Model Number Short" },
         { id: "rmaNumber", label: "Ticket Number" },
         { id: "serialNumber", label: "Serial Number" },
-        { id: "partNumber", label: "Model Number Short" },
       ],
     };
   },

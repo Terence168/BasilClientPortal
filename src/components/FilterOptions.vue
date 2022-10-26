@@ -110,9 +110,9 @@ export default {
 
   created() {
     for (const { id, type } of this.filterFields) {
-      this.filter.id = this.$route.query[id] || "";
-      if (type === "dateRange") this.dateRange.id = null;
-      if (type === "select") this.options.id = [];
+      this.filter[id] = this.$route.query[id] || "";
+      if (type === "dateRange") this.dateRange[id] = null;
+      if (type === "select") this.options[id] = [];
     }
   },
 

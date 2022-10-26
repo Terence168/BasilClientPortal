@@ -129,13 +129,13 @@
 
         <q-checkbox
           v-model="modalFormData.standardUser"
-          label="Standard User?"
+          label="Client User?"
           :true-value="1"
           :false-value="0"
         />
 
         <q-select
-          v-if="modalFormData.standardUser === 0"
+          v-if="modalFormData.standardUser === 1"
           name="customerId"
           class="q-mb-sm"
           outlined
@@ -366,12 +366,16 @@ export default {
 
       const vm = this;
 
-      this.$api
-        .post(actionURL, { id, ...this.modalFormData, roles: vm.rolesSelected })
-        .then(function (response) {
-          vm.showModal = false;
-          vm.queryData();
-        });
+      const payload = { id, ...this.modalFormData, roles: vm.rolesSelected };
+
+      if (this.modalFormData.customerName) {
+        payload.companyId = this.modalFormData.customerName.value;
+      }
+
+      this.$api.post(actionURL, payload).then(function (response) {
+        vm.showModal = false;
+        vm.queryData();
+      });
     },
 
     addData() {
