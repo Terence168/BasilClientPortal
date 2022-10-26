@@ -150,6 +150,15 @@ FROM
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	WHERE
 	    mo.MC_OID = #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+		<if test="partNumber != null">
+			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+		</if>
+		<if test="rmaNumber != null">
+			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+		</if>
+		<if test="serialNumber != null">
+			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+		</if>
 	GROUP BY part.PART_NUMBER_SHORT;
 </select>
 
@@ -169,6 +178,12 @@ FROM
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	WHERE
 	    mo.MC_OID = #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+		<if test="rmaNumber != null">
+			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+		</if>
+		<if test="serialNumber != null">
+			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+		</if>
 	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID
 	HAVING part.PART_NUMBER_SHORT = #{partNumber};
 </select>
@@ -191,6 +206,9 @@ FROM
             AND xm.STATUS IN (107, 110, 108, 111, 112)
     		AND part.PART_NUMBER_SHORT = #{partNumber}
             AND mo.MO_OID = #{rmaNumber}
+			<if test="serialNumber != null">
+				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+			</if>
 </select>
 
 </mapper>

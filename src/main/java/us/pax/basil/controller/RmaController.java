@@ -50,19 +50,24 @@ public class RmaController {
     }
 
     @GetMapping("/status/tier1")
-    public QueryResultArrayDTO statusTier1() {
-        return rmaService.statusTier1();
+    public QueryResultArrayDTO statusTier1(@RequestParam(value = "partNumber", required = false) String partNumber,
+                                           @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                           @RequestParam(value = "serialNumber", required = false) String serialNumber) {
+        return rmaService.statusTier1(partNumber, rmaNumber, serialNumber);
     }
 
     @GetMapping("/status/tier2")
-    public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = true) String partNumber) {
-        return rmaService.statusTier2(partNumber);
+    public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = true) String partNumber,
+                                           @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                           @RequestParam(value = "serialNumber", required = false) String serialNumber) {
+        return rmaService.statusTier2(partNumber, rmaNumber, serialNumber);
     }
 
     @GetMapping("/status/tier3")
     public QueryResultArrayDTO statusTier3(@RequestParam(value = "rmaNumber", required = true) Long rmaNumber,
-    										@RequestParam(value = "partNumber", required = true) String partNumber) {
-        return rmaService.statusTier3(rmaNumber, partNumber);
+                                           @RequestParam(value = "partNumber", required = true) String partNumber,
+                                           @RequestParam(value = "serialNumber", required = false) String serialNumber) {
+        return rmaService.statusTier3(rmaNumber, partNumber, serialNumber);
     }
 
 

@@ -192,7 +192,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     }
 
 	@Override
-	public QueryResultArrayDTO statusTier1() {
+	public QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber) {
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = null;
         
@@ -200,7 +200,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             companyId = user.getCompanyId();
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId);
+        List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId, partNumber, rmaNumber, serialNumber);
         try {
         	for (PartNumberTier1 part: partNumberList) {
         		Map<String, Object> result = new HashMap<>();
@@ -223,7 +223,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	}
 
 	@Override
-	public QueryResultArrayDTO statusTier2(String partNumber) {
+	public QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber) {
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = null;
         
@@ -231,7 +231,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             companyId = user.getCompanyId();
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber);
+        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber, rmaNumber, serialNumber);
         try {
         	for (RmaNumberTier2 rma: rmaNumberList) {
         		Map<String, Object> result = new HashMap<>();
@@ -254,7 +254,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	}
 
 	@Override
-	public QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber) {
+	public QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumberFilter) {
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = null;
         
@@ -262,7 +262,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             companyId = user.getCompanyId();
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId, rmaNumber, partNumber);
+        List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId, rmaNumber, partNumber, serialNumberFilter);
         try {
         	for (SerialNumberTier3 serialNumber: serialNumberList) {
         		Map<String, Object> result = new HashMap<>();

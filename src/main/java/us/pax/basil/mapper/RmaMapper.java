@@ -55,7 +55,7 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	    String serialNumber,
                          	    String partNumber);
 	
-	List<PartNumberTier1> getPartNumberTier1(Integer id);
-	List<RmaNumberTier2> getRmaNumberTier2(Integer id, String partNumber);
-	List<SerialNumberTier3> getSerialNumberTier3(Integer id, Long rmaNumber, String partNumber);
+	List<PartNumberTier1> getPartNumberTier1(Integer id, String partNumber, Long rmaNumber, String serialNumber);
+	List<RmaNumberTier2> getRmaNumberTier2(Integer id, String partNumber, Long rmaNumber, String serialNumber);
+	List<SerialNumberTier3> getSerialNumberTier3(Integer id, Long rmaNumber, String partNumber, String serialNumber);
 }
