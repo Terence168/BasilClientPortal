@@ -5,7 +5,7 @@
         <div class="col-auto self-center q-py-md">
           <q-img
             style="width: 250px"
-            src="pax_logo.png"
+            src="~assets/pax_logo.png"
             spinner-color="primary"
           />
         </div>

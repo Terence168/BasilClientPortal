@@ -2,7 +2,7 @@
   <div style="background-color: #e5f5fd; width: 100vw; height: 100vh">
     <q-img
       class="float-left"
-      src="login_background.png"
+      src="~assets/login_background.png"
       style="width: calc(100% - 600px); height: 100vh"
     />
 
@@ -16,7 +16,7 @@
         <div class="col-2 self-center q-px-xl">
           <q-img
             style="width: 250px"
-            src="pax_logo.png"
+            src="~assets/pax_logo.png"
             spinner-color="primary"
           />
         </div>

@@ -30,7 +30,7 @@
       <q-toolbar class="justify-center text-primary" style="min-height: 100px">
         <q-toolbar-title shrink>
           <q-img
-            src="pax_logo_small.png"
+            src="~assets/pax_logo_small.png"
             spinner-color="white"
             class="q-mr-md"
             style="width: 120px"
