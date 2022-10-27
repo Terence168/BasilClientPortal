@@ -1,10 +1,11 @@
 const routes = [
   {
-    path: "/",
+    path: "",
     component: () => import("layouts/MainLayout.vue"),
+    redirect: "/rma/status",
     children: [
       {
-        path: "privilege",
+        path: "/privilege",
         name: "privilege",
         component: () => import("pages/PrivilegePage.vue"),
         meta: {
@@ -13,7 +14,7 @@ const routes = [
         },
         children: [
           {
-            path: "role-type",
+            path: "/role-type",
             name: "role-type",
             component: () => import("pages/RoleTypePage.vue"),
             meta: {
@@ -23,7 +24,7 @@ const routes = [
           },
 
           {
-            path: "role",
+            path: "/role",
             name: "role",
             component: () => import("pages/RolePage.vue"),
             meta: {
@@ -33,7 +34,7 @@ const routes = [
           },
 
           {
-            path: "user",
+            path: "/user",
             name: "user",
             component: () => import("pages/UserPage.vue"),
             meta: {
@@ -45,7 +46,7 @@ const routes = [
       },
 
       {
-        path: "rma",
+        path: "/rma",
         name: "rma",
         component: () => import("pages/RMAPage.vue"),
         meta: {
@@ -57,6 +58,7 @@ const routes = [
             path: "status",
             name: "status",
             component: () => import("pages/StatusPage.vue"),
+            alias: "",
             meta: {
               requiresAuth: true,
               permissions: ["rma.status"],
