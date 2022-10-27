@@ -159,9 +159,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         
         Integer userStatus = userMapper.getUserStatus(details.getUserId());
         
-        if (userStatus.equals(StatusConstant.DISABLED) == true) {
+        if (userStatus.equals(StatusConstant.DISABLED)) {
             return new QueryResultArrayDTO(null, 0, -55, "User account is currently disabled.");
-        } else if (userStatus.equals(StatusConstant.INACTIVE) == true) {
+        } else if (userStatus.equals(StatusConstant.INACTIVE)) {
             return new QueryResultArrayDTO(null, 0, -55, "User account is currently inactive.");
         }
 
@@ -173,6 +173,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         map.put("name", details.getUsername());
         map.put("email", details.getEmailAddress());
         map.put("companyId", details.getCompanyId());
+        map.put("companyName", userMapper.getCompanyInfo(details.getCompanyId()).getOrganization());
         
         ArrayList<String> permissions = new ArrayList<>();
         

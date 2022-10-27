@@ -134,6 +134,20 @@
 		WHERE U_OID = #{id};
 	</select>
 
+	<select id="getPrivilegeListByUserId" resultType="string">
+		SELECT DISTINCT
+			t4.CODE
+		FROM
+			BASIL_SEC_PRD.XREF_USER_ROLE t1
+		INNER JOIN
+			BASIL_SEC_PRD.ROLES t2 USING (R_OID)
+		INNER JOIN
+			BASIL_SEC_PRD.XREF_ROLE_PRIVILEGE t3 USING (R_OID)
+		INNER JOIN
+			BASIL_SEC_PRD.PRIVILEGES t4 USING (P_OID)
+		WHERE U_OID=#{userId,jdbcType=INTEGER}
+	</select>
+
 	<delete id="deleteUserRoles">
 		DELETE FROM BASIL_SEC_PRD.XREF_USER_ROLE
 			WHERE U_OID = #{user_id};

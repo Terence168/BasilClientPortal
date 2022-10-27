@@ -26,9 +26,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.util.CollectionUtils;
 import us.pax.basil.entity.User;
 import us.pax.basil.mapper.EmployeeMapper;
 import us.pax.basil.mapper.PermissionMapper;
+import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
 
@@ -47,7 +49,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     UserMapper userMapper;
 
     @Autowired
-    PermissionMapper permissionMapper;
+    PrivilegeMapper privilegeMapper;
 
     @Override
     public UserDetails loadUserByUsername(String loginName) {
@@ -60,12 +62,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
 
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        /*
-        List <String> privilegeList = permissionMapper.getPrivilegeListByEmpOid(employee.getEmpOid());
+
+        List <String> privilegeList = privilegeMapper.getPrivilegeListByUserId(user.getId());
         if (!CollectionUtils.isEmpty(privilegeList)) {
             privilegeList.forEach(privilege -> authorities.add(new SimpleGrantedAuthority(privilege)));
         }
-        */
 
         return new CustomUserDetails(user.getName(), user.getPassword(), authorities)
                 .setUserId(user.getId())
