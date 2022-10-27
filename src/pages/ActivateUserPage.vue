@@ -154,24 +154,11 @@ const checkTokenValidity = function () {
 
   const actionURL = `password/token-valid?token=${token}`;
 
-  api
-    .get(actionURL)
-    .then(function (response) {
-      if (response.data.resultCode === 0) {
-        valid.value = true;
-      } else {
-        Notify.create({
-          type: "negative",
-          message: response.data.errorMessage,
-        });
-      }
-    })
-    .catch((error) => {
-      Notify.create({
-        type: "negative",
-        message: error.message,
-      });
-    });
+  api.get(actionURL).then(function (response) {
+    if (response.data.resultCode === 0) {
+      valid.value = true;
+    }
+  });
 };
 
 onMounted(() => checkTokenValidity());
@@ -182,7 +169,7 @@ onMounted(() => checkTokenValidity());
   display: flex
   align-items: center
   background-color: #e5f5fd
-  background-image: url('login_background.png')
+  background-image: url('/src/assets/login_background.png')
   background-size: contain
   background-repeat: no-repeat
   background-position: center center

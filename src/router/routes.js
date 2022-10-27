@@ -2,7 +2,6 @@ const routes = [
   {
     path: "",
     component: () => import("layouts/MainLayout.vue"),
-    redirect: "/rma/status",
     children: [
       {
         path: "/privilege",
@@ -49,6 +48,7 @@ const routes = [
         path: "/rma",
         name: "rma",
         component: () => import("pages/RMAPage.vue"),
+        alias: "",
         meta: {
           requiresAuth: true,
           permissions: ["rma"],

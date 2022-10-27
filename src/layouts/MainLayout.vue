@@ -14,12 +14,24 @@
           <q-tab name="privilege" label="Privilege" />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
-          <q-avatar color="primary" text-color="white">{{
-            userName ? userName[0] : "G"
-          }}</q-avatar>
-          <span class="q-ml-sm q-mr-md">{{ userName }}</span>
-          <q-btn class="q-mr-md" @click="changePassword">Change Password</q-btn>
-          <q-btn @click="logout">Logout</q-btn>
+          <div class="row">
+            <q-avatar color="primary" text-color="white">{{
+              userName ? userName[0] : "G"
+            }}</q-avatar>
+            <div class="column justify-center q-ml-sm q-mr-md">
+              <div class="col-auto">{{ userName }}</div>
+              <div
+                v-if="companyName !== ''"
+                class="col-auto text-subtitle2 text-grey-6"
+              >
+                {{ companyName }}
+              </div>
+            </div>
+            <q-btn class="col-auto self-center q-mr-md" @click="changePassword">
+              Change Password
+            </q-btn>
+            <q-btn class="col-auto self-center" @click="logout">Logout</q-btn>
+          </div>
         </div>
       </div>
     </q-header>
@@ -182,6 +194,9 @@ export default {
     },
     userName() {
       return user.username || "Guest";
+    },
+    companyName() {
+      return user.companyName || "";
     },
   },
 

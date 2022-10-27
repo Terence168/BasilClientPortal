@@ -6,8 +6,9 @@ export const useUserStore = defineStore("user", {
   state: () => ({
     username: "",
     email: "",
-    company: "",
-    permissoins: [],
+    companyId: 0,
+    companyName: "",
+    permissions: [],
     sessionStartTime: 0,
   }),
   getters: {
@@ -46,7 +47,8 @@ export const useUserStore = defineStore("user", {
 
           this.username = user.name;
           this.email = user.email;
-          this.company = user.companyId;
+          this.companyId = user.companyId;
+          this.companyName = user.companyName;
           this.permissions = user.permissions;
 
           this.sessionStartTime = Date.now();
