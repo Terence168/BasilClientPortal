@@ -31,6 +31,26 @@
             </template>
           </q-select>
 
+          <q-select
+            v-else-if="field.type === 'customerSelect' && !clientUser"
+            outlined
+            v-model="filter[field.id]"
+            :input-debounce="500"
+            :options="options[field.id]"
+            :label="field.label"
+            use-input
+            @filter="filterCustomerFn"
+            dense
+            emit-value
+            map-options
+          >
+            <template v-slot:no-option>
+              <q-item>
+                <q-item-section class="text-grey"> No results </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+
           <q-input
             v-else-if="field.type === 'dateRange'"
             outlined
@@ -95,6 +115,8 @@
 </template>
 
 <script>
+import { useUserStore } from "stores/user";
+
 export default {
   props: ["filterFields"],
 
@@ -113,7 +135,14 @@ export default {
       this.filter[id] = this.$route.query[id] || "";
       if (type === "dateRange") this.dateRange[id] = null;
       if (type === "select") this.options[id] = [];
+      if (type === "customerSelect") this.options[id] = [];
     }
+  },
+
+  computed: {
+    clientUser() {
+      return useUserStore().isClientUser;
+    },
   },
 
   methods: {
@@ -192,6 +221,8 @@ export default {
         abort();
         return;
       }
+
+      console.log(val);
 
       const link = "user/customers?customerName=" + val;
 

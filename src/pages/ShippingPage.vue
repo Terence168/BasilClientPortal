@@ -20,12 +20,18 @@
         <div class="row items-center text-subtitle1 text-weight-medium">
           Click on a column to sort the content of the table
         </div>
-        <div class="q-pt-md">
+        <div v-if="total !== 0" class="q-pt-md">
           <div class="row justify-center">
             <GenericTable style="max-width: 100%" :tableData="tableData" />
           </div>
 
           <GenericPagination :pages="totalPages" :total="total" />
+        </div>
+        <div
+          v-else
+          class="q-pt-md text-subtitle1 text-weight-medium text-grey-6 text-center"
+        >
+          No data found for the current customer
         </div>
       </div>
     </div>
@@ -60,6 +66,7 @@ export default {
         { id: "rmaNumber", label: "Ticket Number" },
         { id: "serialNumber", label: "Serial Number" },
         { id: "partNumber", label: "Model Number Short" },
+        { id: "customerId", label: "Customer", type: "customerSelect" },
       ],
 
       tableData: {

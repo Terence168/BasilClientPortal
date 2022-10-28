@@ -10,6 +10,7 @@ export const useUserStore = defineStore("user", {
     companyName: "",
     permissions: [],
     sessionStartTime: 0,
+    clientUser: null,
   }),
   getters: {
     loggedIn: (state) => state.email !== "",
@@ -18,6 +19,8 @@ export const useUserStore = defineStore("user", {
       state.sessionStartTime +
       import.meta.env.VITE_SESSION_DURATION * 60000 -
       Date.now(),
+
+    isClientUser: (state) => state.clientUser === 1,
   },
   actions: {
     login(username, password) {
@@ -49,6 +52,7 @@ export const useUserStore = defineStore("user", {
           this.email = user.email;
           this.companyId = user.companyId;
           this.companyName = user.companyName;
+          this.clientUser = user.clientUser;
           this.permissions = user.permissions;
 
           this.sessionStartTime = Date.now();

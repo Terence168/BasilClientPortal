@@ -22,6 +22,7 @@
         </div>
 
         <div
+          v-if="partSummary.length > 0"
           class="row"
           style="
             max-width: 1100px;
@@ -43,6 +44,13 @@
               <div class="col-2 text-weight-bold">Total</div>
             </div>
           </div>
+        </div>
+
+        <div
+          v-else
+          class="q-pt-md text-subtitle1 text-weight-medium text-grey-6 text-center"
+        >
+          No data found for the current customer
         </div>
 
         <StatusBox
@@ -82,6 +90,7 @@ export default {
         { id: "partNumber", label: "Model Number Short" },
         { id: "rmaNumber", label: "Ticket Number" },
         { id: "serialNumber", label: "Serial Number" },
+        { id: "customerId", label: "Customer", type: "customerSelect" },
       ],
     };
   },
