@@ -14,9 +14,7 @@
 		    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
 		    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 		<where>
-			<if test="id != null">
-				mo.MC_OID = #{id}
-			</if>
+			mo.MC_OID = #{id}
 			<if test="rmaNumber != null">
 				AND mo.MO_OID = #{rmaNumber}
 			</if>
@@ -48,9 +46,7 @@ FROM
     JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
     JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 <where>
-	<if test="id != null">
-		mo.MC_OID = #{id}
-	</if>
+	mo.MC_OID = #{id}
 	<if test="rmaNumber != null">
 		AND mo.MO_OID = #{rmaNumber}
 	</if>
@@ -80,9 +76,7 @@ FROM
 	    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 	    LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_CONTACT_NEEDED
 	<where>
-		<if test="id != null">
-			mo.MC_OID = #{id}
-		</if>
+		mo.MC_OID = #{id}
 		<if test="rmaNumber != null">
 			AND mo.MO_OID = #{rmaNumber}
 		</if>
@@ -114,9 +108,7 @@ FROM
     JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
     LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_CONTACT_NEEDED
 <where>
-	<if test="id != null">
-		mo.MC_OID = #{id}
-	</if>
+	mo.MC_OID = #{id}
 	<if test="rmaNumber != null">
 		AND mo.MO_OID = #{rmaNumber}
 	</if>

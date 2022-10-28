@@ -52,22 +52,25 @@ public class RmaController {
     @GetMapping("/status/tier1")
     public QueryResultArrayDTO statusTier1(@RequestParam(value = "partNumber", required = false) String partNumber,
                                            @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
-                                           @RequestParam(value = "serialNumber", required = false) String serialNumber) {
-        return rmaService.statusTier1(partNumber, rmaNumber, serialNumber);
+                                           @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
+        return rmaService.statusTier1(partNumber, rmaNumber, serialNumber, customerId);
     }
 
     @GetMapping("/status/tier2")
     public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = true) String partNumber,
                                            @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
-                                           @RequestParam(value = "serialNumber", required = false) String serialNumber) {
-        return rmaService.statusTier2(partNumber, rmaNumber, serialNumber);
+                                           @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
+        return rmaService.statusTier2(partNumber, rmaNumber, serialNumber, customerId);
     }
 
     @GetMapping("/status/tier3")
     public QueryResultArrayDTO statusTier3(@RequestParam(value = "rmaNumber", required = true) Long rmaNumber,
                                            @RequestParam(value = "partNumber", required = true) String partNumber,
-                                           @RequestParam(value = "serialNumber", required = false) String serialNumber) {
-        return rmaService.statusTier3(rmaNumber, partNumber, serialNumber);
+                                           @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
+        return rmaService.statusTier3(rmaNumber, partNumber, serialNumber, customerId);
     }
 
 
@@ -78,7 +81,8 @@ public class RmaController {
                                          @RequestParam(value = "sort", required = false) String sortColumns,
                                          @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
                                          @RequestParam(value = "serialNumber", required = false) String serialNumber,
-                                         @RequestParam(value = "partNumber", required = false) String partNumber) {
+                                         @RequestParam(value = "partNumber", required = false) String partNumber,
+                                         @RequestParam(value = "customerId", required = false) Integer customerId) {
         if (null == currentPage || 0 == currentPage) {
             currentPage = 1; // show the first page by default
         }
@@ -86,7 +90,7 @@ public class RmaController {
         if (null == sizePerPage) {
             sizePerPage = 10; // show 10 items per page by default
         }
-        return rmaService.shippedQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber);
+        return rmaService.shippedQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber, customerId);
     }
 
     // @PreAuthorize("hasAuthority('admin.user.delete')")
@@ -96,7 +100,8 @@ public class RmaController {
                                            @RequestParam(value = "sort", required = false) String sortColumns,
                                            @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
-                                           @RequestParam(value = "partNumber", required = false) String partNumber) {
+                                           @RequestParam(value = "partNumber", required = false) String partNumber,
+                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
         if (null == currentPage || 0 == currentPage) {
             currentPage = 1; // show the first page by default
         }
@@ -104,6 +109,6 @@ public class RmaController {
         if (null == sizePerPage) {
             sizePerPage = 10; // show 10 items per page by default
         }
-        return rmaService.quarantineQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber);
+        return rmaService.quarantineQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber, customerId);
     }
 }

@@ -32,6 +32,8 @@ public class CustomUserDetails extends User {
     private String emailAddress;
     private Integer companyId;
 
+	private Integer standardUser;
+
 	public CustomUserDetails(String username, String password, Collection<? extends GrantedAuthority> authorities) {
         super(username, password, authorities);
     }
@@ -48,4 +50,8 @@ public class CustomUserDetails extends User {
 		this.companyId = id;
 		return this;
     }
+	public CustomUserDetails setStandardUser(Integer standardUser) {
+		this.standardUser = standardUser;
+		return this;
+	}
 }

@@ -17,16 +17,18 @@ public interface RmaService extends IService<Integer> {
 									 String sortColumns, 
 									 Long rmaNumber, 
 									 String serialNumber, 
-									 String partNumber);
+									 String partNumber,
+									 Integer customerId);
 
 	QueryResultArrayDTO quarantineQuery(Integer currentPage,
 									    Integer sizePerPage, 
 									    String sortColumns, 
 									    Long rmaNumber, 
 									    String serialNumber, 
-									    String partNumber);
+									    String partNumber,
+										Integer customerId);
 
-	QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber);
-	QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber);
-	QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumber);
+	QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, Integer customerId);
+	QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, Integer customerId);
+	QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumber, Integer customerId);
 }

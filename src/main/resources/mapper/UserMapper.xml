@@ -67,7 +67,8 @@
     		END) statusStr,
     		CREATED,
     		PASSWORD,
-    		LAST_LOGIN_DATE as lastLoginDate
+    		LAST_LOGIN_DATE as lastLoginDate,
+			STANDARD_USER
 		FROM 
 			BASIL_SEC_PRD.USERS 
 		WHERE 

@@ -71,6 +71,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return new CustomUserDetails(user.getName(), user.getPassword(), authorities)
                 .setUserId(user.getId())
                 .setEmailAddress(user.getEmail())
-                .setCompanyId(user.getCompanyId());
+                .setCompanyId(user.getCompanyId())
+                .setStandardUser(user.getStandardUser());
     }
 }
