@@ -86,7 +86,17 @@ const expandCategory = function (categoryValue) {
         indeterminate
         rounded
         color="primary"
+        size="24px"
       />
+      <template v-else-if="level < 3">
+        <q-icon
+          v-if="!expanded"
+          name="expand_more"
+          size="24px"
+          color="grey"
+        ></q-icon>
+        <q-icon v-else name="expand_less" size="24px" color="grey"></q-icon>
+      </template>
     </div>
     <div class="col-9">
       <div class="row text-body1 text-center">
