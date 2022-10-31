@@ -18,7 +18,7 @@
     <div class="q-mt-lg generic-container">
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg">
         <div class="row items-center text-subtitle1 text-weight-medium q-mb-md">
-          Click on a box to show detailed info
+          Click on model item to see more details
         </div>
 
         <div
