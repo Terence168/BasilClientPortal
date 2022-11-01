@@ -11,7 +11,11 @@
           align="left"
         >
           <q-tab name="RMAStatus" label="Ticket Status" />
-          <q-tab name="privilege" label="Privilege" />
+          <q-tab
+            v-if="checkPermission('privilege')"
+            name="privilege"
+            label="Privilege"
+          />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
           <div class="row">
@@ -224,6 +228,10 @@ export default {
             vm.$q.notify("Password was successfully changed");
           }
         });
+    },
+
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
     },
   },
 };

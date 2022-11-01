@@ -70,6 +70,7 @@
           Click on a column to sort the content of the table
           <q-space />
           <q-btn
+            v-if="checkPermission('privilege.user.add')"
             icon="add"
             label="Add"
             color="primary"
@@ -100,17 +101,18 @@
         <q-input
           class="q-mb-sm"
           outlined
-          v-model="modalFormData.name"
-          label="First and Last Name"
+          v-model="modalFormData.email"
+          label="Email"
           :readonly="modalFormOptions.action === 'View'"
+          :disable="modalFormOptions.action === 'Update'"
           dense
         />
 
         <q-input
           class="q-mb-sm"
           outlined
-          v-model="modalFormData.email"
-          label="Email"
+          v-model="modalFormData.name"
+          label="First and Last Name"
           :readonly="modalFormOptions.action === 'View'"
           dense
         />
@@ -222,6 +224,8 @@ import GenericTable from "src/components/GenericTable.vue";
 import GenericPagination from "src/components/GenericPagination.vue";
 import BaseModal from "src/components/BaseModal.vue";
 import FilterOptions from "src/components/FilterOptions.vue";
+
+import { useUserStore } from "stores/user";
 
 export default {
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
@@ -432,6 +436,10 @@ export default {
           // handle error
           console.log(error);
         });
+    },
+
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
     },
   },
 };

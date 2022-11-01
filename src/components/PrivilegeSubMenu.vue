@@ -3,6 +3,7 @@
     <div class="q-ml-md q-mb-sm section-title">Privilege Settings</div>
 
     <q-item
+      v-if="checkPermission('privilege.role-type')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'role-type' }"
@@ -15,6 +16,7 @@
     </q-item>
 
     <q-item
+      v-if="checkPermission('privilege.role')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'role' }"
@@ -27,6 +29,7 @@
     </q-item>
 
     <q-item
+      v-if="checkPermission('privilege.user')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'user' }"
@@ -41,7 +44,15 @@
 </template>
 
 <script>
+import { useUserStore } from "src/stores/user";
+
 export default {
   name: "PrivilegeSubMenu",
+
+  methods: {
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
+    },
+  },
 };
 </script>
