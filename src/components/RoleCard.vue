@@ -5,9 +5,9 @@
       flat
       class="transparent"
       :title="title"
-      :data="users"
+      :rows="users"
       :columns="columns"
-      :row-key="(row) => role + '-' + row.userName"
+      :row-key="(row) => user + '-' + row.id"
       v-model:pagination="pagination"
       hide-pagination
       :filter="filter"
