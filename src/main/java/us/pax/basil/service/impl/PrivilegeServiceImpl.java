@@ -69,7 +69,9 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     public SqlResultDTO AddRoleType(RoleType roleType) {
         
         try {
-            privilegeMapper.addRoleType(roleType.getId(), roleType.getName());
+            CustomUserDetails userDetails = AuthUtil.getUser();
+            assert userDetails != null;
+            privilegeMapper.addRoleType(roleType.getName(), userDetails.getUsername());
 
             return new SqlResultDTO(0, "");
         } catch(Exception e) {
@@ -193,12 +195,12 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     
                 ArrayList<Map<String, Object>> userArray = new ArrayList<>();
     
-                List<Map<String, Object>> namesEmails = privilegeMapper.getUserNameEmail((Integer)roleTitle.get(PrivilegeConstant.ROLE_ID));
+                List<Map<String, Object>> namesEmails = privilegeMapper.getUserNameEmail((Integer)roleTitle.get("R_OID"));
                 for (Map<String, Object> nameEmail: namesEmails) {
                     Map<String, Object> userMap = new HashMap<>();
-                    userMap.put(PrivilegeConstant.ID, roleTitle.get(PrivilegeConstant.ROLE_ID));
-                    userMap.put(PrivilegeConstant.USERNAME, nameEmail.get(PrivilegeConstant.USERNAME));
-                    userMap.put(PrivilegeConstant.EMAIL, nameEmail.get(PrivilegeConstant.EMAIL));
+                    userMap.put(PrivilegeConstant.ID, roleTitle.get("R_OID"));
+                    userMap.put(PrivilegeConstant.USERNAME, nameEmail.get("NAME"));
+                    userMap.put(PrivilegeConstant.EMAIL, nameEmail.get("EMAIL"));
                 
                     userArray.add(userMap);
                 }

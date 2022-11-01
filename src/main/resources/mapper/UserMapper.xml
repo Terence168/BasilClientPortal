@@ -286,7 +286,9 @@
     		EMAIL=#{email},
     		STATUS=#{status},
     		STANDARD_USER=#{standardUser},
+      		<if test="companyId != null">
 			COMPANY_ID=#{companyId},
+			</if>
     		MODIFIED=CURRENT_TIMESTAMP()
    		WHERE 
    			U_OID=#{id};

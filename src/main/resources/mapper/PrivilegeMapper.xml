@@ -2,8 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="us.pax.basil.mapper.PrivilegeMapper">
 	<insert id="addRoleType">
-    	INSERT INTO ROLE_TYPE (NAME, CREATOR, UPDATED)
-    	VALUES (#{name,jdbcType=VARCHAR}, #{id,jdbcType=INTEGER}, NOW());
+    	INSERT INTO BASIL_SEC_PRD.ROLE_TYPES (NAME, CREATOR, MODIFIER)
+    	VALUES (#{name}, #{creator}, #{creator});
 	</insert>
 
     <select id="queryRoleType" resultType="java.util.HashMap">
@@ -24,13 +24,12 @@
 
     <select id="getUserNameEmail" resultType="java.util.HashMap">
     	SELECT
-    		emp.NAME AS userName,
-    		emp.EMAIL AS email
+    		NAME,
+    		EMAIL
 		FROM
-    		USER_ROLES ur
-        	INNER JOIN XREF_USER_ROLE xur USING (ROLE_ID)
-        	INNER JOIN EMPLOYEE_MASTER emp ON xur.USER_ID = emp.EMP_OID
-		WHERE ur.ROLE_ID = #{role_id,jdbcType=INTEGER} 
+    		BASIL_SEC_PRD.USERS
+        	LEFT JOIN BASIL_SEC_PRD.XREF_USER_ROLE xur USING (U_OID)
+		WHERE R_OID = #{role_id}
     </select>
     
     <select id="getTitleRtIdPrivId" resultType="java.util.HashMap">
@@ -46,11 +45,11 @@
     </select>
     
     <update id= "updateRoleType">
-    	UPDATE ROLE_TYPE rt
+    	UPDATE BASIL_SEC_PRD.ROLE_TYPES rt
     		SET
         	rt.NAME =#{name,jdbcType=VARCHAR},
-        	rt.UPDATED = NOW()
-    	WHERE rt.RT_ID =#{id,jdbcType=INTEGER}
+        	rt.MODIFIED = NOW()
+    	WHERE rt.RT_OID =#{id,jdbcType=INTEGER}
     </update>
     
     <update id="updateRole">
@@ -58,6 +57,7 @@
     	SET 
     		NAME=#{role_name}, 
     		RT_OID=#{role_type_id} 
+        	MODIFIED = NOW()
     	where R_OID=#{role_id};
     </update>
 
