@@ -198,7 +198,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 List<Map<String, Object>> namesEmails = privilegeMapper.getUserNameEmail((Integer)roleTitle.get("R_OID"));
                 for (Map<String, Object> nameEmail: namesEmails) {
                     Map<String, Object> userMap = new HashMap<>();
-                    userMap.put(PrivilegeConstant.ID, roleTitle.get("R_OID"));
+                    userMap.put(PrivilegeConstant.ID, nameEmail.get("U_OID"));
                     userMap.put(PrivilegeConstant.USERNAME, nameEmail.get("NAME"));
                     userMap.put(PrivilegeConstant.EMAIL, nameEmail.get("EMAIL"));
                 

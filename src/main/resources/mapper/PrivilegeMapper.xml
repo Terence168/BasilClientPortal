@@ -24,6 +24,7 @@
 
     <select id="getUserNameEmail" resultType="java.util.HashMap">
     	SELECT
+    	    U_OID,
     		NAME,
     		EMAIL
 		FROM
