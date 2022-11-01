@@ -14,9 +14,8 @@
     >
       <template v-slot:top>
         <div class="row items-center q-mb-sm">
-          <div class="col-auto q-table__title q-mr-sm">{{ title }}</div>
+          <div class="col-auto q-table__title q-mr-xs">{{ title }}</div>
           <q-btn
-            class="col-auto"
             flat
             round
             color="primary"
