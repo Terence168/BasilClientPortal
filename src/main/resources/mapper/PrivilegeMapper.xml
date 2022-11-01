@@ -57,7 +57,7 @@
     	UPDATE BASIL_SEC_PRD.ROLES 
     	SET 
     		NAME=#{role_name}, 
-    		RT_OID=#{role_type_id} 
+    		RT_OID=#{role_type_id},
         	MODIFIED = NOW()
     	where R_OID=#{role_id};
     </update>
