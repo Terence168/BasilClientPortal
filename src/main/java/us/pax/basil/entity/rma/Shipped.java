@@ -16,6 +16,6 @@ public class Shipped {
 	private Long rmaNumber;
 	private String trackingNumber;
 	private String reportedIssue;
+	private String techNotes;
 	private String faultCode;
-
 }

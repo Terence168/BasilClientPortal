@@ -94,6 +94,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 shippedMap.put("rmaNumber", shipped.getRmaNumber());
                 shippedMap.put("trackingNumber", shipped.getTrackingNumber());
                 shippedMap.put("reportedIssue", shipped.getReportedIssue());
+                shippedMap.put("techNotes", shipped.getTechNotes());
                 shippedMap.put("faultCode", shipped.getFaultCode());
     
                 resultArray.add(shippedMap);

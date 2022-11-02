@@ -6,13 +6,22 @@
 		SELECT
 			count(*)
 		FROM
-    		BASIL_ODS_PRD.MASTER_ORDER mo
-		    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
-		    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
-		    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-		    JOIN BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
-		    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
-		    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+			BASIL_ODS_PRD.MASTER_ORDER mo
+		JOIN
+			BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+		JOIN
+			BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+		JOIN
+			BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+		JOIN
+			BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
+		JOIN
+			(SELECT
+				xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
+			FROM
+				BASIL_ODS_PRD.XREF_FAULT_CODE xfc
+			JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+			GROUP BY xfc.xm_OID) fault USING (xm_OID)
 		<where>
 			mo.MC_OID = #{id}
 			<if test="rmaNumber != null">
@@ -29,35 +38,45 @@
 </select>
 
 <select id="getShipping" resultType="us.pax.basil.entity.rma.Shipped">
-SELECT
-    ship.SHIP_DATE as shipDate,
-    part.PART_NUMBER_SHORT as partNumber,
-    msn.SERIAL_NUMBER as serialNumber,
-    mo.MO_OID as rmaNumber,
-    ship.TRACKING_NUMBER as trackingNumber,
-    xm.CUSTOMER_REPORTED_ISSUE_EXT as reportedIssue,
-    fault.VALUE as faultCode
-FROM
-    BASIL_ODS_PRD.MASTER_ORDER mo
-    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
-    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
-    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-    JOIN BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
-    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
-    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
-<where>
-	mo.MC_OID = #{id}
-	<if test="rmaNumber != null">
-		AND mo.MO_OID = #{rmaNumber}
-	</if>
-	<if test="serialNumber != null">
-		AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
-	</if>
-	<if test="partNumber != null">
-		AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
-	</if>
-    	AND xm.STATUS = 113
-</where>
+    SELECT
+		ship.SHIP_DATE AS shipDate,
+		part.PART_NUMBER_SHORT AS partNumber,
+		msn.SERIAL_NUMBER AS serialNumber,
+		mo.MO_OID AS rmaNumber,
+		ship.TRACKING_NUMBER AS trackingNumber,
+		xm.CUSTOMER_REPORTED_ISSUE_EXT AS reportedIssue,
+		xm.TECH_NOTES AS techNotes,
+		fault.faultCode
+    FROM
+    	BASIL_ODS_PRD.MASTER_ORDER mo
+    JOIN
+    	BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+    JOIN
+    	BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+    JOIN
+    	BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+    JOIN
+    	BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
+    JOIN
+		(SELECT
+			xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
+		FROM
+			BASIL_ODS_PRD.XREF_FAULT_CODE xfc
+		JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+		GROUP BY xfc.xm_OID) fault USING (xm_OID)
+	<where>
+		mo.MC_OID = #{id}
+		<if test="rmaNumber != null">
+			AND mo.MO_OID = #{rmaNumber}
+		</if>
+		<if test="serialNumber != null">
+			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+		</if>
+		<if test="partNumber != null">
+			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+		</if>
+			AND xm.STATUS = 113
+	</where>
     <if test="sortColumns != null and sortColumns != ''">
       ORDER BY ${sortColumns}
     </if>
@@ -73,8 +92,13 @@ FROM
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
-	    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
-	    LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_CONTACT_NEEDED
+		JOIN
+			(SELECT
+				xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
+			FROM
+				BASIL_ODS_PRD.XREF_FAULT_CODE xfc
+			JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+			GROUP BY xfc.xm_OID) fault USING (xm_OID)
 	<where>
 		mo.MC_OID = #{id}
 		<if test="rmaNumber != null">
@@ -98,15 +122,20 @@ SELECT
     mo.MO_OID as rmaNumber,
     sav.VALUE as customerContact,
     xm.TECH_NOTES as techNotes,
-    fault.VALUE AS faultCode
+    fault.faultCode
 FROM
     BASIL_ODS_PRD.MASTER_ORDER mo
     JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
     JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
     JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-    JOIN BASIL_ODS_PRD.XREF_FAULT_CODE xfc USING (xm_OID)
-    JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
     LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_CONTACT_NEEDED
+	JOIN
+		(SELECT
+			xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
+		FROM
+			BASIL_ODS_PRD.XREF_FAULT_CODE xfc
+		JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+		GROUP BY xfc.xm_OID) fault USING (xm_OID)
 <where>
 	mo.MC_OID = #{id}
 	<if test="rmaNumber != null">
