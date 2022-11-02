@@ -366,6 +366,8 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             for (Integer i: user.getRoles()) {
                 privilegeMapper.addUserRole(user.getId(), i);
             }
+            
+            // TODO:  AuthUtil.setUserCompanyId(user.getCompanyId());
 
             return new SqlResultDTO(0, "");
         } catch(Exception e) {

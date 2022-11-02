@@ -30,4 +30,15 @@ public class AuthUtil {
             return (CustomUserDetails) auth.getPrincipal();
         }
     }
+    public static int setUserCompanyId(Integer companyId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof AnonymousAuthenticationToken) {
+            return -1;
+        } else {
+            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+            userDetails.setCompanyId(companyId);
+            return 0;
+        }
+
+    }
 }

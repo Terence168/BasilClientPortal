@@ -29,7 +29,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.util.CollectionUtils;
 import us.pax.basil.entity.User;
 import us.pax.basil.mapper.EmployeeMapper;
-import us.pax.basil.mapper.PermissionMapper;
 import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
