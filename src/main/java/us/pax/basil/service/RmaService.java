@@ -18,6 +18,7 @@ public interface RmaService extends IService<Integer> {
 									 Long rmaNumber, 
 									 String serialNumber, 
 									 String partNumber,
+									 String shipDate,
 									 Integer customerId);
 
 	QueryResultArrayDTO quarantineQuery(Integer currentPage,

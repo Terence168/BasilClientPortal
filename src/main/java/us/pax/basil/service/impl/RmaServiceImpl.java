@@ -58,12 +58,18 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                              Long rmaNumber, 
                                              String serialNumber, 
                                              String partNumber,
+                                             String shipDate,
                                              Integer customerId) {
-        /*
-           String [] receivedDates = {null,null};
-           if (dateReceived != null)
-               receivedDates = DateTimeUtil.getStartEnd(dateReceived, DateTimeUtil.PATTERN_YYYYMMDD_WITH_SLASH, "~");
-        */
+        String [] shipDates;
+        String shipFromDate = null;
+        String shipToDate = null;
+
+        if (shipDate != null) {
+            shipDates = shipDate.split(" ~ ");
+            shipFromDate = shipDates[0];
+            shipToDate = shipDates[1];
+        }
+
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = null;
         
@@ -75,7 +81,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, partNumber);
+            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, partNumber, shipFromDate,
+                    shipToDate);
     
             List<Shipped> shippedList = rmaMapper.getShipping((currentPage - 1) * sizePerPage,
                                                               sizePerPage, 
@@ -83,7 +90,9 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                                               companyId,
                                                               rmaNumber, 
                                                               serialNumber, 
-                                                              partNumber);
+                                                              partNumber,
+                                                              shipFromDate,
+                                                              shipToDate);
 
             for (Shipped shipped: shippedList) { 
                 Map<String, Object> shippedMap = new HashMap<>();

@@ -33,6 +33,9 @@
 			<if test="partNumber != null">
 				AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 			</if>
+			<if test="shipFromDate != null and shipToDate != null">
+				AND ship.SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+			</if>
     		AND xm.STATUS = 113
 		</where>
 </select>
@@ -74,6 +77,9 @@
 		</if>
 		<if test="partNumber != null">
 			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+		</if>
+		<if test="shipFromDate != null and shipToDate != null">
+			AND ship.SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
 		</if>
 			AND xm.STATUS = 113
 	</where>
