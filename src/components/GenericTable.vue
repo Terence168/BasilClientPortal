@@ -86,8 +86,11 @@
               ></q-btn> -->
             </span>
 
-            <span style="cursor: pointer" v-if="column.id === 'techNotes'">
-              {{ row[column.id].slice(0, 50).trim() + "..." }}
+            <span
+              style="cursor: pointer"
+              v-if="column.id === 'techNotes' || column.id === 'reportedIssue'"
+            >
+              {{ shortenText(row[column.id]) }}
               <q-tooltip
                 class="bg-primary text-body2 shadow-4"
                 max-width="500px"
@@ -95,6 +98,13 @@
               >
                 {{ row[column.id] }}
               </q-tooltip>
+            </span>
+
+            <span
+              v-else-if="column.id === 'faultCode'"
+              style="white-space: pre"
+            >
+              {{ row[column.id].split(",").join("\n") }}
             </span>
 
             <span v-else>{{ row[column.id] }}</span>
@@ -210,6 +220,18 @@ export default {
 
       if (resolved.href !== this.$route.fullPath) {
         this.$router.push({ path: this.$route.path, query });
+      }
+    },
+
+    shortenText(text, maxLength = 30) {
+      if (!text) return text;
+
+      let output = text.trim();
+
+      if (output.length > maxLength) {
+        return text.slice(0, maxLength).trim() + "...";
+      } else {
+        return output;
       }
     },
   },

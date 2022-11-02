@@ -85,7 +85,7 @@ export default {
             label: "Tech Notes",
             sortable: false,
           },
-          { id: "faultCode", label: "Fault Code", sortable: false },
+          { id: "faultCode", label: "Fault Code(s)", sortable: false },
         ],
         rows: [],
       },

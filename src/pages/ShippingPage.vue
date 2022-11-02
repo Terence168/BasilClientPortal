@@ -81,7 +81,12 @@ export default {
             label: "Customer Reported Issue",
             sortable: false,
           },
-          { id: "faultCode", label: "Fault Code", sortable: false },
+          {
+            id: "techNotes",
+            label: "Tech Notes",
+            sortable: false,
+          },
+          { id: "faultCode", label: "Fault Code(s)", sortable: false },
         ],
         rows: [],
       },

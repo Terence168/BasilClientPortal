@@ -222,8 +222,6 @@ export default {
         return;
       }
 
-      console.log(val);
-
       const link = "user/customers?customerName=" + val;
 
       this.$api
