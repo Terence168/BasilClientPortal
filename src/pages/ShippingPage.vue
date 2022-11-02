@@ -66,6 +66,7 @@ export default {
         { id: "rmaNumber", label: "Ticket Number" },
         { id: "serialNumber", label: "Serial Number" },
         { id: "partNumber", label: "Model Number Short" },
+        { id: "shipDate", label: "Ship Date", type: "dateRange" },
         { id: "customerId", label: "Customer", type: "customerSelect" },
       ],
 
