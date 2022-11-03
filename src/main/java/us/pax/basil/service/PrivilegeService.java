@@ -25,7 +25,6 @@ import us.pax.basil.entity.User;
 import us.pax.basil.entity.privilege.PasswordChange;
 import us.pax.basil.entity.privilege.Role;
 import us.pax.basil.entity.privilege.RoleType;
-import us.pax.basil.entity.privilege.UserAddUpdate;
 import us.pax.basil.utils.ColumnMapping;
 
 public interface PrivilegeService extends IService<RoleType> {

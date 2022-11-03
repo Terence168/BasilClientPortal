@@ -1,7 +1,5 @@
 package us.pax.basil.security;
 
-import us.pax.basil.utils.ResponseUtil;
-import com.paxcq.cloud.common.dto.Result;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
