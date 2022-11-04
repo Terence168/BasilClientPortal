@@ -124,7 +124,7 @@ const expandCategory = function (categoryValue) {
         color="primary"
         size="24px"
       />
-      <template v-else-if="level < 3">
+      <template v-else-if="level < 4">
         <q-icon
           v-if="!expanded"
           name="expand_more"
