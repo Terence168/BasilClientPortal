@@ -20,11 +20,7 @@ package us.pax.basil.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.entity.rma.PartNumberTier1;
-import us.pax.basil.entity.rma.Quarantine;
-import us.pax.basil.entity.rma.RmaNumberTier2;
-import us.pax.basil.entity.rma.SerialNumberTier3;
-import us.pax.basil.entity.rma.Shipped;
+import us.pax.basil.entity.rma.*;
 import us.pax.basil.mapper.RmaMapper;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.RmaService;
@@ -295,7 +291,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         	for (SerialNumberTier3 serialNumber: serialNumberList) {
         		Map<String, Object> result = new HashMap<>();
 
-		    	result.put("serialNumber", serialNumber.getSerialNumber());
+                result.put("id", serialNumber.getId());
+                result.put("serialNumber", serialNumber.getSerialNumber());
 		    	result.put("inventory", serialNumber.getInventory());
 		    	result.put("outForRepair", serialNumber.getOutForRepair());
 		    	result.put("quarantine", serialNumber.getQuarantine());
@@ -310,4 +307,26 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         	return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
 	}
+
+    public QueryResultArrayDTO statusTier4(Integer id) {
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        SerialDetailsTier4 serialDetails = rmaMapper.getSerialDetailsTier4(id);
+        try {
+            if (serialDetails == null) {
+                return new QueryResultArrayDTO(null, 0, 0, "");
+            }
+
+            Map<String, Object> result = new HashMap<>();
+
+            result.put("reportedIssue", serialDetails.getReportedIssue());
+            result.put("faultCodes", serialDetails.getFaultCodes());
+
+            resultArray.add(result);
+
+            return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        } catch(Exception e) {
+            e.printStackTrace();
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
 }

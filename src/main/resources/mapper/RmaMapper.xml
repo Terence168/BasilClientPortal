@@ -217,7 +217,8 @@ FROM
 
 <select id="getSerialNumberTier3" resultType="us.pax.basil.entity.rma.SerialNumberTier3">
     SELECT
-        msn.SERIAL_NUMBER as serialNumber,
+		xm.XM_OID AS id,
+        msn.SERIAL_NUMBER AS serialNumber,
         IF(xm.STATUS = 107, 1, 0) AS inventory,
         IF(xm.STATUS = 110, 1, 0) AS outForRepair,
         IF(xm.STATUS = 108, 1, 0) AS quarantine,
@@ -236,6 +237,24 @@ FROM
 			<if test="serialNumber != null">
 				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 			</if>
+</select>
+
+<select id="getSerialDetailsTier4" resultType="us.pax.basil.entity.rma.SerialDetailsTier4">
+	SELECT
+		sav.VALUE AS reportedIssue, fault.faultCode AS faultCodes
+	FROM
+		BASIL_ODS_PRD.XREF_MATERIALS xm
+	LEFT JOIN
+		SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_REPORTED_ISSUE
+	LEFT JOIN
+		(SELECT
+			xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
+		FROM
+			BASIL_ODS_PRD.XREF_FAULT_CODE xfc
+		JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
+		GROUP BY xfc.xm_OID) fault USING (xm_OID)
+	WHERE
+		XM_OID = #{id}
 </select>
 
 </mapper>

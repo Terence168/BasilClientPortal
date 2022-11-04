@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @ApiModel(value="RMA Status Serial Number Tier 3", description="")
 public class SerialNumberTier3 {
+    private Integer id;
     private String serialNumber;
     private Integer inventory;
     private Integer outForRepair;

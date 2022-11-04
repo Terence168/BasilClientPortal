@@ -73,6 +73,10 @@ public class RmaController {
         return rmaService.statusTier3(rmaNumber, partNumber, serialNumber, customerId);
     }
 
+    @GetMapping("/status/tier4")
+    public QueryResultArrayDTO statusTier4(@RequestParam(value = "id", required = true) Integer id) {
+        return rmaService.statusTier4(id);
+    }
 
     // @PreAuthorize("hasAuthority('admin.user.delete')")
     @GetMapping("/shipped")
