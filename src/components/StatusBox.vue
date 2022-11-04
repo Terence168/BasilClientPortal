@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, reactive } from "vue";
 import { api } from "boot/axios";
 import StatusBox from "src/components/StatusBox.vue";
 
@@ -30,8 +30,44 @@ const children = ref([]);
 const expanded = ref(false);
 const loading = ref(false);
 
+const serialDetails = reactive({ reportedIssue: null, faultCodes: null });
+
 const expandCategory = function (categoryValue) {
-  if (props.level >= 3) {
+  if (props.level >= 4) {
+    return;
+  }
+
+  if (props.level === 3) {
+    if (!expanded.value) {
+      expanded.value = true;
+
+      if (
+        serialDetails.reportedIssue === null &&
+        serialDetails.faultCodes === null
+      ) {
+        loading.value = true;
+
+        api
+          .get(`/rma/status/tier4?id=${props.data.id}`)
+          .then(function (response) {
+            const resData = response.data.data;
+            if (resData == null) {
+              serialDetails.reportedIssue = "None";
+              serialDetails.faultCodes = "None";
+            } else {
+              serialDetails.reportedIssue = resData[0].reportedIssue;
+              serialDetails.faultCodes = resData[0].faultCodes;
+            }
+            loading.value = false;
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          });
+      }
+    } else {
+      expanded.value = false;
+    }
     return;
   }
 
@@ -153,7 +189,7 @@ const expandCategory = function (categoryValue) {
     </div>
   </div>
 
-  <template v-if="level < 4 && expanded">
+  <template v-if="level < 3 && expanded">
     <StatusBox
       v-for="child in children"
       :key="child[category]"
@@ -162,6 +198,22 @@ const expandCategory = function (categoryValue) {
       :data="child"
       :parent="data[category]"
   /></template>
+
+  <template v-if="level === 3 && expanded && !loading">
+    <div
+      class="q-py-xs category text-subtitle2"
+      style="max-width: 1100px; margin: 0 auto; padding-left: 100px"
+    >
+      <div>
+        <span class="text-red">Customer Reported issue:</span>
+        {{ serialDetails.reportedIssue }}
+      </div>
+      <div>
+        <span class="text-red">Fault Code(s):</span>
+        {{ serialDetails.faultCodes }}
+      </div>
+    </div>
+  </template>
 </template>
 
 <style lang="scss" scoped>
