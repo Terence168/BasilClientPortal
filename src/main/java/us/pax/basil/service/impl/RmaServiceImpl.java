@@ -148,6 +148,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 quarantineMap.put("customerContact", quarantine.getCustomerContact());
                 quarantineMap.put("techNotes", quarantine.getTechNotes());
                 quarantineMap.put("faultCode", quarantine.getFaultCode());
+                quarantineMap.put("partsNeeded", quarantine.getPartsNeeded());
     
                 resultArray.add(quarantineMap);
             }

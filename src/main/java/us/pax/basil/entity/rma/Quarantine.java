@@ -17,5 +17,6 @@ public class Quarantine {
 	private String customerContact;
 	private String techNotes;
 	private String faultCode;
+	private String partsNeeded;
 
 }
