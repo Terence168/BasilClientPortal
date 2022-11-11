@@ -86,6 +86,7 @@ export default {
             sortable: false,
           },
           { id: "faultCode", label: "Fault Code(s)", sortable: false },
+          { id: "partsNeeded", label: "Part(s) Needed", sortable: false },
         ],
         rows: [],
       },

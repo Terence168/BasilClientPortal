@@ -104,7 +104,22 @@
               v-else-if="column.id === 'faultCode'"
               style="white-space: pre"
             >
-              {{ row[column.id].split(",").join("\n") }}
+              {{
+                row[column.id]
+                  ? row[column.id].split(",").join("\n")
+                  : row[column.id]
+              }}
+            </span>
+
+            <span
+              v-else-if="column.id === 'partsNeeded'"
+              style="white-space: pre"
+            >
+              {{
+                row[column.id]
+                  ? row[column.id].split(" | ").join("\n")
+                  : row[column.id]
+              }}
             </span>
 
             <span v-else>{{ row[column.id] }}</span>
