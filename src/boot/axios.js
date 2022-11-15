@@ -39,9 +39,9 @@ export default boot(({ app, store }) => {
       // Any status code that lie within the range of 2xx cause this function to trigger
       // Do something with response data
       if (
-        !user.loggedIn &&
+        user.loggedIn &&
         (response.data.code === 40001 ||
-          response.data.errorMessage === "User login session expired.")
+          response.data.errorMessage === "User session has expired.")
       ) {
         user.logout();
 

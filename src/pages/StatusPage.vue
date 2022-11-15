@@ -22,7 +22,7 @@
         </div>
 
         <div
-          v-if="partSummary.length > 0"
+          v-if="partSummary && partSummary.length > 0"
           class="row"
           style="
             max-width: 1100px;
