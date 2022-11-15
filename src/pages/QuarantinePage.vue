@@ -71,22 +71,22 @@ export default {
 
       tableData: {
         columns: [
-          { id: "quarantineDate", label: "Quarantine Date", sortable: false },
+          { id: "quarantineDate", label: "Quarantine Date", sortable: true },
           { id: "partNumber", label: "Model Number Short", sortable: true },
-          { id: "serialNumber", label: "Serial Number", sortable: false },
+          { id: "serialNumber", label: "Serial Number", sortable: true },
           { id: "rmaNumber", label: "Ticket Number", sortable: true },
           {
             id: "customerContact",
             label: "Customer Contact Needed",
-            sortable: false,
+            sortable: true,
           },
           {
             id: "techNotes",
             label: "Tech Notes",
-            sortable: false,
+            sortable: true,
           },
-          { id: "faultCode", label: "Fault Code(s)", sortable: false },
-          { id: "partsNeeded", label: "Part(s) Needed", sortable: false },
+          { id: "faultCode", label: "Fault Code(s)", sortable: true },
+          { id: "partsNeeded", label: "Part(s) Needed", sortable: true },
         ],
         rows: [],
       },

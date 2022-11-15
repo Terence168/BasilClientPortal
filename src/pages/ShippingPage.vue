@@ -72,22 +72,22 @@ export default {
 
       tableData: {
         columns: [
-          { id: "shipDate", label: "Ship Date", sortable: false },
+          { id: "shipDate", label: "Ship Date", sortable: true },
           { id: "partNumber", label: "Model Number Short", sortable: true },
-          { id: "serialNumber", label: "Serial Number", sortable: false },
+          { id: "serialNumber", label: "Serial Number", sortable: true },
           { id: "rmaNumber", label: "Ticket Number", sortable: true },
-          { id: "trackingNumber", label: "Tracking Number", sortable: false },
+          { id: "trackingNumber", label: "Tracking Number", sortable: true },
           {
             id: "reportedIssue",
             label: "Customer Reported Issue",
-            sortable: false,
+            sortable: true,
           },
           {
             id: "techNotes",
             label: "Tech Notes",
-            sortable: false,
+            sortable: true,
           },
-          { id: "faultCode", label: "Fault Code(s)", sortable: false },
+          { id: "faultCode", label: "Fault Code(s)", sortable: true },
         ],
         rows: [],
       },
