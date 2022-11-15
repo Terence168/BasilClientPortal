@@ -63,10 +63,10 @@ security:
       - /error
       - /api/**
       - /api/v1/**
-      - /user/**
+#      - /user/**
       - /password/**
-      - /privilege/**
-      - /rma/**
+#      - /privilege/**
+#      - /rma/**
 
   # CORS configuration
   cors:

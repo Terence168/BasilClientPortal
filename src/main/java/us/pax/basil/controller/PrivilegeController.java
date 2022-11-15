@@ -17,6 +17,7 @@ package us.pax.basil.controller;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -67,13 +68,14 @@ public class PrivilegeController {
 
     // QueryCustomer() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    //@PreAuthorize("hasAuthority('privilege.role-type.view')")
+    @PreAuthorize("hasAuthority('privilege.role-type.view')")
     @GetMapping("/role-type/query")
     public QueryResultArrayDTO queryRoleType(HttpServletRequest request) {
+    	HttpSession h = request.getSession();
         return privilegeService.queryRoleType(entityManager, PrivilegeConstant.queryColumnMapping, request);
     }
 
-    //@PreAuthorize("hasAuthority('privilege.role.add')")
+    @PreAuthorize("hasAuthority('privilege.role.add')")
     @PostMapping("/role/add")
     public SqlResultDTO addRole(@RequestBody Role role) {
         return privilegeService.AddRole(role);
@@ -81,7 +83,7 @@ public class PrivilegeController {
 
     // UpdateCustomer() - Update customer information.  Required fields will be manually
     //                    checked so that a SQLResultDTO can be returned.
-    //@PreAuthorize("hasAuthority('privilege.role.update')")
+    @PreAuthorize("hasAuthority('privilege.role.update')")
     @PostMapping("/role/update")
     public SqlResultDTO updateRole(@RequestBody Role role) {
         return privilegeService.UpdateRole(role);
@@ -89,7 +91,7 @@ public class PrivilegeController {
 
     // QueryCustomer() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    //@PreAuthorize("hasAuthority('privilege.role')")
+    @PreAuthorize("hasAuthority('privilege.role')")
     @GetMapping("/role/query")
     public QueryResultArrayDTO queryRole(HttpServletRequest request) {
         return privilegeService.QueryRole(request);
@@ -97,9 +99,10 @@ public class PrivilegeController {
 
     // View() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    //@PreAuthorize("hasAuthority('privilege.role.view')")
+    @PreAuthorize("hasAuthority('privilege.role.view')")
     @GetMapping("/role/view/query")
     public QueryResultArrayDTO roleViewQuery(HttpServletRequest request, @RequestParam Integer id) {
+    	request.getSession().invalidate();
         return privilegeService.ViewQueryRole(request, id);
     }
 
@@ -107,7 +110,7 @@ public class PrivilegeController {
      * Query the full role list under all role types
      * @return the {@link QueryResultArrayDTO} which stores the desired list of roles and role types
      */
-    //@PreAuthorize("hasAuthority('privilege.role-type')")
+    @PreAuthorize("hasAuthority('privilege.role-type')")
     @GetMapping("/user/all-roles")
     public QueryResultArrayDTO queryAllRoles() {
         return privilegeService.queryAllRoles();
@@ -124,7 +127,7 @@ public class PrivilegeController {
      * @param lastLogin The query filter with last login date-time specified
      * @return the {@link QueryResultArrayDTO} which stores the desired list of users
      */
-    //@PreAuthorize("hasAuthority('privilege.user')")
+    @PreAuthorize("hasAuthority('privilege.user')")
     @GetMapping("/user/query")
     public QueryResultArrayDTO userQuery(@RequestParam(value = "page", required = false) Integer currentPage,
                                          @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -155,7 +158,7 @@ public class PrivilegeController {
     //
     // userViewQuery() - Retrieve customer information based on the parameters passed in.
     //
-    //@PreAuthorize("hasAuthority('privilege.user')")
+    @PreAuthorize("hasAuthority('privilege.user')")
     @GetMapping("/user/view/query")
     public QueryResultArrayDTO userViewQuery(@RequestParam Integer id) {
         return privilegeService.viewQueryUser(id);
@@ -164,7 +167,7 @@ public class PrivilegeController {
     //
     // userAdd() - Retrieve customer information based on the parameters passed in.
     //
-    //@PreAuthorize("hasAuthority('privilege.user.add')")
+    @PreAuthorize("hasAuthority('privilege.user.add')")
     @PostMapping("/user/add")
     public SqlResultDTO userAdd(HttpServletRequest request, @RequestBody User user) {
         return userService.addUser(request, user);
@@ -173,7 +176,7 @@ public class PrivilegeController {
     //
     // userUpdate() - Retrieve customer information based on the parameters passed in.
     //
-    //@PreAuthorize("hasAuthority('privilege.user.update')")
+    @PreAuthorize("hasAuthority('privilege.user.update')")
     @PostMapping("/user/update")
     public SqlResultDTO userUpdate(@RequestBody User user) {
         return privilegeService.updateUser(user);
@@ -205,7 +208,7 @@ public class PrivilegeController {
         return supportAttributeService.getDropDown(SupportAttributeConstant.EMPLOYEE_MASTER_TITLE);
     }
 
-    //@PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
+    @PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
     @GetMapping("/company/drop-down")
     public QueryResultArrayDTO companyDropDown() {
         return supportAttributeService.getCompanyInfo();

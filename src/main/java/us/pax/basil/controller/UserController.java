@@ -41,7 +41,7 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    //@PreAuthorize("hasAuthority('admin.user.create')")
+    @PreAuthorize("hasAuthority('admin.user.create')")
     @ApiOperation(value = "Create User", notes = "Permission Code: admin.user.create")
     @PostMapping("/add")
     public SqlResultDTO addUser(HttpServletRequest request, @RequestBody User user) {
@@ -93,7 +93,7 @@ public class UserController {
     }
 
     // Query customer drop-down
-    //@PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
+    @PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
     @GetMapping("/customers")
     public QueryResultArrayDTO customerDropDown(@RequestParam(value = "customerName", required = true) String name) {
         return userService.queryCompany(name);
