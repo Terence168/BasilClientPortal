@@ -191,6 +191,30 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 case "partNumber":
                     col = col.replace("partNumber", "partNumber");
                     break;
+                case "quarantineDate":
+                    col = col.replace("quarantineDate", "quarantineDate");
+                    break;
+                case "shipDate":
+                    col = col.replace("shipDate", "shipDate");
+                    break;
+                case "customerContact":
+                    col = col.replace("customerContact", "customerContact");
+                    break;
+                case "techNotes":
+                    col = col.replace("techNotes", "techNotes");
+                    break;
+                case "trackingNumber":
+                    col = col.replace("trackingNumber", "trackingNumber");
+                    break;
+                case "reportedIssue":
+                    col = col.replace("reportedIssue", "reportedIssue");
+                    break;
+                case "faultCode":
+                    col = col.replace("faultCode", "faultCode");
+                    break;
+                case "partsNeeded":
+                    col = col.replace("partsNeeded", "partsNeeded");
+                    break;
                 default:
                     log.warn("Ignoring invalid sort field: {}", col);
                     continue;

@@ -120,7 +120,8 @@ SELECT
     mo.MO_OID as rmaNumber,
     sav.VALUE as customerContact,
     xm.TECH_NOTES as techNotes,
-    fault.faultCode
+    fault.faultCode,
+	parts.partsNeeded
 FROM
     BASIL_ODS_PRD.MASTER_ORDER mo
     JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
