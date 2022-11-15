@@ -27,7 +27,8 @@ public interface RmaService extends IService<Integer> {
 									    Long rmaNumber, 
 									    String serialNumber, 
 									    String partNumber,
-										Integer customerId);
+										Integer customerId,
+										Integer contact);
 
 	QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, Integer customerId);
 	QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, Integer customerId);

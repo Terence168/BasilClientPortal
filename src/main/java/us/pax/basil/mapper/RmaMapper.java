@@ -32,7 +32,7 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	String serialNumber,
                          	String partNumber);
 
-	Integer getQuarantineTotal(Integer id, Long rmaNumber, String serialNumber, String partNumber);
+	Integer getQuarantineTotal(Integer id, Long rmaNumber, String serialNumber, String partNumber, Integer contact);
 	Integer getShippingTotal(Integer id, Long rmaNumber, String serialNumber, String partNumber, String shipFromDate,
 							String shipToDate);
 
@@ -52,7 +52,8 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	    Integer id,
                          	    Long rmaNumber,
                          	    String serialNumber,
-                         	    String partNumber);
+                         	    String partNumber,
+								Integer contact);
 	
 	List<PartNumberTier1> getPartNumberTier1(Integer id, String partNumber, Long rmaNumber, String serialNumber);
 	List<RmaNumberTier2> getRmaNumberTier2(Integer id, String partNumber, Long rmaNumber, String serialNumber);

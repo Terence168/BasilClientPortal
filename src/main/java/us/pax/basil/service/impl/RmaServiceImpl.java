@@ -117,7 +117,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                                 Long rmaNumber, 
                                                 String serialNumber, 
                                                 String model,
-                                                Integer customerId) {
+                                                Integer customerId,
+                                                Integer contact) {
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = null;
         if (user != null)
@@ -128,7 +129,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, serialNumber, model);
+            Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, serialNumber, model, contact);
     
             List<Quarantine> quarantineList = rmaMapper.getQuarantine((currentPage - 1) * sizePerPage,
                                                                       sizePerPage, 
@@ -136,7 +137,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                                                       companyId,
                                                                       rmaNumber, 
                                                                       serialNumber, 
-                                                                      model);
+                                                                      model,
+                                                                      contact);
 
             for (Quarantine quarantine: quarantineList) { 
                 Map<String, Object> quarantineMap = new HashMap<>();

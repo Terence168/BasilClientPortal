@@ -106,7 +106,8 @@ public class RmaController {
                                            @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                            @RequestParam(value = "partNumber", required = false) String partNumber,
-                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
+                                           @RequestParam(value = "customerId", required = false) Integer customerId,
+                                           @RequestParam(value = "contact", required = false) Integer contact) {
         if (null == currentPage || 0 == currentPage) {
             currentPage = 1; // show the first page by default
         }
@@ -114,6 +115,13 @@ public class RmaController {
         if (null == sizePerPage) {
             sizePerPage = 10; // show 10 items per page by default
         }
-        return rmaService.quarantineQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber, customerId);
+        return rmaService.quarantineQuery(currentPage,
+                                            sizePerPage,
+                                            sortColumns,
+                                            rmaNumber,
+                                            serialNumber,
+                                            partNumber,
+                                            customerId,
+                                            contact);
     }
 }

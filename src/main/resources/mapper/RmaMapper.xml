@@ -108,6 +108,9 @@
 		<if test="partNumber != null">
 			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 		</if>
+		<if test="contact != null">
+			AND xm.CUSTOMER_CONTACT_NEEDED = #{contact}
+		</if>
 	    	AND xm.STATUS = 108
 	</where>
 </select>
@@ -159,6 +162,9 @@ FROM
 	</if>
 	<if test="partNumber != null">
 		AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+	</if>
+	<if test="contact != null">
+		AND xm.CUSTOMER_CONTACT_NEEDED = #{contact}
 	</if>
     	AND xm.STATUS = 108
 </where>
