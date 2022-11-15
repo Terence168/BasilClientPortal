@@ -19,7 +19,9 @@
             :options="field.id !== 'location' ? options[field.id] : locationOpt"
             :label="field.label"
             :use-input="field.id === 'customerId' || field.id === 'location'"
-            @filter="filterFn(field.id, ...arguments)"
+            @filter="
+              (val, update, abort) => filterFn(field.id, val, update, abort)
+            "
             dense
             emit-value
             map-options
@@ -192,6 +194,11 @@ export default {
     filterFn(id, _val, update, _abort) {
       if (id === "customerId") {
         this.filterCustomerFn(_val, update, _abort);
+        return;
+      }
+
+      if (id === "contact") {
+        this.filterContactFn(_val, update, _abort);
         return;
       }
 
