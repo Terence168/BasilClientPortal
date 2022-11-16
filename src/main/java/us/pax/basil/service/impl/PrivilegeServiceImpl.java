@@ -49,7 +49,6 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -357,19 +356,6 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     @Override
     public SqlResultDTO updateUser(User user) {
     	CustomUserDetails currentUser = AuthUtil.getUser();
-    	List<Object> userDetails = sessionRegistry.getAllPrincipals();
-
-    	if (currentUser.getUsername().compareTo(user.getName())!=0) {
-    		for (Object cud: userDetails) {
-    			CustomUserDetails u = (CustomUserDetails)cud;
-    			if (u.getUsername().compareTo(user.getName()) == 0) {
-    				String sessionId =u.getSession().getId();
-    				System.out.println("*** updateUser(): sessionId = " + sessionId);
-    				sessionRegistry.getSessionInformation(sessionId).expireNow();
-    				sessionRegistry.removeSessionInformation(sessionId);
-    			}
-    		}
-   		}
 
         try { 
             HistoryUtil.setHistorySessionInfo(userMapper, "PrivilegeMapper.xml:updateUser","User Update");
@@ -388,7 +374,11 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 privilegeMapper.addUserRole(user.getId(), i);
             }
             
-            // TODO:  AuthUtil.setUserCompanyId(user.getCompanyId());
+            if (currentUser.getUsername().compareTo(user.getName())!=0) {
+            	AuthUtil.logoutUser(sessionRegistry, user.getName());
+            } else {
+            	AuthUtil.setUserCompanyId(user.getCompanyId());
+            }
 
             return new SqlResultDTO(0, "");
         } catch(Exception e) {

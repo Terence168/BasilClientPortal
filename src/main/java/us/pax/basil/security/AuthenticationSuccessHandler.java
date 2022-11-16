@@ -9,18 +9,13 @@ import lombok.extern.log4j.Log4j2;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import java.io.IOException;
-import java.util.List;
 
 /***
  * ============================================================================
@@ -41,31 +36,13 @@ import java.util.List;
 @Log4j2
 public class AuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
     @Autowired
-    private SessionRegistry sessionRegistry;
-
-    @Autowired
     UserMapper userMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         CustomUserDetails userDetails = (CustomUserDetails)authentication.getPrincipal();
         userDetails.setSession(request.getSession());
-        HttpSession x = request.getSession();
         
-
-   		if (userDetails.getUsername().compareTo("Tracey Johnson") == 0) {
-   			List<Object> principals = sessionRegistry.getAllPrincipals();
-   			for (Object principal: principals) {
-   				CustomUserDetails u = (CustomUserDetails)principal;
-   				if (u.getUsername().compareTo("Jay") == 0) {
-   					HttpSession h = u.getSession();
-   					h.invalidate();
-    				//sessionRegistry.getSessionInformation(u.getSession().getId()).expireNow();
-    				//sessionRegistry.removeSessionInformation(u.getSession().getId());
-   				}
-   			}
-    	}
-
         log.info("User [{}] login successfully, IP: {}", userDetails.getUsername(), HttpServletUtils.getClientIp());
         
         userMapper.setLastLogin(userDetails.getUserId());

@@ -17,9 +17,14 @@ package us.pax.basil.utils;
  */
 
 import us.pax.basil.security.CustomUserDetails;
+
+import java.util.List;
+
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 
 public class AuthUtil {
     public static CustomUserDetails getUser() {
@@ -40,5 +45,22 @@ public class AuthUtil {
             return 0;
         }
 
+    }
+    
+    public static void logoutUser(SessionRegistry sessionRegistry, String userName) {
+    	List<Object> principals = sessionRegistry.getAllPrincipals();
+    	for (Object principal: principals) {
+    		CustomUserDetails u = (CustomUserDetails)principal;
+    		if (u.getUsername().compareTo("Jay") == 0) {
+    			String sessionId = u.getSession().getId();
+    			SessionInformation si = sessionRegistry.getSessionInformation(sessionId);
+
+    			if (si != null && si.isExpired() == false) {
+    				u.getSession().invalidate();
+    				si.expireNow();
+    				sessionRegistry.removeSessionInformation(sessionId);
+    			}
+    		}
+    	}
     }
 }
