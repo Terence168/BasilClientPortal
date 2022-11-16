@@ -17,8 +17,6 @@ package us.pax.basil.controller;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,7 +69,6 @@ public class PrivilegeController {
     @PreAuthorize("hasAuthority('privilege.role-type.view')")
     @GetMapping("/role-type/query")
     public QueryResultArrayDTO queryRoleType(HttpServletRequest request) {
-    	HttpSession h = request.getSession();
         return privilegeService.queryRoleType(entityManager, PrivilegeConstant.queryColumnMapping, request);
     }
 
