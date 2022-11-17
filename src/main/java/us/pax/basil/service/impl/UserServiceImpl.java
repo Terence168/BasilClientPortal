@@ -157,11 +157,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public QueryResultArrayDTO getUserDetail(Authentication authentication) {
         CustomUserDetails details = (CustomUserDetails)authentication.getPrincipal();
         
-        Integer userStatus = userMapper.getUserStatus(details.getUserId());
-        
-        if (userStatus.equals(StatusConstant.DISABLED)) {
+        User user= userMapper.getUserById(details.getUserId());
+       
+        if (user.getStatus().equals(StatusConstant.DISABLED)) {
             return new QueryResultArrayDTO(null, 0, -55, "User account is currently disabled.");
-        } else if (userStatus.equals(StatusConstant.INACTIVE)) {
+        } else if (user.getStatus().equals(StatusConstant.INACTIVE)) {
             return new QueryResultArrayDTO(null, 0, -55, "User account is currently inactive.");
         }
 
@@ -170,11 +170,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
         Map<String, Object> map = new LinkedHashMap<String, Object>();
         
-        map.put("name", details.getUsername());
-        map.put("email", details.getEmailAddress());
-        map.put("companyId", details.getCompanyId());
+        map.put("name", user.getName());
+        map.put("email", user.getEmail());
+        map.put("companyId", user.getCompanyId());
         map.put("companyName", userMapper.getCompanyInfo(details.getCompanyId()).getOrganization());
-        map.put("clientUser", details.getStandardUser());
+        map.put("clientUser", user.getStandardUser());
         
         ArrayList<String> permissions = new ArrayList<>();
         
