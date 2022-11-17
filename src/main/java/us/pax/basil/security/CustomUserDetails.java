@@ -7,6 +7,8 @@ import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
 
+import javax.servlet.http.HttpSession;
+
 /***
  * ============================================================================
  * COPYRIGHT
@@ -31,6 +33,7 @@ public class CustomUserDetails extends User {
     private Integer userId;
     private String emailAddress;
     private Integer companyId;
+    private HttpSession session;
 
 	private Integer standardUser;
 

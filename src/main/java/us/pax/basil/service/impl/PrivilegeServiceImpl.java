@@ -48,6 +48,8 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -56,6 +58,9 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType> implements PrivilegeService {
+
+    @Autowired
+    private SessionRegistry sessionRegistry;
 
     private PrivilegeMapper privilegeMapper;
     private UserMapper userMapper;
@@ -350,6 +355,8 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     //
     @Override
     public SqlResultDTO updateUser(User user) {
+    	CustomUserDetails currentUser = AuthUtil.getUser();
+
         try { 
             HistoryUtil.setHistorySessionInfo(userMapper, "PrivilegeMapper.xml:updateUser","User Update");
 
@@ -367,7 +374,11 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 privilegeMapper.addUserRole(user.getId(), i);
             }
             
-            // TODO:  AuthUtil.setUserCompanyId(user.getCompanyId());
+            if (currentUser.getUsername().compareTo(user.getName())!=0) {
+            	AuthUtil.logoutUser(sessionRegistry, user.getName());
+            } else {
+            	AuthUtil.setUserCompanyId(user.getCompanyId());
+            }
 
             return new SqlResultDTO(0, "");
         } catch(Exception e) {
