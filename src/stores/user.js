@@ -34,28 +34,12 @@ export const useUserStore = defineStore("user", {
         })
         .then((response) => {
           if (response.data.code === 20000) {
-            return api.get("user/detail");
+            return this.getUserDetails();
           } else {
             throw new Error(
               "Incorrect username and/or password. Please try again."
             );
           }
-        })
-        .then((response) => {
-          if (response.data.resultCode === -55) {
-            throw new Error(response.data.errorMessage);
-          }
-
-          const user = response.data.data[0];
-
-          this.username = user.name;
-          this.email = user.email;
-          this.companyId = user.companyId;
-          this.companyName = user.companyName;
-          this.clientUser = user.clientUser;
-          this.permissions = user.permissions;
-
-          this.sessionStartTime = Date.now();
         })
         .then(() => this.router.push({ name: "status" }))
         .catch((error) => {
@@ -80,6 +64,34 @@ export const useUserStore = defineStore("user", {
         return false;
       }
     },
+
+    getUserDetails() {
+      return api
+        .get("user/detail")
+        .then((response) => {
+          if (response.data.resultCode === -55) {
+            throw new Error(response.data.errorMessage);
+          }
+
+          const user = response.data.data[0];
+
+          this.username = user.name;
+          this.email = user.email;
+          this.companyId = user.companyId;
+          this.companyName = user.companyName;
+          this.clientUser = user.clientUser;
+          this.permissions = user.permissions;
+
+          this.sessionStartTime = Date.now();
+        })
+        .catch((error) => {
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
   },
+
   persist: true,
 });

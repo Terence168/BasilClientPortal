@@ -41,13 +41,13 @@ export default boot(({ app, store }) => {
       if (
         user.loggedIn &&
         (response.data.code === 40001 ||
-          response.data.errorMessage === "User session has expired.")
+          response.data.errorMessage === "User login session expired.")
       ) {
         user.logout();
 
         Notify.create({
           type: "negative",
-          message: "User login session expired.",
+          message: "User session has expired",
         });
 
         return response;
