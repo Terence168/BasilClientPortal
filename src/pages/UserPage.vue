@@ -227,6 +227,8 @@ import FilterOptions from "src/components/FilterOptions.vue";
 
 import { useUserStore } from "stores/user";
 
+const user = useUserStore();
+
 export default {
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
 
@@ -377,6 +379,11 @@ export default {
       }
 
       this.$api.post(actionURL, payload).then(function (response) {
+        // self-update
+        if (user.email === payload.email) {
+          user.getUserDetails();
+        }
+
         vm.showModal = false;
         vm.queryData();
       });
