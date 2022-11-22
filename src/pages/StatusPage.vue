@@ -44,6 +44,22 @@
               <div class="col-2 text-weight-bold">Total</div>
             </div>
           </div>
+
+          <div
+            class="col-3 text-body1 text-right q-py-xs q-pr-sm text-weight-bold"
+          >
+            Summary
+          </div>
+          <div class="col-9">
+            <div class="row bg-grey-3 text-body1 text-center q-py-xs">
+              <div class="col-2">10</div>
+              <div class="col-2">12</div>
+              <div class="col-2">13</div>
+              <div class="col-2">5</div>
+              <div class="col-2">79</div>
+              <div class="col-2 text-weight-bold">120</div>
+            </div>
+          </div>
         </div>
 
         <div
