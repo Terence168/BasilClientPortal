@@ -1,7 +1,7 @@
 <template>
   <div class="activate-user">
     <div class="login-container">
-      <div class="column justify-center" style="height: 44vh">
+      <div class="column justify-center">
         <div class="col-auto self-center q-py-md">
           <q-img
             style="width: 250px"
@@ -15,7 +15,7 @@
             Set your password
           </div>
         </div>
-        <form ref="modalForm" @submit.prevent="onSubmit">
+        <form class="col" ref="modalForm" @submit.prevent="onSubmit">
           <q-input
             ref="newPassRef"
             class="col q-mb-sm"
@@ -181,6 +181,6 @@ onMounted(() => checkTokenValidity());
   margin: 0 auto
   border-radius: 20px
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)
-  padding: 0 40px
+  padding: 0 40px 30px 40px
   background-color: white
 </style>
