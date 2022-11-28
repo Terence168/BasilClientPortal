@@ -29,6 +29,7 @@ import us.pax.basil.property.MailProperties;
 import us.pax.basil.service.PasswordService;
 import us.pax.basil.utils.EmailUtil;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -41,6 +42,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Log4j2
 @Service
 @AllArgsConstructor
 public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> implements PasswordService {
@@ -92,6 +94,7 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
 	                                                     mailProperties.getUsername());
 	        mailSender.send(mimeMsg);
     	} catch(Exception e) {
+            log.error("Exception processing forgotten password: {}", e.getMessage());
     		return new SqlResultDTO(-1, e.getMessage());
     	}
 
