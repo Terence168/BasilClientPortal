@@ -107,6 +107,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	        user.setToken(token);
 	        user.setTokenExp(new Timestamp(System.currentTimeMillis() + PasswordConstant.EXPIRATION));
 
+	        //
+	        // Need to manually set it to 0 because running on Linux results with the id field having a 
+	        // a value larger than INT
+	        //
+	        user.setId(0);
 	        userMapper.addUser(user);
 	        
             for (Integer i: user.getRoles()) {
@@ -125,6 +130,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                                                     mailProperties.getUsername());
     		mailSender.send(mimeMsg);
     	} catch(Exception e) {
+            log.error("Exception adding user: {}", e.getMessage());
     		return new SqlResultDTO(0, e.getMessage());
     	}
         return new SqlResultDTO(0, "");
@@ -143,6 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     		passwordMapper.setStatus(passToken, StatusConstant.ACTIVE);
     		passwordMapper.resetToken(passToken, UUID.randomUUID().toString());
     	} catch (Exception e) {
+            log.error("Exception activating user: {}", e.getMessage());
     		return new SqlResultDTO(-1, e.getMessage());
     	}
         return new SqlResultDTO(0, "");
