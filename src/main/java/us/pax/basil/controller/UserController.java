@@ -93,7 +93,7 @@ public class UserController {
     }
 
     // Query customer drop-down
-    @PreAuthorize("hasAuthority('privilege.user.update')")
+    //@PreAuthorize("hasAuthority('privilege.user.update')")
     @GetMapping("/customers")
     public QueryResultArrayDTO customerDropDown(@RequestParam(value = "customerName", required = true) String name) {
         return userService.queryCompany(name);
