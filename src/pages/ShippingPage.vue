@@ -63,11 +63,36 @@ export default {
       },
 
       filterFields: [
-        { id: "rmaNumber", label: "Ticket Number" },
-        { id: "serialNumber", label: "Serial Number" },
-        { id: "partNumber", label: "Model Number Short" },
-        { id: "shipDate", label: "Ship Date", type: "dateRange" },
-        { id: "customerId", label: "Customer", type: "customerSelect" },
+        {
+          id: "rmaNumber",
+          label: "Ticket Number",
+          tooltip:
+            "Enter the RMA ticket number you are searching for.\nMust be an exact number, no partials.",
+        },
+        {
+          id: "serialNumber",
+          label: "Serial Number",
+          tooltip:
+            "Enter the terminal serial number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact serial number, no partials.\nExample: (300123456, 300123457)",
+        },
+        {
+          id: "partNumber",
+          label: "Model Number Short",
+          tooltip:
+            "Enter the model number prefix you are searching for.\nExample: A77",
+        },
+        {
+          id: "shipDate",
+          label: "Ship Date",
+          type: "dateRange",
+          tooltip:
+            "The date the repaired terminal was shipped to its assigned destination.\nDate Range: To view a date range, click the calendar icon.\nClick on the first date you want your date range to start, then click on the date you want it to end.\nOnce you have selected your date range, click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.\n\nSingle Date: Click on the calendar icon in the field and select the date on the calendar.\nClick the date twice and click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.",
+        },
+        {
+          id: "customerId",
+          label: "Customer",
+          type: "customerSelect",
+        },
       ],
 
       tableData: {

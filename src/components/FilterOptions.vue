@@ -69,7 +69,17 @@
             v-model="filter[field.id]"
             :label="field.label"
             dense
+            readonly
           >
+            <q-tooltip
+              v-if="field.tooltip"
+              class="bg-primary text-body2 shadow-4"
+              style="white-space: pre"
+              max-width="700px"
+              :offset="[10, 10]"
+            >
+              {{ field.tooltip }}
+            </q-tooltip>
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy
