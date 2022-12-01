@@ -9,10 +9,20 @@
             v-model="filter[field.id]"
             :label="field.label"
             dense
-          />
+          >
+            <q-tooltip
+              v-if="field.tooltip"
+              class="bg-primary text-body2 shadow-4"
+              style="white-space: pre"
+              max-width="500px"
+              :offset="[10, 10]"
+            >
+              {{ field.tooltip }}
+            </q-tooltip>
+          </q-input>
 
           <q-select
-            v-else-if="field.type === 'select'"
+            v-if="field.type === 'select'"
             outlined
             v-model="filter[field.id]"
             :input-debounce="field.id !== 'location' ? 500 : 0"
@@ -34,7 +44,7 @@
           </q-select>
 
           <q-select
-            v-else-if="field.type === 'customerSelect' && !clientUser"
+            v-if="field.type === 'customerSelect' && !clientUser"
             outlined
             v-model="filter[field.id]"
             :input-debounce="500"
@@ -54,7 +64,7 @@
           </q-select>
 
           <q-input
-            v-else-if="field.type === 'dateRange'"
+            v-if="field.type === 'dateRange'"
             outlined
             v-model="filter[field.id]"
             :label="field.label"

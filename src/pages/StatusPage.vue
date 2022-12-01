@@ -36,11 +36,62 @@
           <div class="col-3"></div>
           <div class="col-9">
             <div class="row shadow-2 text-body1 text-center q-py-xs">
-              <div class="col-2">Inventory</div>
-              <div class="col-2">Out for Repair</div>
-              <div class="col-2">Quarantine</div>
-              <div class="col-2">Awaiting QA/CA</div>
-              <div class="col-2">Ready to Ship</div>
+              <div class="col-2">
+                <span>Received</span>
+                <q-tooltip
+                  class="bg-primary text-body2 shadow-4"
+                  max-width="500px"
+                  :offset="[10, 10]"
+                >
+                  The terminal has been received, checked in, and placed in the
+                  repair queue awaiting repair.
+                </q-tooltip>
+              </div>
+              <div class="col-2">
+                <span>Out for Repair</span>
+                <q-tooltip
+                  class="bg-primary text-body2 shadow-4"
+                  max-width="500px"
+                  :offset="[10, 10]"
+                >
+                  The terminal is assigned to a repair technician to evaluate
+                  and complete the repair.
+                </q-tooltip>
+              </div>
+              <div class="col-2">
+                <span>Quarantine</span>
+                <q-tooltip
+                  class="bg-primary text-body2 shadow-4"
+                  max-width="500px"
+                  :offset="[10, 10]"
+                >
+                  The terminal has been placed in a secure location awaiting
+                  part(s) that are not in stock at this time.
+                </q-tooltip>
+              </div>
+              <div class="col-2">
+                <span>Awaiting QA/CA</span>
+                <q-tooltip
+                  class="bg-primary text-body2 shadow-4"
+                  max-width="500px"
+                  :offset="[10, 10]"
+                >
+                  The terminal repair has been completed and awaiting the final
+                  inspection by our Quality Assurance/Certification
+                  Authorization team before being approved for shipping.
+                </q-tooltip>
+              </div>
+              <div class="col-2">
+                <span>Ready to Ship</span>
+                <q-tooltip
+                  class="bg-primary text-body2 shadow-4"
+                  max-width="500px"
+                  :offset="[10, 10]"
+                >
+                  The terminal has passed QA/CA inspection and is awaiting a
+                  shipping label and/or UPS to pick it up.
+                </q-tooltip>
+              </div>
               <div class="col-2 text-weight-bold">Total</div>
             </div>
           </div>
@@ -103,9 +154,24 @@ export default {
       partSummary: [],
 
       filterFields: [
-        { id: "partNumber", label: "Model Number Short" },
-        { id: "rmaNumber", label: "Ticket Number" },
-        { id: "serialNumber", label: "Serial Number" },
+        {
+          id: "partNumber",
+          label: "Model Number Short",
+          tooltip:
+            "Enter the model number prefix you are searching for.\nExample: A77",
+        },
+        {
+          id: "rmaNumber",
+          label: "Ticket Number",
+          tooltip:
+            "Enter the RMA ticket number you are searching for.\nMust be an exact number, no partials.",
+        },
+        {
+          id: "serialNumber",
+          label: "Serial Number",
+          tooltip:
+            "Enter the terminal serial number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact serial number, no partials.\nExample: (300123456, 300123457)",
+        },
         { id: "customerId", label: "Customer", type: "customerSelect" },
       ],
     };
