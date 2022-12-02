@@ -19,7 +19,7 @@ public interface RmaService extends IService<Integer> {
 									 String serialNumber, 
 									 String partNumber,
 									 String shipDate,
-									 Integer customerId);
+									 String customerId);
 
 	QueryResultArrayDTO quarantineQuery(Integer currentPage,
 									    Integer sizePerPage, 
@@ -27,11 +27,11 @@ public interface RmaService extends IService<Integer> {
 									    Long rmaNumber, 
 									    String serialNumber, 
 									    String partNumber,
-										Integer customerId,
+										String customerId,
 										Integer contact);
 
-	QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, Integer customerId);
-	QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, Integer customerId);
-	QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumber, Integer customerId);
+	QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, String customerId);
+	QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, String customerId);
+	QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumber, String customerId);
 	QueryResultArrayDTO statusTier4(Integer id);
 }

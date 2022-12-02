@@ -55,7 +55,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                              String serialNumber, 
                                              String partNumber,
                                              String shipDate,
-                                             Integer customerId) {
+                                             String customerId) {
         String [] shipDates;
         String shipFromDate = null;
         String shipToDate = null;
@@ -67,13 +67,17 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         }
 
         CustomUserDetails user = AuthUtil.getUser();
-        Integer companyId = null;
+        String companyId = null;
         
         if (user != null)
             if(user.getStandardUser() == 1)
-                companyId = user.getCompanyId();
-            else
-                companyId = customerId;
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+            	if (customerId == null)
+            		companyId = "%";
+            	else
+            		companyId = customerId;
+            }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
@@ -117,15 +121,19 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                                 Long rmaNumber, 
                                                 String serialNumber, 
                                                 String model,
-                                                Integer customerId,
+                                                String customerId,
                                                 Integer contact) {
         CustomUserDetails user = AuthUtil.getUser();
-        Integer companyId = null;
+        String companyId = null;
         if (user != null)
             if(user.getStandardUser() == 1)
-                companyId = user.getCompanyId();
-            else
-                companyId = customerId;
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+            	if (customerId == null)
+            		companyId = "%";
+            	else
+            		companyId = customerId;
+            }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
@@ -233,15 +241,19 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     }
 
 	@Override
-	public QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, Integer customerId) {
+	public QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
-        Integer companyId = null;
+        String companyId = null;
         
         if (user != null) {
             if(user.getStandardUser() == 1)
-                companyId = user.getCompanyId();
-            else
-                companyId = customerId;
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+            	if (customerId == null)
+            		companyId = "%";
+            	else
+            		companyId = customerId;
+            }
         }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
@@ -268,15 +280,19 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	}
 
 	@Override
-	public QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, Integer customerId) {
+	public QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
-        Integer companyId = null;
+        String companyId = null;
         
         if (user != null)
             if(user.getStandardUser() == 1)
-                companyId = user.getCompanyId();
-            else
-                companyId = customerId;
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+            	if (customerId == null)
+            		companyId = "%";
+            	else
+            		companyId = String.valueOf(customerId);
+            }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber, rmaNumber, serialNumber);
@@ -302,15 +318,19 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	}
 
 	@Override
-	public QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumberFilter, Integer customerId) {
+	public QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumberFilter, String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
-        Integer companyId = null;
+        String companyId = null;
         
         if (user != null)
             if(user.getStandardUser() == 1)
-                companyId = user.getCompanyId();
-            else
-                companyId = customerId;
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+            	if (customerId == null)
+            		companyId = "%";
+            	else
+            		companyId = String.valueOf(customerId);
+            }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId, rmaNumber, partNumber, serialNumberFilter);

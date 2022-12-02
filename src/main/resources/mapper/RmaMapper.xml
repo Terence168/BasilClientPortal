@@ -23,7 +23,7 @@
 			JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 			GROUP BY xfc.xm_OID) fault USING (xm_OID)
 		<where>
-			mo.MC_OID = #{id}
+			mo.MC_OID  LIKE #{id}
 			<if test="rmaNumber != null">
 				AND mo.MO_OID = #{rmaNumber}
 			</if>
@@ -68,7 +68,7 @@
 		JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 		GROUP BY xfc.xm_OID) fault USING (xm_OID)
 	<where>
-		mo.MC_OID = #{id}
+		mo.MC_OID LIKE #{id}
 		<if test="rmaNumber != null">
 			AND mo.MO_OID = #{rmaNumber}
 		</if>
@@ -98,7 +98,7 @@
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	<where>
-		mo.MC_OID = #{id}
+		mo.MC_OID LIKE  #{id}
 		<if test="rmaNumber != null">
 			AND mo.MO_OID = #{rmaNumber}
 		</if>
@@ -153,7 +153,7 @@ FROM
 			JOIN BASIL_ODS_PRD.MASTER_MATERIAL material USING (MM_OID)
 			GROUP BY fm.xm_OID) parts USING (xm_OID)
 <where>
-	mo.MC_OID = #{id}
+	mo.MC_OID LIKE #{id}
 	<if test="rmaNumber != null">
 		AND mo.MO_OID = #{rmaNumber}
 	</if>
@@ -189,7 +189,7 @@ FROM
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	WHERE
-	    mo.MC_OID = #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+	    mo.MC_OID LIKE #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
 		<if test="partNumber != null">
 			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 		</if>
@@ -217,7 +217,7 @@ FROM
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	WHERE
-	    mo.MC_OID = #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+	    mo.MC_OID LIKE #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
 		<if test="rmaNumber != null">
 			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
 		</if>
@@ -243,7 +243,7 @@ FROM
         JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
         JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
     WHERE
-        mo.MC_OID = #{id}
+        mo.MC_OID LIKE #{id}
             AND xm.STATUS IN (107, 110, 108, 111, 112)
     		AND part.PART_NUMBER_SHORT = #{partNumber}
             AND mo.MO_OID = #{rmaNumber}
@@ -254,11 +254,10 @@ FROM
 
 <select id="getSerialDetailsTier4" resultType="us.pax.basil.entity.rma.SerialDetailsTier4">
 	SELECT
-		sav.VALUE AS reportedIssue, fault.faultCode AS faultCodes
+	    xm.CUSTOMER_REPORTED_ISSUE_EXT as reportedIssue,
+		fault.faultCode AS faultCodes
 	FROM
 		BASIL_ODS_PRD.XREF_MATERIALS xm
-	LEFT JOIN
-		SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.CUSTOMER_REPORTED_ISSUE
 	LEFT JOIN
 		(SELECT
 			xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
