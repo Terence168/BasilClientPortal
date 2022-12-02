@@ -53,7 +53,7 @@ public class RmaController {
     public QueryResultArrayDTO statusTier1(@RequestParam(value = "partNumber", required = false) String partNumber,
                                            @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
-                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
+                                           @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier1(partNumber, rmaNumber, serialNumber, customerId);
     }
 
@@ -61,7 +61,7 @@ public class RmaController {
     public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = true) String partNumber,
                                            @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
-                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
+                                           @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier2(partNumber, rmaNumber, serialNumber, customerId);
     }
 
@@ -69,7 +69,7 @@ public class RmaController {
     public QueryResultArrayDTO statusTier3(@RequestParam(value = "rmaNumber", required = true) Long rmaNumber,
                                            @RequestParam(value = "partNumber", required = true) String partNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
-                                           @RequestParam(value = "customerId", required = false) Integer customerId) {
+                                           @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier3(rmaNumber, partNumber, serialNumber, customerId);
     }
 
@@ -87,7 +87,7 @@ public class RmaController {
                                          @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                          @RequestParam(value = "partNumber", required = false) String partNumber,
                                          @RequestParam(value = "shipDate", required = false) String shipDate,
-                                         @RequestParam(value = "customerId", required = false) Integer customerId) {
+                                         @RequestParam(value = "customerId", required = false) String customerId) {
         if (null == currentPage || 0 == currentPage) {
             currentPage = 1; // show the first page by default
         }
@@ -106,7 +106,7 @@ public class RmaController {
                                            @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                            @RequestParam(value = "partNumber", required = false) String partNumber,
-                                           @RequestParam(value = "customerId", required = false) Integer customerId,
+                                           @RequestParam(value = "customerId", required = false) String customerId,
                                            @RequestParam(value = "contact", required = false) Integer contact) {
         if (null == currentPage || 0 == currentPage) {
             currentPage = 1; // show the first page by default

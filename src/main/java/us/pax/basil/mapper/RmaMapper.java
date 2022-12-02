@@ -32,14 +32,14 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	String serialNumber,
                          	String partNumber);
 
-	Integer getQuarantineTotal(Integer id, Long rmaNumber, String serialNumber, String partNumber, Integer contact);
-	Integer getShippingTotal(Integer id, Long rmaNumber, String serialNumber, String partNumber, String shipFromDate,
+	Integer getQuarantineTotal(String id, Long rmaNumber, String serialNumber, String partNumber, Integer contact);
+	Integer getShippingTotal(String id, Long rmaNumber, String serialNumber, String partNumber, String shipFromDate,
 							String shipToDate);
 
 	List<Shipped> getShipping(Integer offset,
                          	 Integer count,
                          	 String sortColumns,
-                         	 Integer id,
+                         	 String id,
                          	 Long rmaNumber,
                          	 String serialNumber,
                          	 String partNumber,
@@ -49,14 +49,14 @@ public interface RmaMapper extends BaseMapper<Integer> {
 	List<Quarantine> getQuarantine(Integer offset,
                          	    Integer count,
                          	    String sortColumns,
-                         	    Integer id,
+                         	    String id,
                          	    Long rmaNumber,
                          	    String serialNumber,
                          	    String partNumber,
 								Integer contact);
 	
-	List<PartNumberTier1> getPartNumberTier1(Integer id, String partNumber, Long rmaNumber, String serialNumber);
-	List<RmaNumberTier2> getRmaNumberTier2(Integer id, String partNumber, Long rmaNumber, String serialNumber);
-	List<SerialNumberTier3> getSerialNumberTier3(Integer id, Long rmaNumber, String partNumber, String serialNumber);
+	List<PartNumberTier1> getPartNumberTier1(String id, String partNumber, Long rmaNumber, String serialNumber);
+	List<RmaNumberTier2> getRmaNumberTier2(String id, String partNumber, Long rmaNumber, String serialNumber);
+	List<SerialNumberTier3> getSerialNumberTier3(String id, Long rmaNumber, String partNumber, String serialNumber);
 	SerialDetailsTier4 getSerialDetailsTier4(Integer id);
 }
