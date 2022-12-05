@@ -17,4 +17,5 @@ public class SerialNumberTier3 {
     private Integer quarantine;
     private Integer awaitingQaCa;
     private Integer readyToShip;
+    private String customerOrganization;
 }

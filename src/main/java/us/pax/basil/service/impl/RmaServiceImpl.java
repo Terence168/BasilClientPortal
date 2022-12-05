@@ -105,6 +105,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 shippedMap.put("reportedIssue", shipped.getReportedIssue());
                 shippedMap.put("techNotes", shipped.getTechNotes());
                 shippedMap.put("faultCode", shipped.getFaultCode());
+                shippedMap.put("customerOrganization", shipped.getCustomerOrganization());
     
                 resultArray.add(shippedMap);
             }
@@ -159,6 +160,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 quarantineMap.put("techNotes", quarantine.getTechNotes());
                 quarantineMap.put("faultCode", quarantine.getFaultCode());
                 quarantineMap.put("partsNeeded", quarantine.getPartsNeeded());
+                quarantineMap.put("customerOrganization", quarantine.getCustomerOrganization());
     
                 resultArray.add(quarantineMap);
             }
@@ -269,6 +271,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     			result.put("awaitingQaCa", part.getAwaitingQaCa());
     			result.put("readyToShip", part.getReadyToShip());
     			result.put("total", part.getTotal());
+    			result.put("customerOrganization", part.getCustomerOrganization());
     			
     			resultArray.add(result);
         	}
@@ -307,6 +310,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     			result.put("awaitingQaCa", rma.getAwaitingQaCa());
     			result.put("readyToShip", rma.getReadyToShip());
     			result.put("total", rma.getTotal());
+    			result.put("customerOrganization", rma.getCustomerOrganization());
     			
     			resultArray.add(result);
         	}
@@ -345,6 +349,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 		    	result.put("quarantine", serialNumber.getQuarantine());
     			result.put("awaitingQaCa", serialNumber.getAwaitingQaCa());
     			result.put("readyToShip", serialNumber.getReadyToShip());
+    			result.put("customerOrganization", serialNumber.getCustomerOrganization());
     			
     			resultArray.add(result);
         	}

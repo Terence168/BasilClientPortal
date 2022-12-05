@@ -49,18 +49,16 @@
 		ship.TRACKING_NUMBER AS trackingNumber,
 		xm.CUSTOMER_REPORTED_ISSUE_EXT AS reportedIssue,
 		xm.TECH_NOTES AS techNotes,
-		fault.faultCode
+		fault.faultCode,
+		mc.CUSTOMER_ORGANIZATION as customerOrganization
     FROM
     	BASIL_ODS_PRD.MASTER_ORDER mo
-    JOIN
-    	BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
-    JOIN
-    	BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
-    JOIN
-    	BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-    JOIN
-    	BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
-    JOIN
+    	JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+    	JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+    	JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+    	JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+    	JOIN BASIL_ODS_PRD.XREF_SHIP ship USING (BOX_OID)
+    	JOIN
 		(SELECT
 			xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
 		FROM
@@ -124,9 +122,11 @@ SELECT
     sav.VALUE as customerContact,
     xm.TECH_NOTES as techNotes,
     fault.faultCode,
-	parts.partsNeeded
+	parts.partsNeeded,
+	mc.CUSTOMER_ORGANIZATION as customerOrganization
 FROM
     BASIL_ODS_PRD.MASTER_ORDER mo
+    JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
     JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
     JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
     JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
@@ -182,9 +182,11 @@ FROM
 	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
 	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
 	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
-	    COUNT(mo.MO_OID) AS TOTAL
+	    COUNT(mo.MO_OID) AS TOTAL,
+	    mc.CUSTOMER_ORGANIZATION as customerOrganization
 	FROM
 	    BASIL_ODS_PRD.MASTER_ORDER mo
+	    JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
@@ -199,7 +201,7 @@ FROM
 		<if test="serialNumber != null">
 			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 		</if>
-	GROUP BY part.PART_NUMBER_SHORT;
+	GROUP BY part.PART_NUMBER_SHORT, mc.CUSTOMER_ORGANIZATION;
 </select>
 
 <select id="getRmaNumberTier2" resultType="us.pax.basil.entity.rma.RmaNumberTier2">
@@ -210,9 +212,11 @@ FROM
 	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
 	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
 	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
-	    COUNT(msn.SERIAL_NUMBER) AS total
+	    COUNT(msn.SERIAL_NUMBER) AS total,
+	    mc.CUSTOMER_ORGANIZATION as customerOrganization
 	FROM
 	    BASIL_ODS_PRD.MASTER_ORDER mo
+	    JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
@@ -224,7 +228,7 @@ FROM
 		<if test="serialNumber != null">
 			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 		</if>
-	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID
+	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID, mc.CUSTOMER_ORGANIZATION
 	HAVING part.PART_NUMBER_SHORT = #{partNumber};
 </select>
 
@@ -236,9 +240,12 @@ FROM
         IF(xm.STATUS = 110, 1, 0) AS outForRepair,
         IF(xm.STATUS = 108, 1, 0) AS quarantine,
         IF(xm.STATUS = 111, 1, 0) AS awaitingQaCa,
-        IF(xm.STATUS = 112, 1, 0) AS readyToShip
+        IF(xm.STATUS = 112, 1, 0) AS readyToShip,
+        mc.CUSTOMER_ORGANIZATION as customerOrganization
+        
     FROM
         BASIL_ODS_PRD.MASTER_ORDER mo
+        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
         JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
         JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
         JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
