@@ -88,6 +88,7 @@ export default {
           },
           { id: "faultCode", label: "Fault Code(s)", sortable: true },
           { id: "partsNeeded", label: "Part(s) Needed", sortable: true },
+          { id: "customerOrganization", label: "Customer", sortable: true },
         ],
         rows: [],
       },

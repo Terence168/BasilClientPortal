@@ -113,6 +113,7 @@ export default {
             sortable: true,
           },
           { id: "faultCode", label: "Fault Code(s)", sortable: true },
+          { id: "customerOrganization", label: "Customer", sortable: true },
         ],
         rows: [],
       },
