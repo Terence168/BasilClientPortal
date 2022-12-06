@@ -102,13 +102,13 @@
             Summary
           </div>
           <div class="col-9">
-            <div class="row bg-grey-3 text-body1 text-center q-py-xs">
-              <div class="col-2">10</div>
-              <div class="col-2">12</div>
-              <div class="col-2">13</div>
-              <div class="col-2">5</div>
-              <div class="col-2">79</div>
-              <div class="col-2 text-weight-bold">120</div>
+            <div class="row shadow-2 bg-grey-3 text-body1 text-center q-py-xs">
+              <div class="col-2">{{ summary.inventory }}</div>
+              <div class="col-2">{{ summary.outForRepair }}</div>
+              <div class="col-2">{{ summary.quarantine }}</div>
+              <div class="col-2">{{ summary.awaitingQaCa }}</div>
+              <div class="col-2">{{ summary.readyToShip }}</div>
+              <div class="col-2 text-weight-bold">{{ summary.total }}</div>
             </div>
           </div>
         </div>
@@ -181,6 +181,29 @@ export default {
     totalPages() {
       const perPage = this.$route.query.per_page || 10;
       return Math.ceil(this.total / perPage);
+    },
+
+    summary() {
+      const initSummary = {
+        inventory: 0,
+        quarantine: 0,
+        outForRepair: 0,
+        awaitingQaCa: 0,
+        readyToShip: 0,
+        total: 0,
+      };
+
+      return this.partSummary.reduce(
+        (sum, el) => ({
+          inventory: sum.inventory + el.inventory,
+          quarantine: sum.quarantine + el.quarantine,
+          outForRepair: sum.outForRepair + el.outForRepair,
+          awaitingQaCa: sum.awaitingQaCa + el.awaitingQaCa,
+          readyToShip: sum.readyToShip + el.readyToShip,
+          total: sum.total + el.total,
+        }),
+        initSummary
+      );
     },
   },
 
