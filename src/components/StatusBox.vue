@@ -30,7 +30,11 @@ const children = ref([]);
 const expanded = ref(false);
 const loading = ref(false);
 
-const serialDetails = reactive({ reportedIssue: null, faultCodes: null });
+const serialDetails = reactive({
+  reportedIssue: null,
+  faultCodes: null,
+  customer: null,
+});
 
 const expandCategory = function (categoryValue) {
   if (props.level >= 4) {
@@ -52,9 +56,11 @@ const expandCategory = function (categoryValue) {
           .then(function (response) {
             const resData = response.data.data;
             if (resData == null) {
+              serialDetails.customer = "None";
               serialDetails.reportedIssue = "None";
               serialDetails.faultCodes = "None";
             } else {
+              serialDetails.customer = resData[0].customer;
               serialDetails.reportedIssue = resData[0].reportedIssue;
               serialDetails.faultCodes = resData[0].faultCodes;
             }
@@ -204,6 +210,10 @@ const expandCategory = function (categoryValue) {
       class="q-py-xs category text-subtitle2"
       style="max-width: 1100px; margin: 0 auto; padding-left: 100px"
     >
+      <div>
+        <span class="text-red">Customer:</span>
+        {{ serialDetails.customer }}
+      </div>
       <div>
         <span class="text-red">Customer Reported issue:</span>
         {{ serialDetails.reportedIssue }}
