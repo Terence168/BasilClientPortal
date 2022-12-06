@@ -23,7 +23,9 @@
 			JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 			GROUP BY xfc.xm_OID) fault USING (xm_OID)
 		<where>
-			mo.MC_OID  LIKE #{id}
+			<if test="id != null">
+	    		mo.MC_OID = #{id}
+			</if>
 			<if test="rmaNumber != null">
 				AND mo.MO_OID = #{rmaNumber}
 			</if>
@@ -49,11 +51,9 @@
 		ship.TRACKING_NUMBER AS trackingNumber,
 		xm.CUSTOMER_REPORTED_ISSUE_EXT AS reportedIssue,
 		xm.TECH_NOTES AS techNotes,
-		fault.faultCode,
-		mc.CUSTOMER_ORGANIZATION as customerOrganization
+		fault.faultCode
     FROM
     	BASIL_ODS_PRD.MASTER_ORDER mo
-    	JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
     	JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
     	JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
     	JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
@@ -66,7 +66,9 @@
 		JOIN BASIL_ODS_PRD.SUPPORT_FAULT_CODE_VALUES fault ON fault.SFV_OID = xfc.FAULT_CODE
 		GROUP BY xfc.xm_OID) fault USING (xm_OID)
 	<where>
-		mo.MC_OID LIKE #{id}
+		<if test="id != null">
+			mo.MC_OID = #{id}
+		</if>
 		<if test="rmaNumber != null">
 			AND mo.MO_OID = #{rmaNumber}
 		</if>
@@ -96,7 +98,9 @@
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	<where>
-		mo.MC_OID LIKE  #{id}
+		<if test="id != null">
+	    	mo.MC_OID = #{id}
+		</if>
 		<if test="rmaNumber != null">
 			AND mo.MO_OID = #{rmaNumber}
 		</if>
@@ -122,11 +126,9 @@ SELECT
     sav.VALUE as customerContact,
     xm.TECH_NOTES as techNotes,
     fault.faultCode,
-	parts.partsNeeded,
-	mc.CUSTOMER_ORGANIZATION as customerOrganization
+	parts.partsNeeded
 FROM
     BASIL_ODS_PRD.MASTER_ORDER mo
-    JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
     JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
     JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
     JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
@@ -153,7 +155,9 @@ FROM
 			JOIN BASIL_ODS_PRD.MASTER_MATERIAL material USING (MM_OID)
 			GROUP BY fm.xm_OID) parts USING (xm_OID)
 <where>
-	mo.MC_OID LIKE #{id}
+	<if test="id != null">
+		mo.MC_OID = #{id}
+	</if>
 	<if test="rmaNumber != null">
 		AND mo.MO_OID = #{rmaNumber}
 	</if>
@@ -182,16 +186,17 @@ FROM
 	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
 	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
 	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
-	    COUNT(mo.MO_OID) AS TOTAL,
-	    mc.CUSTOMER_ORGANIZATION as customerOrganization
+	    COUNT(mo.MO_OID) AS TOTAL
 	FROM
 	    BASIL_ODS_PRD.MASTER_ORDER mo
-	    JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	WHERE
-	    mo.MC_OID LIKE #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+	    xm.STATUS IN (107, 110, 108, 111, 112)
+		<if test="id != null">
+	    	AND mo.MC_OID = #{id}
+		</if>
 		<if test="partNumber != null">
 			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
 		</if>
@@ -201,7 +206,7 @@ FROM
 		<if test="serialNumber != null">
 			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 		</if>
-	GROUP BY part.PART_NUMBER_SHORT, mc.CUSTOMER_ORGANIZATION;
+	GROUP BY part.PART_NUMBER_SHORT;
 </select>
 
 <select id="getRmaNumberTier2" resultType="us.pax.basil.entity.rma.RmaNumberTier2">
@@ -212,23 +217,24 @@ FROM
 	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
 	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
 	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
-	    COUNT(msn.SERIAL_NUMBER) AS total,
-	    mc.CUSTOMER_ORGANIZATION as customerOrganization
+	    COUNT(msn.SERIAL_NUMBER) AS total
 	FROM
 	    BASIL_ODS_PRD.MASTER_ORDER mo
-	    JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	WHERE
-	    mo.MC_OID LIKE #{id} AND xm.STATUS IN (107, 110, 108, 111, 112)
+	    xm.STATUS IN (107, 110, 108, 111, 112)
+		<if test="id != null">
+	    	AND mo.MC_OID = #{id}
+		</if>
 		<if test="rmaNumber != null">
 			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
 		</if>
 		<if test="serialNumber != null">
 			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
 		</if>
-	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID, mc.CUSTOMER_ORGANIZATION
+	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID
 	HAVING part.PART_NUMBER_SHORT = #{partNumber};
 </select>
 
@@ -240,23 +246,31 @@ FROM
         IF(xm.STATUS = 110, 1, 0) AS outForRepair,
         IF(xm.STATUS = 108, 1, 0) AS quarantine,
         IF(xm.STATUS = 111, 1, 0) AS awaitingQaCa,
-        IF(xm.STATUS = 112, 1, 0) AS readyToShip,
-        mc.CUSTOMER_ORGANIZATION as customerOrganization
+        IF(xm.STATUS = 112, 1, 0) AS readyToShip
         
     FROM
         BASIL_ODS_PRD.MASTER_ORDER mo
-        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
         JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
         JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
         JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
     WHERE
-        mo.MC_OID LIKE #{id}
+		<if test="id != null">
+	    	mo.MC_OID = #{id}
+			<if test="rmaNumber != null">
+				AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+			</if>
+		</if>
+		<if test="id == null">
+			<if test="rmaNumber != null">
+				mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+			</if>
+		</if>
             AND xm.STATUS IN (107, 110, 108, 111, 112)
     		AND part.PART_NUMBER_SHORT = #{partNumber}
             AND mo.MO_OID = #{rmaNumber}
-			<if test="serialNumber != null">
-				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
-			</if>
+		<if test="serialNumber != null">
+			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+		</if>
 </select>
 
 <select id="getSerialDetailsTier4" resultType="us.pax.basil.entity.rma.SerialDetailsTier4">

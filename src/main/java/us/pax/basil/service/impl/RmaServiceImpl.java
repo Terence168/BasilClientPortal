@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,10 +74,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             if(user.getStandardUser() == 1)
                 companyId = String.valueOf(user.getCompanyId());
             else {
-            	if (customerId == null)
-            		companyId = "%";
-            	else
-            		companyId = customerId;
+           		companyId = customerId;
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
@@ -130,10 +128,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             if(user.getStandardUser() == 1)
                 companyId = String.valueOf(user.getCompanyId());
             else {
-            	if (customerId == null)
-            		companyId = "%";
-            	else
-            		companyId = customerId;
+           		companyId = customerId;
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
@@ -251,15 +246,13 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             if(user.getStandardUser() == 1)
                 companyId = String.valueOf(user.getCompanyId());
             else {
-            	if (customerId == null)
-            		companyId = "%";
-            	else
-            		companyId = customerId;
+            	companyId = customerId;
             }
         }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId, partNumber, rmaNumber, serialNumber);
+        Collections.sort(partNumberList, (o1, o2) -> (o1.getPartNumber().compareTo(o2.getPartNumber())));
         try {
         	for (PartNumberTier1 part: partNumberList) {
         		Map<String, Object> result = new HashMap<>();
@@ -291,10 +284,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             if(user.getStandardUser() == 1)
                 companyId = String.valueOf(user.getCompanyId());
             else {
-            	if (customerId == null)
-            		companyId = "%";
-            	else
-            		companyId = String.valueOf(customerId);
+            	companyId = customerId;
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
@@ -330,10 +320,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             if(user.getStandardUser() == 1)
                 companyId = String.valueOf(user.getCompanyId());
             else {
-            	if (customerId == null)
-            		companyId = "%";
-            	else
-            		companyId = String.valueOf(customerId);
+           		companyId = customerId;
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
