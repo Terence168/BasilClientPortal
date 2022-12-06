@@ -280,9 +280,12 @@ FROM
 <select id="getSerialDetailsTier4" resultType="us.pax.basil.entity.rma.SerialDetailsTier4">
 	SELECT
 	    xm.CUSTOMER_REPORTED_ISSUE_EXT as reportedIssue,
-		fault.faultCode AS faultCodes
+		fault.faultCode AS faultCodes,
+		mc.CUSTOMER_ORGANIZATION as customerOrganization
 	FROM
 		BASIL_ODS_PRD.XREF_MATERIALS xm
+	LEFT JOIN BASIL_ODS_PRD.MASTER_ORDER mo USING (MO_OID)
+	LEFT JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING (MC_OID)
 	LEFT JOIN
 		(SELECT
 			xfc.xm_OID, GROUP_CONCAT(DISTINCT fault.VALUE) AS faultCode
