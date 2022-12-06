@@ -207,6 +207,9 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 case "customerContact":
                     col = col.replace("customerContact", "customerContact");
                     break;
+                case "customerOrganization":
+                    col = col.replace("customerOrganization", "customer_organization");
+                    break;
                 case "techNotes":
                     col = col.replace("techNotes", "techNotes");
                     break;
