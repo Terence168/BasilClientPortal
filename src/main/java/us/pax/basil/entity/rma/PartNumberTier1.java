@@ -17,5 +17,6 @@ public class PartNumberTier1 {
     private Integer awaitingQaCa;
     private Integer readyToShip;
     private Integer total;
+    private String customerOrganization;
 
 }

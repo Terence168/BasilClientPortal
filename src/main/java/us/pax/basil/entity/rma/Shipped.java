@@ -18,4 +18,5 @@ public class Shipped {
 	private String reportedIssue;
 	private String techNotes;
 	private String faultCode;
+	private String customerOrganization;
 }
