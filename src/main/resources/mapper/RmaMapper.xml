@@ -37,7 +37,7 @@
 				</foreach>
 			</if>
 			<if test="partNumber != null">
-				AND part.PART_NUMBER_SHORT = #{partNumber}
+				AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 			</if>
 			<if test="shipFromDate != null and shipToDate != null">
 				AND ship.SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
@@ -86,7 +86,7 @@
 			</foreach>
 		</if>
 		<if test="partNumber != null">
-			AND part.PART_NUMBER_SHORT = #{partNumber}
+			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="shipFromDate != null and shipToDate != null">
 			AND ship.SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
@@ -122,7 +122,7 @@
 			</foreach>
 		</if>
 		<if test="partNumber != null">
-			AND part.PART_NUMBER_SHORT = #{partNumber}
+			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="contact != null">
 			AND xm.CUSTOMER_CONTACT_NEEDED = #{contact}
@@ -185,7 +185,7 @@ FROM
 		</foreach>
 	</if>
 	<if test="partNumber != null">
-		AND part.PART_NUMBER_SHORT = #{partNumber}
+		AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 	</if>
 	<if test="contact != null">
 		AND xm.CUSTOMER_CONTACT_NEEDED = #{contact}
@@ -212,16 +212,16 @@ FROM
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-	WHERE
+	<where>
 	    xm.STATUS IN (107, 110, 108, 111, 112)
 		<if test="id != null">
 	    	AND mo.MC_OID = #{id}
 		</if>
 		<if test="partNumber != null">
-			AND part.PART_NUMBER_SHORT = #{partNumber}
+			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+			AND mo.MO_OID = #{rmaNumber}
 		</if>
 		<if test="serialNumber != null">
 			AND
@@ -230,6 +230,7 @@ FROM
 				#{item}
 			</foreach>
 		</if>
+	</where>
 	GROUP BY part.PART_NUMBER_SHORT;
 </select>
 
@@ -247,13 +248,13 @@ FROM
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-	WHERE
+	<where>
 	    xm.STATUS IN (107, 110, 108, 111, 112)
 		<if test="id != null">
 	    	AND mo.MC_OID = #{id}
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+			AND mo.MO_OID = #{rmaNumber}
 		</if>
 		<if test="serialNumber != null">
 			AND
@@ -262,6 +263,7 @@ FROM
 				#{item}
 			</foreach>
 		</if>
+	</where>
 	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID
 	HAVING part.PART_NUMBER_SHORT = #{partNumber};
 </select>
@@ -281,7 +283,7 @@ FROM
         JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
         JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
         JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-    WHERE
+	<where>
 		<if test="id != null">
 	    	mo.MC_OID = #{id}
 		</if>
@@ -295,6 +297,7 @@ FROM
 				#{item}
 			</foreach>
 		</if>
+	</where>
 </select>
 
 <select id="getSerialDetailsTier4" resultType="us.pax.basil.entity.rma.SerialDetailsTier4">
