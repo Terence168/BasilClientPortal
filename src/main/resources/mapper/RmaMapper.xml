@@ -284,14 +284,6 @@ FROM
     WHERE
 		<if test="id != null">
 	    	mo.MC_OID = #{id}
-			<if test="rmaNumber != null">
-				AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
-			</if>
-		</if>
-		<if test="id == null">
-			<if test="rmaNumber != null">
-				mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
-			</if>
 		</if>
             AND xm.STATUS IN (107, 110, 108, 111, 112)
     		AND part.PART_NUMBER_SHORT = #{partNumber}
