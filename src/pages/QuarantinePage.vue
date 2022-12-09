@@ -63,10 +63,31 @@ export default {
       },
 
       filterFields: [
-        { id: "rmaNumber", label: "Ticket Number" },
-        { id: "serialNumber", label: "Serial Number" },
-        { id: "partNumber", label: "Model Number Short" },
-        { id: "contact", label: "Customer Contact Needed", type: "select" },
+        {
+          id: "rmaNumber",
+          label: "Ticket Number",
+          tooltip:
+            "Enter the RMA ticket number you are searching for.\nMust be an exact number, no partials.",
+        },
+        {
+          id: "serialNumber",
+          label: "Serial Number",
+          tooltip:
+            "Enter the terminal serial number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact serial number, no partials.\nExample: (300123456, 300123457)",
+        },
+        {
+          id: "partNumber",
+          label: "Model Number Short",
+          tooltip:
+            "Enter the model number prefix you are searching for.\nExample: A77",
+        },
+        {
+          id: "contact",
+          label: "Customer Contact Needed",
+          type: "select",
+          tooltip:
+            "You can use this filter to drill down to the results you would like to see\nbased on the drop-down menu options.",
+        },
         { id: "customerId", label: "Customer", type: "customerSelect" },
       ],
 

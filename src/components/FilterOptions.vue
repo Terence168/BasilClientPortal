@@ -36,6 +36,15 @@
             emit-value
             map-options
           >
+            <q-tooltip
+              v-if="field.tooltip"
+              class="bg-primary text-body2 shadow-4"
+              style="white-space: pre"
+              max-width="700px"
+              :offset="[10, 10]"
+            >
+              {{ field.tooltip }}
+            </q-tooltip>
             <template v-slot:no-option>
               <q-item>
                 <q-item-section class="text-grey"> No results </q-item-section>
