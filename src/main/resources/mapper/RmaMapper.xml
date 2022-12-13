@@ -30,10 +30,14 @@
 				AND mo.MO_OID = #{rmaNumber}
 			</if>
 			<if test="serialNumber != null">
-				AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+				AND
+				<foreach item="item" index="index" collection="serialNumber"
+						 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+					#{item}
+				</foreach>
 			</if>
 			<if test="partNumber != null">
-				AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+				AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 			</if>
 			<if test="shipFromDate != null and shipToDate != null">
 				AND ship.SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
@@ -75,10 +79,14 @@
 			AND mo.MO_OID = #{rmaNumber}
 		</if>
 		<if test="serialNumber != null">
-			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+			AND
+			<foreach item="item" index="index" collection="serialNumber"
+					 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 		<if test="partNumber != null">
-			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="shipFromDate != null and shipToDate != null">
 			AND ship.SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
@@ -107,10 +115,14 @@
 			AND mo.MO_OID = #{rmaNumber}
 		</if>
 		<if test="serialNumber != null">
-			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+			AND
+			<foreach item="item" index="index" collection="serialNumber"
+					 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 		<if test="partNumber != null">
-			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="contact != null">
 			AND xm.CUSTOMER_CONTACT_NEEDED = #{contact}
@@ -166,10 +178,14 @@ FROM
 		AND mo.MO_OID = #{rmaNumber}
 	</if>
 	<if test="serialNumber != null">
-		AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+		AND
+		<foreach item="item" index="index" collection="serialNumber"
+				 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+			#{item}
+		</foreach>
 	</if>
 	<if test="partNumber != null">
-		AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+		AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 	</if>
 	<if test="contact != null">
 		AND xm.CUSTOMER_CONTACT_NEEDED = #{contact}
@@ -196,20 +212,25 @@ FROM
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-	WHERE
+	<where>
 	    xm.STATUS IN (107, 110, 108, 111, 112)
 		<if test="id != null">
 	    	AND mo.MC_OID = #{id}
 		</if>
 		<if test="partNumber != null">
-			AND part.PART_NUMBER_SHORT LIKE concat('%',#{partNumber},'%')
+			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+			AND mo.MO_OID = #{rmaNumber}
 		</if>
 		<if test="serialNumber != null">
-			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+			AND
+			<foreach item="item" index="index" collection="serialNumber"
+					 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
+	</where>
 	GROUP BY part.PART_NUMBER_SHORT;
 </select>
 
@@ -227,17 +248,22 @@ FROM
 	    JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-	WHERE
+	<where>
 	    xm.STATUS IN (107, 110, 108, 111, 112)
 		<if test="id != null">
 	    	AND mo.MC_OID = #{id}
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
+			AND mo.MO_OID = #{rmaNumber}
 		</if>
 		<if test="serialNumber != null">
-			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+			AND
+			<foreach item="item" index="index" collection="serialNumber"
+					 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
+	</where>
 	GROUP BY part.PART_NUMBER_SHORT, mo.MO_OID
 	HAVING part.PART_NUMBER_SHORT = #{partNumber};
 </select>
@@ -257,24 +283,21 @@ FROM
         JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
         JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
         JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
-    WHERE
+	<where>
 		<if test="id != null">
 	    	mo.MC_OID = #{id}
-			<if test="rmaNumber != null">
-				AND mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
-			</if>
-		</if>
-		<if test="id == null">
-			<if test="rmaNumber != null">
-				mo.MO_OID LIKE concat('%',#{rmaNumber},'%')
-			</if>
 		</if>
             AND xm.STATUS IN (107, 110, 108, 111, 112)
     		AND part.PART_NUMBER_SHORT = #{partNumber}
             AND mo.MO_OID = #{rmaNumber}
 		<if test="serialNumber != null">
-			AND msn.SERIAL_NUMBER LIKE concat('%',#{serialNumber},'%')
+			AND
+			<foreach item="item" index="index" collection="serialNumber"
+					 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
+	</where>
 </select>
 
 <select id="getSerialDetailsTier4" resultType="us.pax.basil.entity.rma.SerialDetailsTier4">

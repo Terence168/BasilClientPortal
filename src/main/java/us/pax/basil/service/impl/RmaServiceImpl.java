@@ -79,7 +79,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, serialNumber, partNumber, shipFromDate,
+            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, transformSerialNumbers(serialNumber), partNumber, shipFromDate,
                     shipToDate);
     
             List<Shipped> shippedList = rmaMapper.getShipping((currentPage - 1) * sizePerPage,
@@ -87,7 +87,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                                               buildSortString(sortColumns),
                                                               companyId,
                                                               rmaNumber, 
-                                                              serialNumber, 
+                                                              transformSerialNumbers(serialNumber),
                                                               partNumber,
                                                               shipFromDate,
                                                               shipToDate);
@@ -118,7 +118,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                                                 Integer sizePerPage, 
                                                 String sortColumns, 
                                                 Long rmaNumber, 
-                                                String serialNumber, 
+                                                String serialNumber,
                                                 String model,
                                                 String customerId,
                                                 Integer contact) {
@@ -133,14 +133,14 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, serialNumber, model, contact);
+            Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, transformSerialNumbers(serialNumber), model, contact);
     
             List<Quarantine> quarantineList = rmaMapper.getQuarantine((currentPage - 1) * sizePerPage,
                                                                       sizePerPage, 
                                                                       buildSortString(sortColumns),
                                                                       companyId,
                                                                       rmaNumber, 
-                                                                      serialNumber, 
+                                                                      transformSerialNumbers(serialNumber),
                                                                       model,
                                                                       contact);
 
@@ -240,6 +240,19 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         return sb.toString();
     }
 
+    private String[] transformSerialNumbers(String serialNumbers) {
+        String[] output = null;
+
+        if (serialNumbers != null) {
+            output = serialNumbers.split(",");
+            for (int i = 0; i < output.length; i++) {
+                output[i] = output[i].trim();
+            }
+        }
+
+        return output;
+    }
+
 	@Override
 	public QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
@@ -254,7 +267,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId, partNumber, rmaNumber, serialNumber);
+        List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId, partNumber, rmaNumber, transformSerialNumbers(serialNumber));
         Collections.sort(partNumberList, (o1, o2) -> (o1.getPartNumber().compareTo(o2.getPartNumber())));
         try {
         	for (PartNumberTier1 part: partNumberList) {
@@ -291,7 +304,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber, rmaNumber, serialNumber);
+        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber, rmaNumber, transformSerialNumbers(serialNumber));
         try {
         	for (RmaNumberTier2 rma: rmaNumberList) {
         		Map<String, Object> result = new HashMap<>();
@@ -327,7 +340,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId, rmaNumber, partNumber, serialNumberFilter);
+        List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId, rmaNumber, partNumber, transformSerialNumbers(serialNumberFilter));
         try {
         	for (SerialNumberTier3 serialNumber: serialNumberList) {
         		Map<String, Object> result = new HashMap<>();
