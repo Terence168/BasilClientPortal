@@ -114,6 +114,44 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     }
 
     @Override
+    public ArrayList<Shipped> shippedExcelExportQuery(String sortColumns,
+                                                      Long rmaNumber,
+                                                      String serialNumber,
+                                                      String partNumber,
+                                                      String shipDate,
+                                                      String customerId) {
+        String [] shipDates;
+        String shipFromDate = null;
+        String shipToDate = null;
+
+        if (shipDate != null) {
+            shipDates = shipDate.split(" ~ ");
+            shipFromDate = shipDates[0];
+            shipToDate = shipDates[1];
+        }
+
+        CustomUserDetails user = AuthUtil.getUser();
+        String companyId = null;
+
+        if (user != null)
+            if(user.getStandardUser() == 1)
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+                companyId = customerId;
+            }
+
+        return (ArrayList<Shipped>) rmaMapper.getShipping(0,
+                100000,
+                buildSortString(sortColumns),
+                companyId,
+                rmaNumber,
+                transformSerialNumbers(serialNumber),
+                partNumber,
+                shipFromDate,
+                shipToDate);
+    }
+
+    @Override
     public QueryResultArrayDTO quarantineQuery(Integer currentPage, 
                                                 Integer sizePerPage, 
                                                 String sortColumns, 
@@ -163,6 +201,31 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         } catch(Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
+    }
+
+    @Override
+    public ArrayList<Quarantine> quarantineExcelExportQuery(String sortColumns,
+                                                  Long rmaNumber,
+                                                  String serialNumber,
+                                                  String model,
+                                                  String customerId,
+                                                  Integer contact) {
+        CustomUserDetails user = AuthUtil.getUser();
+        String companyId = null;
+        if (user != null)
+            if(user.getStandardUser() == 1)
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+                companyId = customerId;
+            }
+        return (ArrayList<Quarantine>) rmaMapper.getQuarantine(0,
+                100000,
+                buildSortString(sortColumns),
+                companyId,
+                rmaNumber,
+                transformSerialNumbers(serialNumber),
+                model,
+                contact);
     }
 
     private String buildSortString(String sortColumns) {
