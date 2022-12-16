@@ -19,6 +19,19 @@
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg">
         <div class="row items-center text-subtitle1 text-weight-medium">
           Click on a column to sort the content of the table
+          <q-space />
+          <q-btn
+            label="Export to Excel"
+            color="primary"
+            style="width: 150px"
+            :loading="exportInProgress"
+            @click="excelExport"
+          >
+            <template v-slot:loading>
+              <q-spinner-hourglass class="on-left" />
+              Exporting...
+            </template>
+          </q-btn>
         </div>
         <div v-if="total !== 0" class="q-pt-md">
           <div class="row justify-center">
@@ -45,12 +58,16 @@ import GenericPagination from "src/components/GenericPagination.vue";
 
 import { useUserStore } from "stores/user";
 
+import { exportFile, date } from "quasar";
+
 export default {
   components: { FilterOptions, GenericTable, GenericPagination },
 
   data() {
     return {
       showModal: false,
+
+      exportInProgress: false,
 
       modalFormOptions: {
         id: null,
@@ -153,6 +170,27 @@ export default {
         .catch(function (error) {
           // handle error
           console.log(error);
+        });
+    },
+
+    excelExport() {
+      this.exportInProgress = true;
+      this.$api
+        .get("/rma/excel-export/shipping" + window.location.search, {
+          responseType: "blob",
+        })
+        .then((response) => {
+          exportFile(
+            "shipping_" + date.formatDate(Date.now(), "YYYY-MM-DD") + ".xlsx",
+            response.data
+          );
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        })
+        .finally(() => {
+          this.exportInProgress = false;
         });
     },
 
