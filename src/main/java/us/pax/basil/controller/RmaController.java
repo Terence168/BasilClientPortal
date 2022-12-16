@@ -16,12 +16,35 @@ package us.pax.basil.controller;
  */
 
 
-import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.service.RmaService;
 import io.swagger.annotations.Api;
-
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.AreaReference;
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.entity.rma.Quarantine;
+import us.pax.basil.entity.rma.Shipped;
+import us.pax.basil.service.RmaService;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Api(tags = "Basil API Interface")
 @RestController
@@ -123,5 +146,184 @@ public class RmaController {
                                             partNumber,
                                             customerId,
                                             contact);
+    }
+
+    private void writeWorkbook(OutputStream out) throws IOException {
+        try (Workbook workBook = new XSSFWorkbook()) {
+            Sheet sheet = workBook.createSheet("My Sheet");
+            sheet.setColumnWidth(0, 4000);
+            sheet.setColumnWidth(1, 6000);
+            Row row = sheet.createRow(0);
+            row.createCell(0).setCellValue("test");
+            workBook.write(out);
+        }
+    }
+
+    @GetMapping(path = "/excel-export/shipping")
+    public void shippingExcelExport(@RequestParam(value = "sort", required = false) String sortColumns,
+                                     @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                     @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                     @RequestParam(value = "partNumber", required = false) String partNumber,
+                                     @RequestParam(value = "shipDate", required = false) String shipDate,
+                                     @RequestParam(value = "customerId", required = false) String customerId,
+                                     HttpServletResponse response) throws IOException {
+
+        ArrayList<Shipped> data = rmaService.shippedExcelExportQuery(sortColumns,
+                rmaNumber, serialNumber, partNumber, shipDate, customerId);
+
+        try (XSSFWorkbook workBook = new XSSFWorkbook()) {
+            response.setContentType("application/vnd.ms-excel");
+            response.setHeader("Content-Disposition", "attachment;filename=" + "a.xlsx");
+
+            XSSFSheet sheet = workBook.createSheet("Shipping");
+            sheet.setColumnWidth(0, 3000);
+            sheet.setColumnWidth(1, 6000);
+            sheet.setColumnWidth(2, 6000);
+            sheet.setColumnWidth(3, 6000);
+            sheet.setColumnWidth(4, 6000);
+            sheet.setColumnWidth(5, 12000);
+            sheet.setColumnWidth(6, 12000);
+            sheet.setColumnWidth(7, 6000);
+            sheet.setColumnWidth(8, 6000);
+
+            XSSFRow currentRow = sheet.createRow(0);
+            currentRow.createCell(0).setCellValue("Ship Date");
+            currentRow.createCell(1).setCellValue("Model Number Short");
+            currentRow.createCell(2).setCellValue("Serial Number");
+            currentRow.createCell(3).setCellValue("RMA Ticket Number");
+            currentRow.createCell(4).setCellValue("Tracking Number");
+            currentRow.createCell(5).setCellValue("Customer Reported Issue");
+            currentRow.createCell(6).setCellValue("Tech Notes");
+            currentRow.createCell(7).setCellValue("Fault Code(s)");
+            currentRow.createCell(8).setCellValue("Customer");
+
+            int i = 1;
+            XSSFCell reportedIssueCell = null;
+            XSSFCell techNotesCell = null;
+            CellStyle cellStyle = workBook.createCellStyle(); //Create new style
+            cellStyle.setWrapText(true); //Set wordwrap
+            for (Shipped shipped: data) {
+                currentRow = sheet.createRow(i);
+                currentRow.createCell(0).setCellValue(shipped.getShipDate());
+                currentRow.createCell(1).setCellValue(shipped.getPartNumber());
+                currentRow.createCell(2).setCellValue(shipped.getSerialNumber());
+                currentRow.createCell(3).setCellValue(shipped.getRmaNumber());
+                currentRow.createCell(4).setCellValue(shipped.getTrackingNumber());
+
+                reportedIssueCell = currentRow.createCell(5);
+                reportedIssueCell.setCellStyle(cellStyle);
+                reportedIssueCell.setCellValue(shipped.getReportedIssue());
+
+                techNotesCell = currentRow.createCell(6);
+                techNotesCell.setCellStyle(cellStyle);
+                techNotesCell.setCellValue(shipped.getTechNotes());
+
+                currentRow.createCell(7).setCellValue(shipped.getFaultCode());
+                currentRow.createCell(8).setCellValue(shipped.getCustomerOrganization());
+                i++;
+            }
+
+            CellReference topLeft = new CellReference(sheet.getRow(0).getCell(0));
+            CellReference bottomRight = new CellReference(sheet.getRow(i - 1).getCell(8));
+            AreaReference tableArea = workBook.getCreationHelper().createAreaReference(topLeft, bottomRight);
+            XSSFTable dataTable = sheet.createTable(tableArea);
+            dataTable.setDisplayName("Shipped");
+
+            //this styles the table as Excel would do per default
+            dataTable.getCTTable().addNewTableStyleInfo();
+            XSSFTableStyleInfo style = (XSSFTableStyleInfo) dataTable.getStyle();
+            style.setName("TableStyleMedium2");
+            style.setShowColumnStripes(false);
+            style.setShowRowStripes(true);
+
+            //this sets auto filters
+            dataTable.getCTTable().addNewAutoFilter().setRef(tableArea.formatAsString());
+
+            try (OutputStream outputStream = response.getOutputStream()) {
+                workBook.write(outputStream);
+            }
+        }
+    }
+
+    @GetMapping(path = "/excel-export/quarantine")
+    public void quarantineExcelExport(@RequestParam(value = "sort", required = false) String sortColumns,
+                                      @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                      @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                      @RequestParam(value = "partNumber", required = false) String partNumber,
+                                      @RequestParam(value = "customerId", required = false) String customerId,
+                                      @RequestParam(value = "contact", required = false) Integer contact,
+                                      HttpServletResponse response) throws IOException {
+
+        ArrayList<Quarantine> data = rmaService.quarantineExcelExportQuery(sortColumns,
+                rmaNumber, serialNumber, partNumber, customerId, contact);
+
+        try (XSSFWorkbook workBook = new XSSFWorkbook()) {
+            response.setContentType("application/vnd.ms-excel");
+            response.setHeader("Content-Disposition", "attachment;filename=" + "b.xlsx");
+
+            XSSFSheet sheet = workBook.createSheet("Quarantine");
+            sheet.setColumnWidth(0, 3000);
+            sheet.setColumnWidth(1, 6000);
+            sheet.setColumnWidth(2, 6000);
+            sheet.setColumnWidth(3, 6000);
+            sheet.setColumnWidth(4, 6000);
+            sheet.setColumnWidth(5, 12000);
+            sheet.setColumnWidth(6, 12000);
+            sheet.setColumnWidth(7, 12000);
+            sheet.setColumnWidth(8, 6000);
+
+            XSSFRow currentRow = sheet.createRow(0);
+            currentRow.createCell(0).setCellValue("Quarantine Date");
+            currentRow.createCell(1).setCellValue("Model Number Short");
+            currentRow.createCell(2).setCellValue("Serial Number");
+            currentRow.createCell(3).setCellValue("RMA Ticket Number");
+            currentRow.createCell(4).setCellValue("Customer Contact Needed");
+            currentRow.createCell(5).setCellValue("Tech Notes");
+            currentRow.createCell(6).setCellValue("Fault Code(s)");
+            currentRow.createCell(7).setCellValue("Part(s) Needed");
+            currentRow.createCell(8).setCellValue("Customer");
+
+            int i = 1;
+            XSSFCell techNotesCell = null;
+            CellStyle cellStyle = workBook.createCellStyle(); //Create new style
+            cellStyle.setWrapText(true); //Set wordwrap
+            for (Quarantine quarantine: data) {
+                currentRow = sheet.createRow(i);
+                currentRow.createCell(0).setCellValue(quarantine.getQuarantineDate());
+                currentRow.createCell(1).setCellValue(quarantine.getPartNumber());
+                currentRow.createCell(2).setCellValue(quarantine.getSerialNumber());
+                currentRow.createCell(3).setCellValue(quarantine.getRmaNumber());
+                currentRow.createCell(4).setCellValue(quarantine.getCustomerContact());
+
+                techNotesCell = currentRow.createCell(5);
+                techNotesCell.setCellStyle(cellStyle);
+                techNotesCell.setCellValue(quarantine.getTechNotes());
+
+                currentRow.createCell(6).setCellValue(quarantine.getFaultCode());
+                currentRow.createCell(7).setCellValue(quarantine.getPartsNeeded());
+                currentRow.createCell(8).setCellValue(quarantine.getCustomerOrganization());
+                i++;
+            }
+
+            CellReference topLeft = new CellReference(sheet.getRow(0).getCell(0));
+            CellReference bottomRight = new CellReference(sheet.getRow(i - 1).getCell(8));
+            AreaReference tableArea = workBook.getCreationHelper().createAreaReference(topLeft, bottomRight);
+            XSSFTable dataTable = sheet.createTable(tableArea);
+            dataTable.setDisplayName("Quarantine");
+
+            //this styles the table as Excel would do per default
+            dataTable.getCTTable().addNewTableStyleInfo();
+            XSSFTableStyleInfo style = (XSSFTableStyleInfo) dataTable.getStyle();
+            style.setName("TableStyleMedium2");
+            style.setShowColumnStripes(false);
+            style.setShowRowStripes(true);
+
+            //this sets auto filters
+            dataTable.getCTTable().addNewAutoFilter().setRef(tableArea.formatAsString());
+
+            try (OutputStream outputStream = response.getOutputStream()) {
+                workBook.write(outputStream);
+            }
+        }
     }
 }
