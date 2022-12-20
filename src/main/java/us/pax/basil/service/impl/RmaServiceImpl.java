@@ -448,4 +448,22 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
+
+    @Override
+    public ArrayList<StatusExcelExport> statusExcelExportQuery(String partNumber,
+                                                               Long rmaNumber,
+                                                               String serialNumber,
+                                                               String customerId) {
+        CustomUserDetails user = AuthUtil.getUser();
+        String companyId = null;
+
+        if (user != null)
+            if(user.getStandardUser() == 1)
+                companyId = String.valueOf(user.getCompanyId());
+            else {
+                companyId = customerId;
+            }
+
+        return rmaMapper.statusExcelExport(companyId, partNumber, rmaNumber, transformSerialNumbers(serialNumber));
+    }
 }

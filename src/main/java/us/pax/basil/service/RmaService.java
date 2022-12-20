@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.entity.rma.Quarantine;
 import us.pax.basil.entity.rma.Shipped;
+import us.pax.basil.entity.rma.StatusExcelExport;
 
 import java.util.ArrayList;
 
@@ -52,4 +53,8 @@ public interface RmaService extends IService<Integer> {
 	QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, String customerId);
 	QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumber, String customerId);
 	QueryResultArrayDTO statusTier4(Integer id);
+	ArrayList<StatusExcelExport> statusExcelExportQuery(String partNumber,
+														Long rmaNumber,
+														String serialNumber,
+														String customerId);
 }

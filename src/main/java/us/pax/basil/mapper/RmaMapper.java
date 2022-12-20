@@ -18,6 +18,7 @@ package us.pax.basil.mapper;
  * ============================================================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
@@ -59,4 +60,5 @@ public interface RmaMapper extends BaseMapper<Integer> {
 	List<RmaNumberTier2> getRmaNumberTier2(String id, String partNumber, Long rmaNumber, String[] serialNumber);
 	List<SerialNumberTier3> getSerialNumberTier3(String id, Long rmaNumber, String partNumber, String[] serialNumber);
 	SerialDetailsTier4 getSerialDetailsTier4(Integer id);
+	ArrayList<StatusExcelExport> statusExcelExport(String id, String partNumber, Long rmaNumber, String[] serialNumber);
 }
