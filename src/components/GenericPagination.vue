@@ -55,7 +55,7 @@ export default {
       page: 1,
       pageInput: 1,
       perPage: 10,
-      perPageOptions: [5, 10, 25, 50]
+      perPageOptions: [10, 25, 50, 100],
     };
   },
 
@@ -70,7 +70,7 @@ export default {
       const rangeTo = Math.min(this.page * this.perPage, this.total);
 
       return rangeFrom + "-" + rangeTo;
-    }
+    },
   },
 
   watch: {
@@ -79,7 +79,7 @@ export default {
     },
     perPage() {
       this.buildQuery(this.page);
-    }
+    },
   },
 
   methods: {
@@ -118,8 +118,8 @@ export default {
         this.page = this.pages;
         this.pageInput = this.page;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

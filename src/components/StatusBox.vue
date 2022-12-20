@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { api } from "boot/axios";
 import StatusBox from "src/components/StatusBox.vue";
 
@@ -8,6 +8,16 @@ const props = defineProps({
   category: String,
   data: Object,
   parent: [String, Number],
+});
+
+onMounted(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.has("serialNumber")) {
+    expandCategory(props.data[category]);
+  } else if (params.has("rmaNumber") && category === "partNumber") {
+    expandCategory(props.data[category]);
+  }
 });
 
 let category;

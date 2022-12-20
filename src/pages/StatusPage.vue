@@ -130,7 +130,8 @@
           v-else
           class="q-pt-md text-subtitle1 text-weight-medium text-grey-6 text-center"
         >
-          No data found for the current customer
+          No data found for the current customer. Please refer to the "Shipping"
+          tab to see if your terminal has already shipped out.
         </div>
 
         <StatusBox
@@ -179,7 +180,7 @@ export default {
         },
         {
           id: "rmaNumber",
-          label: "Ticket Number",
+          label: "RMA Ticket Number",
           tooltip:
             "Enter the RMA ticket number you are searching for.\nMust be an exact number, no partials.",
         },

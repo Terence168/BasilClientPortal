@@ -82,7 +82,7 @@ export default {
       filterFields: [
         {
           id: "rmaNumber",
-          label: "Ticket Number",
+          label: "RMA Ticket Number",
           tooltip:
             "Enter the RMA ticket number you are searching for.\nMust be an exact number, no partials.",
         },
@@ -117,7 +117,7 @@ export default {
           { id: "shipDate", label: "Ship Date", sortable: true },
           { id: "partNumber", label: "Model Number Short", sortable: true },
           { id: "serialNumber", label: "Serial Number", sortable: true },
-          { id: "rmaNumber", label: "Ticket Number", sortable: true },
+          { id: "rmaNumber", label: "RMA Ticket Number", sortable: true },
           { id: "trackingNumber", label: "Tracking Number", sortable: true },
           {
             id: "reportedIssue",
@@ -129,7 +129,7 @@ export default {
             label: "Tech Notes",
             sortable: true,
           },
-          { id: "faultCode", label: "Fault Code(s)", sortable: true },
+          { id: "faultCode", label: "Primary Fault Code(s)", sortable: true },
           { id: "customerOrganization", label: "Customer", sortable: true },
         ],
         rows: [],
