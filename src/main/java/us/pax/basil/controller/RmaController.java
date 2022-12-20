@@ -17,10 +17,7 @@ package us.pax.basil.controller;
 
 
 import io.swagger.annotations.Api;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.AreaReference;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.*;
@@ -37,6 +34,7 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.entity.rma.Quarantine;
 import us.pax.basil.entity.rma.Shipped;
+import us.pax.basil.entity.rma.StatusExcelExport;
 import us.pax.basil.service.RmaService;
 
 import javax.servlet.http.HttpServletResponse;
@@ -320,6 +318,85 @@ public class RmaController {
 
             //this sets auto filters
             dataTable.getCTTable().addNewAutoFilter().setRef(tableArea.formatAsString());
+
+            try (OutputStream outputStream = response.getOutputStream()) {
+                workBook.write(outputStream);
+            }
+        }
+    }
+
+    @GetMapping(path = "/excel-export/status")
+    public void statusExcelExport(@RequestParam(value = "partNumber", required = false) String partNumber,
+                                  @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                  @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                  @RequestParam(value = "customerId", required = false) String customerId,
+                                  HttpServletResponse response) throws IOException {
+
+        ArrayList<StatusExcelExport> data = rmaService.statusExcelExportQuery(partNumber,
+                rmaNumber, serialNumber, customerId);
+
+        try (XSSFWorkbook workBook = new XSSFWorkbook()) {
+            response.setContentType("application/vnd.ms-excel");
+            response.setHeader("Content-Disposition", "attachment;filename=" + "c.xlsx");
+
+            XSSFSheet pivotTableSheet = workBook.createSheet("Summary");
+            XSSFSheet sheet = workBook.createSheet("Status");
+            sheet.setColumnWidth(0, 4000);
+            sheet.setColumnWidth(1, 4000);
+            sheet.setColumnWidth(2, 4000);
+            sheet.setColumnWidth(3, 4000);
+            sheet.setColumnWidth(4, 4000);
+
+            XSSFRow currentRow = sheet.createRow(0);
+            currentRow.createCell(0).setCellValue("Model Number Short");
+            currentRow.createCell(1).setCellValue("RMA Ticket Number");
+            currentRow.createCell(2).setCellValue("Serial Number");
+            currentRow.createCell(3).setCellValue("Customer");
+            currentRow.createCell(4).setCellValue("Status");
+
+            int i = 1;
+            for (StatusExcelExport statusExcelExport: data) {
+                currentRow = sheet.createRow(i);
+                currentRow.createCell(0).setCellValue(statusExcelExport.getPartNumber());
+                currentRow.createCell(1).setCellValue(statusExcelExport.getRmaNumber());
+                currentRow.createCell(2).setCellValue(statusExcelExport.getSerialNumber());
+                currentRow.createCell(3).setCellValue(statusExcelExport.getCustomerOrganization());
+                currentRow.createCell(4).setCellValue(statusExcelExport.getStatus());
+                i++;
+            }
+
+            CellReference topLeft = new CellReference(sheet.getRow(0).getCell(0));
+            CellReference bottomRight = new CellReference(sheet.getRow(i - 1).getCell(4));
+            AreaReference tableArea = workBook.getCreationHelper().createAreaReference(topLeft, bottomRight);
+            XSSFTable dataTable = sheet.createTable(tableArea);
+            dataTable.setDisplayName("Status");
+
+            //this styles the table as Excel would do per default
+            dataTable.getCTTable().addNewTableStyleInfo();
+            XSSFTableStyleInfo style = (XSSFTableStyleInfo) dataTable.getStyle();
+            style.setName("TableStyleMedium2");
+            style.setShowColumnStripes(false);
+            style.setShowRowStripes(true);
+
+            //this sets auto filters
+            dataTable.getCTTable().addNewAutoFilter().setRef(tableArea.formatAsString());
+
+            // pivot table generation
+            CellReference pos = new CellReference(0, 0);
+            XSSFPivotTable pivotTable = pivotTableSheet.createPivotTable(tableArea, pos);
+
+            pivotTable.addRowLabel(0);
+            pivotTable.addRowLabel(1);
+            pivotTable.addRowLabel(2);
+
+            pivotTable.addColumnLabel(DataConsolidateFunction.COUNT, 4, "Count of SNs");
+            pivotTable.addColLabel(4);
+
+            //Method addColLabel removes the dataField setting. So we need set it new.
+            pivotTable.getCTPivotTableDefinition().getPivotFields().getPivotFieldArray(4)
+                    .setDataField(true);
+
+            pivotTable.addReportFilter(3);
 
             try (OutputStream outputStream = response.getOutputStream()) {
                 workBook.write(outputStream);

@@ -320,4 +320,42 @@ FROM
 		XM_OID = #{id}
 </select>
 
+<select id="statusExcelExport" resultType="us.pax.basil.entity.rma.StatusExcelExport">
+	SELECT
+		part.PART_NUMBER_SHORT partNumber,
+		mo.MO_OID rmaNumber,
+		msn.SERIAL_NUMBER AS serialNumber,
+		mc.CUSTOMER_ORGANIZATION as customerOrganization,
+	IF(xm.STATUS = 107, 'Received', sav.VALUE) status
+	FROM
+		BASIL_ODS_PRD.MASTER_ORDER mo
+		JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
+		JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+		JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
+		LEFT JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING (MC_OID)
+		LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.STATUS
+	<where>
+		xm.STATUS IN (107, 110, 108, 111, 112)
+		<if test="id != null">
+			mo.MC_OID = #{id}
+		</if>
+		<if test="id != null">
+			AND mo.MC_OID = #{id}
+		</if>
+		<if test="partNumber != null">
+			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
+		</if>
+		<if test="rmaNumber != null">
+			AND mo.MO_OID = #{rmaNumber}
+		</if>
+		<if test="serialNumber != null">
+			AND
+			<foreach item="item" index="index" collection="serialNumber"
+					 open="msn.SERIAL_NUMBER in (" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</where>
+	ORDER BY FIELD(xm.STATUS, 107, 110, 108, 111, 112), part.PART_NUMBER_SHORT
+</select>
 </mapper>
