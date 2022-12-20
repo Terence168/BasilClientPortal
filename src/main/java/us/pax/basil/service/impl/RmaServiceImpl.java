@@ -42,7 +42,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     private RmaMapper rmaMapper;
 
     @Override
-    public QueryResultArrayDTO statusQuery(Integer currentPage, Integer sizePerPage, String sortColumns, Long rmaNumber,
+    public QueryResultArrayDTO statusQuery(Integer currentPage, Integer sizePerPage, String sortColumns, String rmaNumber,
             String serialNumber, String partNumber) {
         // TODO Auto-generated method stub
         return null;
@@ -51,8 +51,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     @Override
     public QueryResultArrayDTO shippedQuery(Integer currentPage, 
                                              Integer sizePerPage, 
-                                             String sortColumns, 
-                                             Long rmaNumber, 
+                                             String sortColumns,
+                                             String rmaNumber,
                                              String serialNumber, 
                                              String partNumber,
                                              String shipDate,
@@ -79,15 +79,16 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = rmaMapper.getShippingTotal(companyId, rmaNumber, transformSerialNumbers(serialNumber), partNumber, shipFromDate,
+            Integer total = rmaMapper.getShippingTotal(companyId, transformInputQuery(rmaNumber),
+                    transformInputQuery(serialNumber), partNumber, shipFromDate,
                     shipToDate);
     
             List<Shipped> shippedList = rmaMapper.getShipping((currentPage - 1) * sizePerPage,
                                                               sizePerPage, 
                                                               buildSortString(sortColumns),
                                                               companyId,
-                                                              rmaNumber, 
-                                                              transformSerialNumbers(serialNumber),
+                                                              transformInputQuery(rmaNumber),
+                                                              transformInputQuery(serialNumber),
                                                               partNumber,
                                                               shipFromDate,
                                                               shipToDate);
@@ -115,7 +116,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
     @Override
     public ArrayList<Shipped> shippedExcelExportQuery(String sortColumns,
-                                                      Long rmaNumber,
+                                                      String rmaNumber,
                                                       String serialNumber,
                                                       String partNumber,
                                                       String shipDate,
@@ -144,8 +145,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 100000,
                 buildSortString(sortColumns),
                 companyId,
-                rmaNumber,
-                transformSerialNumbers(serialNumber),
+                transformInputQuery(rmaNumber),
+                transformInputQuery(serialNumber),
                 partNumber,
                 shipFromDate,
                 shipToDate);
@@ -155,7 +156,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     public QueryResultArrayDTO quarantineQuery(Integer currentPage, 
                                                 Integer sizePerPage, 
                                                 String sortColumns, 
-                                                Long rmaNumber, 
+                                                String rmaNumber,
                                                 String serialNumber,
                                                 String model,
                                                 String customerId,
@@ -171,14 +172,15 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = rmaMapper.getQuarantineTotal(companyId, rmaNumber, transformSerialNumbers(serialNumber), model, contact);
+            Integer total = rmaMapper.getQuarantineTotal(companyId, transformInputQuery(rmaNumber),
+                    transformInputQuery(serialNumber), model, contact);
     
             List<Quarantine> quarantineList = rmaMapper.getQuarantine((currentPage - 1) * sizePerPage,
                                                                       sizePerPage, 
                                                                       buildSortString(sortColumns),
                                                                       companyId,
-                                                                      rmaNumber, 
-                                                                      transformSerialNumbers(serialNumber),
+                                                                      transformInputQuery(rmaNumber),
+                                                                      transformInputQuery(serialNumber),
                                                                       model,
                                                                       contact);
 
@@ -205,11 +207,11 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
     @Override
     public ArrayList<Quarantine> quarantineExcelExportQuery(String sortColumns,
-                                                  Long rmaNumber,
-                                                  String serialNumber,
-                                                  String model,
-                                                  String customerId,
-                                                  Integer contact) {
+                                                            String rmaNumber,
+                                                            String serialNumber,
+                                                            String model,
+                                                            String customerId,
+                                                            Integer contact) {
         CustomUserDetails user = AuthUtil.getUser();
         String companyId = null;
         if (user != null)
@@ -222,8 +224,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 100000,
                 buildSortString(sortColumns),
                 companyId,
-                rmaNumber,
-                transformSerialNumbers(serialNumber),
+                transformInputQuery(rmaNumber),
+                transformInputQuery(serialNumber),
                 model,
                 contact);
     }
@@ -303,11 +305,11 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         return sb.toString();
     }
 
-    private String[] transformSerialNumbers(String serialNumbers) {
+    private String[] transformInputQuery(String query) {
         String[] output = null;
 
-        if (serialNumbers != null) {
-            output = serialNumbers.split(",");
+        if (query != null) {
+            output = query.split(",");
             for (int i = 0; i < output.length; i++) {
                 output[i] = output[i].trim();
             }
@@ -317,7 +319,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
     }
 
 	@Override
-	public QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, String customerId) {
+	public QueryResultArrayDTO statusTier1(String partNumber, String rmaNumber, String serialNumber, String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
         String companyId = null;
         
@@ -330,7 +332,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
         }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId, partNumber, rmaNumber, transformSerialNumbers(serialNumber));
+        List<PartNumberTier1> partNumberList = rmaMapper.getPartNumberTier1(companyId,
+                partNumber, transformInputQuery(rmaNumber), transformInputQuery(serialNumber));
         Collections.sort(partNumberList, (o1, o2) -> (o1.getPartNumber().compareTo(o2.getPartNumber())));
         try {
         	for (PartNumberTier1 part: partNumberList) {
@@ -355,7 +358,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	}
 
 	@Override
-	public QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, String customerId) {
+	public QueryResultArrayDTO statusTier2(String partNumber, String rmaNumber, String serialNumber, String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
         String companyId = null;
         
@@ -367,7 +370,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber, rmaNumber, transformSerialNumbers(serialNumber));
+        List<RmaNumberTier2> rmaNumberList = rmaMapper.getRmaNumberTier2(companyId, partNumber,
+                transformInputQuery(rmaNumber), transformInputQuery(serialNumber));
         try {
         	for (RmaNumberTier2 rma: rmaNumberList) {
         		Map<String, Object> result = new HashMap<>();
@@ -391,7 +395,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 	}
 
 	@Override
-	public QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumberFilter, String customerId) {
+	public QueryResultArrayDTO statusTier3(String rmaNumber, String partNumber, String serialNumberFilter, String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
         String companyId = null;
         
@@ -403,7 +407,8 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-        List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId, rmaNumber, partNumber, transformSerialNumbers(serialNumberFilter));
+        List<SerialNumberTier3> serialNumberList = rmaMapper.getSerialNumberTier3(companyId,
+                rmaNumber, partNumber, transformInputQuery(serialNumberFilter));
         try {
         	for (SerialNumberTier3 serialNumber: serialNumberList) {
         		Map<String, Object> result = new HashMap<>();
@@ -451,7 +456,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 
     @Override
     public ArrayList<StatusExcelExport> statusExcelExportQuery(String partNumber,
-                                                               Long rmaNumber,
+                                                               String rmaNumber,
                                                                String serialNumber,
                                                                String customerId) {
         CustomUserDetails user = AuthUtil.getUser();
@@ -464,6 +469,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
                 companyId = customerId;
             }
 
-        return rmaMapper.statusExcelExport(companyId, partNumber, rmaNumber, transformSerialNumbers(serialNumber));
+        return rmaMapper.statusExcelExport(companyId,
+                partNumber, transformInputQuery(rmaNumber), transformInputQuery(serialNumber));
     }
 }

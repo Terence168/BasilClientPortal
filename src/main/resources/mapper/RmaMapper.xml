@@ -27,7 +27,11 @@
 	    		mo.MC_OID = #{id}
 			</if>
 			<if test="rmaNumber != null">
-				AND mo.MO_OID = #{rmaNumber}
+				AND
+				<foreach item="item" index="index" collection="rmaNumber"
+						 open="mo.MO_OID in (" separator="," close=")">
+					#{item}
+				</foreach>
 			</if>
 			<if test="serialNumber != null">
 				AND
@@ -76,7 +80,11 @@
 			mo.MC_OID = #{id}
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID = #{rmaNumber}
+			AND
+			<foreach item="item" index="index" collection="rmaNumber"
+					 open="mo.MO_OID in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 		<if test="serialNumber != null">
 			AND
@@ -112,7 +120,11 @@
 	    	mo.MC_OID = #{id}
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID = #{rmaNumber}
+			AND
+			<foreach item="item" index="index" collection="rmaNumber"
+					 open="mo.MO_OID in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 		<if test="serialNumber != null">
 			AND
@@ -175,7 +187,11 @@ FROM
 		mo.MC_OID = #{id}
 	</if>
 	<if test="rmaNumber != null">
-		AND mo.MO_OID = #{rmaNumber}
+		AND
+		<foreach item="item" index="index" collection="rmaNumber"
+				 open="mo.MO_OID in (" separator="," close=")">
+			#{item}
+		</foreach>
 	</if>
 	<if test="serialNumber != null">
 		AND
@@ -221,7 +237,11 @@ FROM
 			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID = #{rmaNumber}
+			AND
+			<foreach item="item" index="index" collection="rmaNumber"
+					 open="mo.MO_OID in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 		<if test="serialNumber != null">
 			AND
@@ -254,7 +274,11 @@ FROM
 	    	AND mo.MC_OID = #{id}
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID = #{rmaNumber}
+			AND
+			<foreach item="item" index="index" collection="rmaNumber"
+					 open="mo.MO_OID in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 		<if test="serialNumber != null">
 			AND
@@ -339,14 +363,15 @@ FROM
 		<if test="id != null">
 			mo.MC_OID = #{id}
 		</if>
-		<if test="id != null">
-			AND mo.MC_OID = #{id}
-		</if>
 		<if test="partNumber != null">
 			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
 		</if>
 		<if test="rmaNumber != null">
-			AND mo.MO_OID = #{rmaNumber}
+			AND
+			<foreach item="item" index="index" collection="rmaNumber"
+					 open="mo.MO_OID in (" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 		<if test="serialNumber != null">
 			AND

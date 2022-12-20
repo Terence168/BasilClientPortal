@@ -57,7 +57,7 @@ public class RmaController {
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                        @RequestParam(value = "per_page", required = false) Integer sizePerPage,
                                        @RequestParam(value = "sort", required = false) String sortColumns,
-                                       @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                       @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                        @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                        @RequestParam(value = "partNumber", required = false) String partNumber) {
         if (null == currentPage || 0 == currentPage) {
@@ -72,7 +72,7 @@ public class RmaController {
 
     @GetMapping("/status/tier1")
     public QueryResultArrayDTO statusTier1(@RequestParam(value = "partNumber", required = false) String partNumber,
-                                           @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                           @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                            @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier1(partNumber, rmaNumber, serialNumber, customerId);
@@ -80,14 +80,14 @@ public class RmaController {
 
     @GetMapping("/status/tier2")
     public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = true) String partNumber,
-                                           @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                           @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                            @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier2(partNumber, rmaNumber, serialNumber, customerId);
     }
 
     @GetMapping("/status/tier3")
-    public QueryResultArrayDTO statusTier3(@RequestParam(value = "rmaNumber", required = true) Long rmaNumber,
+    public QueryResultArrayDTO statusTier3(@RequestParam(value = "rmaNumber", required = true) String rmaNumber,
                                            @RequestParam(value = "partNumber", required = true) String partNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                            @RequestParam(value = "customerId", required = false) String customerId) {
@@ -104,7 +104,7 @@ public class RmaController {
     public QueryResultArrayDTO shipped (@RequestParam(value = "page", required = false) Integer currentPage,
                                          @RequestParam(value = "per_page", required = false) Integer sizePerPage,
                                          @RequestParam(value = "sort", required = false) String sortColumns,
-                                         @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                         @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                          @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                          @RequestParam(value = "partNumber", required = false) String partNumber,
                                          @RequestParam(value = "shipDate", required = false) String shipDate,
@@ -124,7 +124,7 @@ public class RmaController {
     public QueryResultArrayDTO quarantine(@RequestParam(value = "page", required = false) Integer currentPage,
                                            @RequestParam(value = "per_page", required = false) Integer sizePerPage,
                                            @RequestParam(value = "sort", required = false) String sortColumns,
-                                           @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                           @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                            @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                            @RequestParam(value = "partNumber", required = false) String partNumber,
                                            @RequestParam(value = "customerId", required = false) String customerId,
@@ -159,7 +159,7 @@ public class RmaController {
 
     @GetMapping(path = "/excel-export/shipping")
     public void shippingExcelExport(@RequestParam(value = "sort", required = false) String sortColumns,
-                                     @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                     @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                      @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                      @RequestParam(value = "partNumber", required = false) String partNumber,
                                      @RequestParam(value = "shipDate", required = false) String shipDate,
@@ -245,7 +245,7 @@ public class RmaController {
 
     @GetMapping(path = "/excel-export/quarantine")
     public void quarantineExcelExport(@RequestParam(value = "sort", required = false) String sortColumns,
-                                      @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                      @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                       @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                       @RequestParam(value = "partNumber", required = false) String partNumber,
                                       @RequestParam(value = "customerId", required = false) String customerId,
@@ -327,7 +327,7 @@ public class RmaController {
 
     @GetMapping(path = "/excel-export/status")
     public void statusExcelExport(@RequestParam(value = "partNumber", required = false) String partNumber,
-                                  @RequestParam(value = "rmaNumber", required = false) Long rmaNumber,
+                                  @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
                                   @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                   @RequestParam(value = "customerId", required = false) String customerId,
                                   HttpServletResponse response) throws IOException {
