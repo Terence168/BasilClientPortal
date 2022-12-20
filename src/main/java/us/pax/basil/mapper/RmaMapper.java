@@ -29,19 +29,19 @@ public interface RmaMapper extends BaseMapper<Integer> {
 	List<Shipped> getStatus(Integer offset,
                          	Integer count,
                          	String sortColumns,
-                         	Long rmaNumber,
+							String[] rmaNumber,
                          	String[] serialNumber,
                          	String partNumber);
 
-	Integer getQuarantineTotal(String id, Long rmaNumber, String[] serialNumber, String partNumber, Integer contact);
-	Integer getShippingTotal(String id, Long rmaNumber, String[] serialNumber, String partNumber, String shipFromDate,
+	Integer getQuarantineTotal(String id, String[] rmaNumber, String[] serialNumber, String partNumber, Integer contact);
+	Integer getShippingTotal(String id, String[] rmaNumber, String[] serialNumber, String partNumber, String shipFromDate,
 							String shipToDate);
 
 	List<Shipped> getShipping(Integer offset,
                          	 Integer count,
                          	 String sortColumns,
                          	 String id,
-                         	 Long rmaNumber,
+							 String[] rmaNumber,
                          	 String[] serialNumber,
                          	 String partNumber,
 							 String shipFromDate,
@@ -51,14 +51,20 @@ public interface RmaMapper extends BaseMapper<Integer> {
                          	    Integer count,
                          	    String sortColumns,
                          	    String id,
-                         	    Long rmaNumber,
+								String[] rmaNumber,
                          	    String[] serialNumber,
                          	    String partNumber,
 								Integer contact);
 	
-	List<PartNumberTier1> getPartNumberTier1(String id, String partNumber, Long rmaNumber, String[] serialNumber);
-	List<RmaNumberTier2> getRmaNumberTier2(String id, String partNumber, Long rmaNumber, String[] serialNumber);
-	List<SerialNumberTier3> getSerialNumberTier3(String id, Long rmaNumber, String partNumber, String[] serialNumber);
+	List<PartNumberTier1> getPartNumberTier1(String id, String partNumber, String[] rmaNumber, String[] serialNumber);
+	List<RmaNumberTier2> getRmaNumberTier2(String id, String partNumber, String[] rmaNumber, String[] serialNumber);
+	List<SerialNumberTier3> getSerialNumberTier3(String id,
+												 String rmaNumber,
+												 String partNumber,
+												 String[] serialNumber);
 	SerialDetailsTier4 getSerialDetailsTier4(Integer id);
-	ArrayList<StatusExcelExport> statusExcelExport(String id, String partNumber, Long rmaNumber, String[] serialNumber);
+	ArrayList<StatusExcelExport> statusExcelExport(String id,
+												   String partNumber,
+												   String[] rmaNumber,
+												   String[] serialNumber);
 }

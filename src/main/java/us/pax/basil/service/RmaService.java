@@ -12,22 +12,22 @@ import java.util.ArrayList;
 public interface RmaService extends IService<Integer> {
 	QueryResultArrayDTO statusQuery(Integer currentPage, 
 									Integer sizePerPage, 
-									String sortColumns, 
-									Long rmaNumber, 
+									String sortColumns,
+									String rmaNumber,
 									String serialNumber, 
 									String partNumber);
 
 	QueryResultArrayDTO shippedQuery(Integer currentPage,
 									 Integer sizePerPage, 
-									 String sortColumns, 
-									 Long rmaNumber, 
+									 String sortColumns,
+									 String rmaNumber,
 									 String serialNumber, 
 									 String partNumber,
 									 String shipDate,
 									 String customerId);
 
 	ArrayList<Shipped> shippedExcelExportQuery(String sortColumns,
-											   Long rmaNumber,
+											   String rmaNumber,
 											   String serialNumber,
 											   String partNumber,
 											   String shipDate,
@@ -35,26 +35,26 @@ public interface RmaService extends IService<Integer> {
 
 	QueryResultArrayDTO quarantineQuery(Integer currentPage,
 									    Integer sizePerPage, 
-									    String sortColumns, 
-									    Long rmaNumber, 
+									    String sortColumns,
+										String rmaNumber,
 									    String serialNumber, 
 									    String partNumber,
 										String customerId,
 										Integer contact);
 
 	ArrayList<Quarantine> quarantineExcelExportQuery(String sortColumns,
-													 Long rmaNumber,
+													 String rmaNumber,
 													 String serialNumber,
 													 String model,
 													 String customerId,
 													 Integer contact);
 
-	QueryResultArrayDTO statusTier1(String partNumber, Long rmaNumber, String serialNumber, String customerId);
-	QueryResultArrayDTO statusTier2(String partNumber, Long rmaNumber, String serialNumber, String customerId);
-	QueryResultArrayDTO statusTier3(Long rmaNumber, String partNumber, String serialNumber, String customerId);
+	QueryResultArrayDTO statusTier1(String partNumber, String rmaNumber, String serialNumber, String customerId);
+	QueryResultArrayDTO statusTier2(String partNumber, String rmaNumber, String serialNumber, String customerId);
+	QueryResultArrayDTO statusTier3(String rmaNumber, String partNumber, String serialNumber, String customerId);
 	QueryResultArrayDTO statusTier4(Integer id);
 	ArrayList<StatusExcelExport> statusExcelExportQuery(String partNumber,
-														Long rmaNumber,
+														String rmaNumber,
 														String serialNumber,
 														String customerId);
 }
