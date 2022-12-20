@@ -19,6 +19,19 @@
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg">
         <div class="row items-center text-subtitle1 text-weight-medium q-mb-md">
           Click on model item to see more details
+          <q-space />
+          <q-btn
+            label="Export to Excel"
+            color="primary"
+            style="width: 150px"
+            :loading="exportInProgress"
+            @click="excelExport"
+          >
+            <template v-slot:loading>
+              <q-spinner-hourglass class="on-left" />
+              Exporting...
+            </template>
+          </q-btn>
         </div>
 
         <div
@@ -138,12 +151,16 @@ import FilterOptions from "src/components/FilterOptions.vue";
 import { useUserStore } from "stores/user";
 import StatusBox from "src/components/StatusBox.vue";
 
+import { exportFile, date } from "quasar";
+
 export default {
   components: { FilterOptions, StatusBox },
 
   data() {
     return {
       showModal: false,
+
+      exportInProgress: false,
 
       modalFormOptions: {
         id: null,
@@ -231,6 +248,27 @@ export default {
         .catch(function (error) {
           // handle error
           console.log(error);
+        });
+    },
+
+    excelExport() {
+      this.exportInProgress = true;
+      this.$api
+        .get("/rma/excel-export/status" + window.location.search, {
+          responseType: "blob",
+        })
+        .then((response) => {
+          exportFile(
+            "status_" + date.formatDate(Date.now(), "YYYY-MM-DD") + ".xlsx",
+            response.data
+          );
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        })
+        .finally(() => {
+          this.exportInProgress = false;
         });
     },
 
