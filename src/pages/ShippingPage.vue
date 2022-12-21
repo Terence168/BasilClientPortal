@@ -84,7 +84,7 @@ export default {
           id: "rmaNumber",
           label: "RMA Ticket Number",
           tooltip:
-            "Enter the RMA ticket number you are searching for.\nMust be an exact number, no partials.",
+            "Enter the RMA ticket number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact ticket number, no partials.\nExample: (159123, 236555)",
         },
         {
           id: "serialNumber",
