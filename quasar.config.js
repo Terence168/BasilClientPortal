@@ -60,8 +60,8 @@ module.exports = configure(function (/* ctx */) {
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
 
-      // publicPath: '/',
-      publicPath: process.env.NODE_ENV === "production" ? "/basil/" : "",
+      publicPath: "/",
+      // publicPath: process.env.NODE_ENV === "production" ? "/basil/" : "",
       // analyze: true,
       // env: {},
       // rawDefine: {}
