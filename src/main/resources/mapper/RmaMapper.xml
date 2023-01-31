@@ -350,7 +350,7 @@ FROM
 		mo.MO_OID rmaNumber,
 		msn.SERIAL_NUMBER AS serialNumber,
 		mc.CUSTOMER_ORGANIZATION as customerOrganization,
-	IF(xm.STATUS = 107, 'Received', sav.VALUE) status
+		IF(xm.STATUS = 107, 'Received', sav.VALUE) status
 	FROM
 		BASIL_ODS_PRD.MASTER_ORDER mo
 		JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)
@@ -361,7 +361,7 @@ FROM
 	<where>
 		xm.STATUS IN (107, 110, 108, 111, 112)
 		<if test="id != null">
-			mo.MC_OID = #{id}
+			AND mo.MC_OID = #{id}
 		</if>
 		<if test="partNumber != null">
 			AND part.PART_NUMBER_SHORT LIKE CONCAT(#{partNumber},'%')
