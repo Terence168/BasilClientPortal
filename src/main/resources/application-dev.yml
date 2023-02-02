@@ -9,27 +9,12 @@ spring:
     #username: root
     #password: pax@4901
 
-    #  DEV
-    #url: jdbc:mysql://172.16.3.116:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMutiQueries=true&zeroDateTimeBehavior=convertToNull
-    #username: root
-    #password: JaySqlPass!0
-
-    #  PROD
-    #url: jdbc:mysql://192.168.21.72:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMutiQueries=true&zeroDateTimeBehavior=convertToNull
-    #username: reyb
-    #password: PaxUser@123
-
-    #  UAT
-    #url: jdbc:mysql://192.168.21.70:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
-    #username: reyb
-    #password: PaxUser@123
-
-    #  UAT/BASIL_ODS_PRD
-    url: jdbc:mysql://192.168.21.70:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
+    #  AWS UAT
+    url: jdbc:mysql://basilmysql1.c3156zibo6aq.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
     username: BASIL_ODS_PRD
     password: PaxUser@123
 
-    #  AWS
+    #  AWS PROD
     #url: jdbc:mysql://basilmysql1.csolpeuxi7bq.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
     #username: BASIL_ODS_PRD
     #password: PaxUser@123
@@ -62,11 +47,7 @@ security:
       - /internal/**
       - /error
       - /api/**
-      - /api/v1/**
-#      - /user/**
       - /password/**
-#      - /privilege/**
-#      - /rma/**
 
   # CORS configuration
   cors:
