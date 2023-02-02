@@ -26,6 +26,7 @@
             style="width: 150px"
             :loading="exportInProgress"
             @click="excelExport"
+            :disable="total == 0"
           >
             <template v-slot:loading>
               <q-spinner-hourglass class="on-left" />

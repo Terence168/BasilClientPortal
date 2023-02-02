@@ -3,7 +3,7 @@ import axios from "axios";
 import { useUserStore } from "stores/user";
 import { Notify } from "quasar";
 
-const uat = false;
+const uat = true;
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
@@ -15,9 +15,9 @@ const api = axios.create({
   baseURL:
     process.env.NODE_ENV === "production"
       ? uat
-        ? "https://basilclientuat.paxcenters.com:8989/api/v1"
-        : "https://basilclient.paxcenters.com/api/v1"
-      : "http://localhost:8081/api/v1",
+        ? "https://basilclientuat.paxcenters.com/api/v1/"
+        : "https://basilclient.paxcenters.com/api/v1/"
+      : "http://localhost:8081/api/v1/",
   withCredentials: true,
 });
 
