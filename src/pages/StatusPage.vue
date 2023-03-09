@@ -137,7 +137,7 @@
 
         <StatusBox
           v-for="part in partSummary"
-          :key="part.partNumber + '-' + Date.now()"
+          :key="part.partNumber + '-' + part.total + '-' + searchParams"
           category="partNumber"
           :level="1"
           :data="part"
@@ -223,6 +223,10 @@ export default {
         }),
         initSummary
       );
+    },
+
+    searchParams() {
+      return this.$route.fullPath;
     },
   },
 

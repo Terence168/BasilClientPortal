@@ -44,6 +44,7 @@ const serialDetails = reactive({
   reportedIssue: null,
   faultCodes: null,
   customer: null,
+  receivedDate: null,
 });
 
 const expandCategory = function (categoryValue) {
@@ -69,10 +70,12 @@ const expandCategory = function (categoryValue) {
               serialDetails.customer = "None";
               serialDetails.reportedIssue = "None";
               serialDetails.faultCodes = "None";
+              serialDetails.receivedDate = "None";
             } else {
               serialDetails.customer = resData[0].customer;
               serialDetails.reportedIssue = resData[0].reportedIssue;
               serialDetails.faultCodes = resData[0].faultCodes;
+              serialDetails.receivedDate = resData[0].receivedDate;
             }
             loading.value = false;
           })
@@ -231,6 +234,10 @@ const expandCategory = function (categoryValue) {
       <div>
         <span class="text-red">Fault Code(s):</span>
         {{ serialDetails.faultCodes }}
+      </div>
+      <div>
+        <span class="text-red">Received Date:</span>
+        {{ serialDetails.receivedDate }}
       </div>
     </div>
   </template>

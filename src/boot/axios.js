@@ -3,7 +3,7 @@ import axios from "axios";
 import { useUserStore } from "stores/user";
 import { Notify } from "quasar";
 
-const uat = true;
+const uat = false;
 
 // Be careful when using SSR for cross-request state pollution
 // due to creating a Singleton instance here;
