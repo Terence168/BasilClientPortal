@@ -15,4 +15,5 @@ public class StatusExcelExport {
     private String serialNumber;
     private String customerOrganization;
     private String status;
+    private String receivedDate;
 }

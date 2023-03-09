@@ -326,9 +326,10 @@ FROM
 
 <select id="getSerialDetailsTier4" resultType="us.pax.basil.entity.rma.SerialDetailsTier4">
 	SELECT
-	    xm.CUSTOMER_REPORTED_ISSUE_EXT as reportedIssue,
+	    xm.CUSTOMER_REPORTED_ISSUE_EXT AS reportedIssue,
 		fault.faultCode AS faultCodes,
-		mc.CUSTOMER_ORGANIZATION as customerOrganization
+		mc.CUSTOMER_ORGANIZATION AS customerOrganization,
+		xm.RECEIVED_DATE AS receivedDate
 	FROM
 		BASIL_ODS_PRD.XREF_MATERIALS xm
 	LEFT JOIN BASIL_ODS_PRD.MASTER_ORDER mo USING (MO_OID)
@@ -350,7 +351,8 @@ FROM
 		mo.MO_OID rmaNumber,
 		msn.SERIAL_NUMBER AS serialNumber,
 		mc.CUSTOMER_ORGANIZATION as customerOrganization,
-		IF(xm.STATUS = 107, 'Received', sav.VALUE) status
+		IF(xm.STATUS = 107, 'Received', sav.VALUE) status,
+		xm.RECEIVED_DATE AS receivedDate
 	FROM
 		BASIL_ODS_PRD.MASTER_ORDER mo
 		JOIN BASIL_ODS_PRD.XREF_MATERIALS xm USING (MO_OID)

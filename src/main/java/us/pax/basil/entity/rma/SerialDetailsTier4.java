@@ -13,4 +13,5 @@ public class SerialDetailsTier4 {
     private String reportedIssue;
     private String faultCodes;
     private String customerOrganization;
+    private String receivedDate;
 }

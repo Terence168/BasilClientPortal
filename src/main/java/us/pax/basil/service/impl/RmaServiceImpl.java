@@ -444,6 +444,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
             result.put("reportedIssue", serialDetails.getReportedIssue());
             result.put("faultCodes", serialDetails.getFaultCodes());
             result.put("customer", serialDetails.getCustomerOrganization());
+            result.put("receivedDate", serialDetails.getReceivedDate());
 
             resultArray.add(result);
 

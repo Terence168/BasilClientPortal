@@ -339,6 +339,7 @@ public class RmaController {
             sheet.setColumnWidth(2, 4000);
             sheet.setColumnWidth(3, 4000);
             sheet.setColumnWidth(4, 4000);
+            sheet.setColumnWidth(5, 4000);
 
             XSSFRow currentRow = sheet.createRow(0);
             currentRow.createCell(0).setCellValue("Model Number Short");
@@ -346,6 +347,7 @@ public class RmaController {
             currentRow.createCell(2).setCellValue("Serial Number");
             currentRow.createCell(3).setCellValue("Customer");
             currentRow.createCell(4).setCellValue("Status");
+            currentRow.createCell(5).setCellValue("Received Date");
 
             int i = 1;
             for (StatusExcelExport statusExcelExport: data) {
@@ -355,11 +357,12 @@ public class RmaController {
                 currentRow.createCell(2).setCellValue(statusExcelExport.getSerialNumber());
                 currentRow.createCell(3).setCellValue(statusExcelExport.getCustomerOrganization());
                 currentRow.createCell(4).setCellValue(statusExcelExport.getStatus());
+                currentRow.createCell(5).setCellValue(statusExcelExport.getReceivedDate());
                 i++;
             }
 
             CellReference topLeft = new CellReference(sheet.getRow(0).getCell(0));
-            CellReference bottomRight = new CellReference(sheet.getRow(i - 1).getCell(4));
+            CellReference bottomRight = new CellReference(sheet.getRow(i - 1).getCell(5));
             AreaReference tableArea = workBook.getCreationHelper().createAreaReference(topLeft, bottomRight);
             XSSFTable dataTable = sheet.createTable(tableArea);
             dataTable.setDisplayName("Status");
