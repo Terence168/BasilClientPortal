@@ -88,11 +88,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	    		return new SqlResultDTO(-300, "User account already exists");
 	    	}
 	
+	    	// Default password for new users is "Pax4Future!@" which is represented by:
 	    	//
-	    	// Default password for new users
+	    	// "864dbe7c258b9d6b7b948a0c4381680f9a5a1411643bbc4d5f143a972971117d"
 	    	//
-	        //user.setPassword(passwordEncoder.encode(PasswordConstant.NEW_USER_PASSWORD));
-	        user.setPassword(passwordEncoder.encode("Pax4Future!@"));
+	        user.setPassword(passwordEncoder.encode("864dbe7c258b9d6b7b948a0c4381680f9a5a1411643bbc4d5f143a972971117d"));
 	
 	        CustomUserDetails userDetails = AuthUtil.getUser();
 	        
