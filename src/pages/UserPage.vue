@@ -225,6 +225,8 @@ import GenericPagination from "src/components/GenericPagination.vue";
 import BaseModal from "src/components/BaseModal.vue";
 import FilterOptions from "src/components/FilterOptions.vue";
 
+import { Notify } from "quasar";
+
 import { useUserStore } from "stores/user";
 
 const user = useUserStore();
@@ -379,13 +381,21 @@ export default {
       }
 
       this.$api.post(actionURL, payload).then(function (response) {
-        // self-update
-        if (user.email === payload.email) {
-          user.getUserDetails();
-        }
+        const c = response.data.resultCode;
+        if (c && c < -1) {
+          Notify.create({
+            type: "negative",
+            message: response.data.errorMessage,
+          });
+        } else {
+          // self-update
+          if (user.email === payload.email) {
+            user.getUserDetails();
+          }
 
-        vm.showModal = false;
-        vm.queryData();
+          vm.showModal = false;
+          vm.queryData();
+        }
       });
     },
 
