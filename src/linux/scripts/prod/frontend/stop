@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#
+# Need to be root
+#
+id=`whoami`
+
+if [ "$id" != "root" ]; then
+  echo -n "Root user needed. "
+  su - root -c "/home/basil_fe/bin/stop"
+  exit 0
+fi
+
+tomcatDir="/usr/share/tomcat"
+
+#
+# Stop tomcat
+#
+$tomcatDir/bin/shutdown.sh 2> /dev/null
+echo "Stopped tomcat"
+
+exit 0

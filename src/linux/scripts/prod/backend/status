@@ -1,0 +1,11 @@
+#!/bin/bash
+status=`ps -elf | grep BasilClientPortal | grep java | grep -v color |grep -v grep | awk '{print $3, $4, $15, $18, $19, $20}'`
+
+if [ "$status" != "" ]; then
+   echo ""
+   echo $status 
+   echo ""
+else
+   echo "Basil backend process not found."
+fi
+

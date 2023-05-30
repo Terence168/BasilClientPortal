@@ -1,0 +1,66 @@
+#!/bin/bash
+
+environment="uat"
+package_directory="/home/basil_be/packages"
+client_directory="/home/basil_be/ClientPortal"
+
+#
+# Got to packages directory
+#
+cd $package_directory
+
+#
+# Get the latest .jar file that was copied to
+# the packages directory.
+#
+ls=`ls -ltr *.jar 2>/dev/null`
+
+if [ "$ls" == "" ]; then
+   echo "No deployment .jar file exists in $package_directory!"
+   exit -1
+fi
+  
+jarfile=`echo $ls | tail -1 | awk '{print $9}'`
+echo "Identified $jarfile as the latest deployment .jar file in the package directory."
+
+#
+# Create directory for latest deployment file
+#
+dirCreated=`pkgdir|awk '{print $3}'`
+echo "Package directory $dirCreated created."
+
+#
+# Copy
+#
+cp $jarfile $dirCreated
+echo "Copied $jarfile to $dirCreated"
+
+#
+# Prompt user for comments to be added to release.note file
+#
+echo "Enter comments for release.note(enter \"quit\" when done):"
+while true; do
+read line
+
+if [ "$line" == "quit" ]; then
+  break;
+fi
+
+echo $line >> $dirCreated/release.note
+done
+echo "Created $dirCreated/release.note."
+
+#
+# Move .jar file to Client Portal directory
+#
+mv $jarfile $client_directory
+echo "Moved $jarfile to $client_directory."
+
+#
+# Deploy new .jar file
+#
+cd $client_directory
+echo "Restarting backend:  ./shutdown.sh; ./startup.sh $jarfile $environment"
+./shutdown.sh; ./startup.sh $jarfile $environment
+
+exit 0
