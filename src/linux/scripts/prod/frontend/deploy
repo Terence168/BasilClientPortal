@@ -1,0 +1,100 @@
+#!/bin/bash
+
+#
+# Need to be root
+#
+id=`whoami`
+
+if [ "$id" != "root" ]; then
+  echo -n "Root user needed. "
+  su - root -c "/home/basil_fe/bin/deploy"
+  exit 0
+fi
+
+tomcatDir="/usr/share/tomcat"
+package_directory="/home/basil_fe/packages"
+
+#
+# Got to packages directory
+#
+cd $package_directory
+
+#
+# Get the latest .war file that was copied to
+# the packages directory.
+#
+ls=`ls -ltr *.war 2>/dev/null`
+
+if [ "$ls" == "" ]; then
+  echo "No deployment .war file exists in $package_directory!"
+  exit -1
+fi
+
+warfile=`echo $ls | tail -1 | awk '{print $9}'`
+echo "Identified $warfile as the latest deployment .war file in the package directory."
+
+#
+# Create directory for latest deployment file
+#
+dirCreated=`pkgdir|awk '{print $3}'`
+echo "Package directory $dirCreated created."
+
+#
+# Copy
+#
+cp $warfile $dirCreated
+echo "Copied $warfile to $dirCreated"
+
+#
+# Prompt user for comments to be added to release.note file
+#
+echo "Enter comments for release.note(enter \"quit\" when done):"
+while true; do
+read line
+
+if [ "$line" == "quit" ]; then
+  break;
+fi
+
+echo $line >> $dirCreated/release.note
+done
+echo "Created $dirCreated/release.note."
+
+#
+# Change owner/group back to basil_fe for the package directory
+# and its contents
+#
+chown -R basil_fe:basil_fe $dirCreated
+
+#
+# Stop tomcat
+#
+$tomcatDir/bin/shutdown.sh 2> /dev/null
+echo "Stopped tomcat"
+
+#
+# Remove current deployment
+#
+
+if [ -f $tomcatDir/webapps/ROOT ]; then
+  rm -rf $tomcatDir/webapps/ROOT
+echo "Removed $tomcatDir/webapps/ROOT"
+fi
+if [ -f $tomcatDir/webapps/ROOT.war ]; then
+  rm $tomcatDir/webapps/ROOT.war
+echo "Removed $tomcatDir/webapps/ROOT.war"
+
+#
+# Move new .war file to tomcat webapps directory
+#
+mv $warfile $tomcatDir/webapps/ROOT.war
+echo "Moved $warfile to $tomcatDir."
+
+#
+# Deploy new .war file
+#
+$tomcatDir/bin/startup.sh
+echo "Started tomcat" 
+
+exit 0
+

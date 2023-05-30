@@ -1,0 +1,5 @@
+#!/bin/bash
+
+dirname=`date +%m-%d-%Y-%H-%M`
+mkdir $dirname
+echo "Package directory $dirname created."

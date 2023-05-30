@@ -1,0 +1,10 @@
+#!/bin/bash
+status=`ps -elf | grep tomcat | grep -v grep`
+
+if [ "$status" != "" ]; then
+   echo ""
+   echo $status
+   echo ""
+else 
+   echo "Tomcat process not found."
+fi

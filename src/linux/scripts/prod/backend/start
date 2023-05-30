@@ -1,0 +1,32 @@
+#!/bin/bash
+
+environment="prod"
+basil_directory="/home/basil_be/ClientPortal"
+
+#
+# Got to Basil directory
+#
+cd $basil_directory
+
+#
+# Get the latest .jar file that was copied to
+# the packages directory.
+#
+ls=`ls -ltr *.jar 2>/dev/null`
+
+if [ "$ls" == "" ]; then
+   echo "No deployment .jar file exists in $basil_directory!"
+   exit -1
+fi
+
+jarfile=`echo $ls | tail -1 | awk '{print $9}'`
+echo "Identified $jarfile as the latest deployment .jar file in the Client Portal directory."
+
+#
+# Execute .jar file
+#
+cd $basil_directory
+echo "Starting backend:  ./shutdown.sh; ./startup.sh $jarfile $environment"
+./shutdown.sh 2>/dev/null; ./startup.sh $jarfile $environment
+
+exit 0

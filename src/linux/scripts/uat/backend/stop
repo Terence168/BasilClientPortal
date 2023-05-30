@@ -1,0 +1,6 @@
+#!/bin/bash
+
+basil_directory="/home/basil_be/ClientPortal
+
+cd $basil_directory
+./shutdown.sh
