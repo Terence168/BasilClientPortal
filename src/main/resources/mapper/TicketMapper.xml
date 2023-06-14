@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.TicketMapper">
+    <select id = "getTicketing" resultType = "us.pax.basil.entity.ticket.TicketingQueue">
+            SELECT
+                pmo.MO_OID as ticketId,
+                pmo.ORDER_STATUS as status,
+                mc.CUSTOMER_ORGANIZATION as customerOrganization,
+                pmo.ORDER_DATE as createdDate,
+                user.NAME as responder
+            FROM
+                BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+                JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+                LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+                LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+                WHERE pmo.ACKNOWLEDGED = 0
+
+    </select>
+</mapper>
