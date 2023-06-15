@@ -86,6 +86,27 @@ const routes = [
           },
         ],
       },
+
+      {
+        path: "/ticketing",
+        name: "ticketing",
+        component: () => import("pages/TicketingPage.vue"),
+        meta: {
+          requiresAuth: true,
+          permissions: ["rma"],
+        },
+        children: [
+          {
+            path: "ticketing-queue",
+            name: "ticketing-queue",
+            component: () => import("pages/TicketingQueuePage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["rma.status"],
+            },
+          },
+        ],
+      },
     ],
   },
 
