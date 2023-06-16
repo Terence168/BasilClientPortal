@@ -11,9 +11,10 @@ import lombok.experimental.Accessors;
 @ApiModel(value="Ticketing Queue", description="")
 public class TicketingQueue {
     private String ticketId;
-    private String ticketStatus;
+    private String status;
     private String department;
-    private String customerId;
+    private String type;
     private String createdDate;
     private String responder;
+    private String customerOrganization;
 }
