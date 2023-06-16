@@ -17,33 +17,18 @@ package us.pax.basil.controller;
  */
 
 import io.swagger.annotations.Api;
-import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.AreaReference;
-import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.entity.rma.Quarantine;
-import us.pax.basil.entity.rma.Shipped;
-import us.pax.basil.entity.rma.StatusExcelExport;
 import us.pax.basil.service.TicketService;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
 
 
 @Api(tags = "Basil API Interface")
-@RestController //?
-@RequestMapping("/ticket")
+@RestController
+@RequestMapping("/ticketing")
 public class TicketController {
 
     @Autowired
@@ -71,5 +56,10 @@ public class TicketController {
         }
 
         return ticketService.ticketQuery(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate, serialNumber, customerId);
+    }
+
+    @GetMapping("/department")
+    public QueryResultArrayDTO departmentDropDown(@RequestParam(value = "department", required = true) String department){
+        return ticketService.queryDepartment(department);
     }
 }

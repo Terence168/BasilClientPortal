@@ -1,10 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="us.pax.basil.mapper.TicketMapper">
+    <select id = "getTicketingTotal" resultType = "Integer">
+        SELECT
+            count(*)
+        FROM
+            BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+            JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+            LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+            LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+            LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+            LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        <where>
+            <if test = "id !=null">
+                AND mc.MC_OID = #{id}
+            </if>
+            <if test = "ticketId != null">
+                AND pmo.MO_OID = #{ticketId}
+            </if>
+            <if test = "department != null">
+                AND scavdept.VALUE = #{department}
+            </if>
+            <if test = "type != null">
+                AND scavtype.VALUE = #{type}
+            </if>
+            <if test = "responder != null">
+                AND user.NAME = #{responder} OR user.NAME IS NULL
+            </if>
+            <if test = "createdFromDate != null and createdToDate">
+                AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
+            </if>
+        </where>
+    </select>
+
     <select id = "getTicketing" resultType = "us.pax.basil.entity.ticket.TicketingQueue">
             SELECT
                 pmo.MO_OID as ticketId,
                 pmo.ORDER_STATUS as status,
+                scavdept.VALUE as department,
+                scavtype.VALUE as type,
                 mc.CUSTOMER_ORGANIZATION as customerOrganization,
                 pmo.ORDER_DATE as createdDate,
                 user.NAME as responder
@@ -13,7 +47,32 @@
                 JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
                 LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
                 LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
-                WHERE pmo.ACKNOWLEDGED = 0
-
+                LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+                LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        <where>
+            pmo.ACKNOWLEDGED = 0
+            <if test = "id !=null">
+                    AND mc.MC_OID = #{id}
+            </if>
+            <if test = "ticketId != null">
+                    AND pmo.MO_OID = #{ticketId}
+            </if>
+            <if test = "department != null">
+                    AND scavdept.VALUE = #{department}
+            </if>
+            <if test = "type != null">
+                    AND scavtype.VALUE = #{type}
+            </if>
+            <if test = "responder != null">
+                    AND user.NAME = #{responder} OR user.NAME IS NULL
+            </if>
+            <if test = "createdFromDate != null and createdToDate">
+                AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
+            </if>
+        </where>
+        <if test="sortColumns != null and sortColumns != ''">
+            ORDER BY ${sortColumns}
+        </if>
+        LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
     </select>
 </mapper>
