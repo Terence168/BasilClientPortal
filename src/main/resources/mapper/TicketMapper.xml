@@ -53,9 +53,11 @@
                 JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
                 LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
                 LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+
                 LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
                 LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
                 LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+
         <where>
             pmo.ACKNOWLEDGED = 0
             <if test = "id !=null">
@@ -74,7 +76,7 @@
                     AND scavstatus.SCV_OID = #{status}
             </if>
             <if test = "responder != null">
-                    AND user.NAME = #{responder} OR user.NAME IS NULL
+                    AND LOWER(user.NAME) LIKE CONCAT ('%', LOWER(#{responder}), '%')
             </if>
             <if test = "createdFromDate != null and createdToDate">
                 AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
