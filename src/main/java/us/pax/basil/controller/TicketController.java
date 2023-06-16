@@ -39,10 +39,10 @@ public class TicketController {
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
                                       @RequestParam(value = "sort", required = false) String sortColumns,
                                       @RequestParam(value = "ticketId", required = false) String ticketId,
-                                      @RequestParam(value = "department", required = false) String department,
+                                      @RequestParam(value = "department", required = false) Integer department,
                                       @RequestParam(value = "responder", required = false) String responder,
-                                      @RequestParam(value = "status", required = false) String status,
-                                      @RequestParam(value = "type", required = false) String type,
+                                      @RequestParam(value = "status", required = false) Integer status,
+                                      @RequestParam(value = "type", required = false) Integer type,
                                       @RequestParam(value = "createdDate", required = false) String createdDate,
                                       @RequestParam(value = "serialNumber", required = false) String serialNumber,
                                       @RequestParam(value = "customerId", required = false) String customerId
@@ -58,8 +58,16 @@ public class TicketController {
         return ticketService.ticketQuery(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate, serialNumber, customerId);
     }
 
-    @GetMapping("/department")
-    public QueryResultArrayDTO departmentDropDown(@RequestParam(value = "department", required = true) String department){
+    @GetMapping("/dropdown/department")
+    public QueryResultArrayDTO departmentDropDown(@RequestParam(value = "department", required = false) Integer department){
         return ticketService.queryDepartment(department);
+    }
+    @GetMapping("/dropdown/order_type")
+    public QueryResultArrayDTO orderTypeDropDown(@RequestParam(value = "orderType", required = false) Integer orderType){
+        return ticketService.queryOrderType(orderType);
+    }
+    @GetMapping("/dropdown/status")
+    public QueryResultArrayDTO statusDropDown(@RequestParam(value = "status", required = false) Integer status){
+        return ticketService.queryStatus(status);
     }
 }

@@ -10,9 +10,9 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     Integer getTicketingTotal(String id,
                               String ticketId,
-                              String department,
-                              String type,
-                              String status,
+                              Integer department,
+                              Integer type,
+                              Integer status,
                               String responder,
                               String serialNumber,
                               String createdFromDate,
@@ -23,12 +23,15 @@ public interface TicketMapper extends BaseMapper<Integer> {
                                       String sortColumns,
                                       String id,
                                       String ticketId,//suppose it should be multiple searching
-                                      String department,
-                                      String type,
-                                      String status,
+                                      Integer department,
+                                      Integer type,
+                                      Integer status,
                                       String responder,
                                       String serialNumber,
                                       String createdFromDate,
                                       String createdToDate
                                       );
+    List<Department> queryDepartmentList(Integer department);
+    List<OrderType> queryOrderTypeList(Integer orderType);
+    List<Status> queryStatusList(Integer status);
 }

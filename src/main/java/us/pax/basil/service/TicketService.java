@@ -23,12 +23,14 @@ public interface TicketService extends IService<Integer>{
                                      Integer sizePerPage,
                                      String sortColumns,
                                      String ticketId,
-                                     String department,
+                                     Integer department,
                                      String responder,
-                                     String status,
-                                     String type,
+                                     Integer status,
+                                     Integer type,
                                      String createdDate,
                                      String serialNumber,
                                      String customerId);
-    QueryResultArrayDTO queryDepartment(String department);
+    QueryResultArrayDTO queryDepartment(Integer department);
+    QueryResultArrayDTO queryOrderType(Integer orderType);
+    QueryResultArrayDTO queryStatus(Integer status);
 }
