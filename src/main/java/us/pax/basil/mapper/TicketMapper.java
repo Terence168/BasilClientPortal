@@ -31,7 +31,7 @@ public interface TicketMapper extends BaseMapper<Integer> {
                                       String createdFromDate,
                                       String createdToDate
                                       );
-    List<Department> queryDepartmentList(Integer department);
-    List<OrderType> queryOrderTypeList(Integer orderType);
-    List<Status> queryStatusList(Integer status);
+    List<Department> queryDepartmentList();
+    List<OrderType> queryOrderTypeList();
+    List<Status> queryStatusList();
 }

@@ -59,15 +59,15 @@ public class TicketController {
     }
 
     @GetMapping("/dropdown/department")
-    public QueryResultArrayDTO departmentDropDown(@RequestParam(value = "department", required = false) Integer department){
-        return ticketService.queryDepartment(department);
+    public QueryResultArrayDTO departmentDropDown(){
+        return ticketService.queryDepartment();
     }
     @GetMapping("/dropdown/order_type")
-    public QueryResultArrayDTO orderTypeDropDown(@RequestParam(value = "orderType", required = false) Integer orderType){
-        return ticketService.queryOrderType(orderType);
+    public QueryResultArrayDTO orderTypeDropDown(){
+        return ticketService.queryOrderType();
     }
     @GetMapping("/dropdown/status")
-    public QueryResultArrayDTO statusDropDown(@RequestParam(value = "status", required = false) Integer status){
-        return ticketService.queryStatus(status);
+    public QueryResultArrayDTO statusDropDown(){
+        return ticketService.queryStatus();
     }
 }

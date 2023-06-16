@@ -10,5 +10,5 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "OrderType Object", description = "")
 public class OrderType {
     private Integer id;
-    private Integer OrderType;
+    private String OrderType;
 }
