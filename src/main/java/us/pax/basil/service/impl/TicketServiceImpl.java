@@ -1,10 +1,8 @@
 package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
+import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.SqlResultDTO;
-import us.pax.basil.entity.rma.Shipped;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -12,12 +10,7 @@ import us.pax.basil.service.TicketService;
 import us.pax.basil.utils.AuthUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.springframework.stereotype.Service;
 
 @Log4j2
@@ -28,16 +21,16 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     private TicketMapper ticketMapper;
     @Override
     public QueryResultArrayDTO ticketQuery(Integer currentPage,
-                                    Integer sizePerPage,
-                                    String sortColumns,
-                                    String ticketId,
-                                    String department,
-                                    String responder,
-                                    String status,
-                                    String type,
-                                    String createdDate,
-                                    String serialNumber,
-                                    String customerId){
+                                           Integer sizePerPage,
+                                           String sortColumns,
+                                           String ticketId,
+                                           Integer department,
+                                           String responder,
+                                           Integer status,
+                                           Integer type,
+                                           String createdDate,
+                                           String serialNumber,
+                                           String customerId){
         String[] createdDates;
         String createdFromDate = null;
         String createdToDate = null;
@@ -157,7 +150,58 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public QueryResultArrayDTO queryDepartment(String department){
-        return null;
+    public QueryResultArrayDTO queryDepartment(Integer dept){
+        try{
+            List<Department> departmentList = ticketMapper.queryDepartmentList(dept);
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+            for (Department department: departmentList) {
+                Map<String, Object> mm = new LinkedHashMap<String, Object>();
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, department.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, department.getDepartment());
+
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        }catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+    @Override
+    public QueryResultArrayDTO queryOrderType(Integer ordtype){
+        try{
+            List<OrderType> orderTypeList = ticketMapper.queryOrderTypeList(ordtype);
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+            for (OrderType orderType: orderTypeList) {
+                Map<String, Object> mm = new LinkedHashMap<String, Object>();
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, orderType.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, orderType.getOrderType());
+
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        }catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryStatus(Integer stat){
+        try{
+            List<Status> statusList = ticketMapper.queryStatusList(stat);
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+            for (Status status: statusList) {
+                Map<String, Object> mm = new LinkedHashMap<String, Object>();
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, status.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, status.getStatus());
+
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        }catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
     }
 }

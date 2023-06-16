@@ -7,8 +7,10 @@
         FROM
             BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
             JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+            JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
             LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
             LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+            LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
             LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
             LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
         <where>
@@ -19,10 +21,13 @@
                 AND pmo.MO_OID = #{ticketId}
             </if>
             <if test = "department != null">
-                AND scavdept.VALUE = #{department}
+                AND scavdept.SCV_OID = #{department}
             </if>
             <if test = "type != null">
-                AND scavtype.VALUE = #{type}
+                AND scavtype.SCV_OID = #{type}
+            </if>
+            <if test = "status != null">
+                AND scavstatus.SCV_OID = #{status}
             </if>
             <if test = "responder != null">
                 AND user.NAME = #{responder} OR user.NAME IS NULL
@@ -36,7 +41,7 @@
     <select id = "getTicketing" resultType = "us.pax.basil.entity.ticket.TicketingQueue">
             SELECT
                 pmo.MO_OID as ticketId,
-                pmo.ORDER_STATUS as status,
+                scavstatus.VALUE as status,
                 scavdept.VALUE as department,
                 scavtype.VALUE as type,
                 mc.CUSTOMER_ORGANIZATION as customerOrganization,
@@ -45,8 +50,10 @@
             FROM
                 BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
                 JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+                JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
                 LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
                 LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+                LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
                 LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
                 LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
         <where>
@@ -58,10 +65,13 @@
                     AND pmo.MO_OID = #{ticketId}
             </if>
             <if test = "department != null">
-                    AND scavdept.VALUE = #{department}
+                    AND scavdept.SCV_OID = #{department}
             </if>
             <if test = "type != null">
-                    AND scavtype.VALUE = #{type}
+                    AND scavtype.SCV_OID = #{type}
+            </if>
+            <if test = "status != null">
+                    AND scavstatus.SCV_OID = #{status}
             </if>
             <if test = "responder != null">
                     AND user.NAME = #{responder} OR user.NAME IS NULL
@@ -74,5 +84,42 @@
             ORDER BY ${sortColumns}
         </if>
         LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
+    <select id = "queryDepartmentList" resultType="us.pax.basil.entity.ticket.Department">
+        SELECT
+            scav.SCV_OID as id,
+            scav.VALUE as department
+        FROM
+            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        WHERE
+            scav.SC_OID = 2
+        ORDER BY
+            scav.SORT_ORDER ASC
+
+    </select>
+
+    <select id = "queryOrderTypeList" resultType="us.pax.basil.entity.ticket.OrderType">
+        SELECT
+            scav.SCV_OID as id,
+            scav.VALUE as orderType
+        FROM
+            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        WHERE
+            scav.SC_OID = 1
+        ORDER BY
+            scav.SORT_ORDER ASC
+    </select>
+
+    <select id = "queryStatusList" resultType="us.pax.basil.entity.ticket.Status">
+        SELECT
+            scav.SCV_OID as id,
+            scav.VALUE as status
+        FROM
+            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        WHERE
+            scav.SC_OID = 3
+        ORDER BY
+            scav.SORT_ORDER ASC
     </select>
 </mapper>
