@@ -323,7 +323,7 @@ export default {
       const currentOptions = this.options["status"];
 
       if (currentOptions.length === 0) {
-        const link = "/ticketing/drop-down/status";
+        const link = "/ticketing/dropdown/status";
 
         this.$api
           .get(link)
@@ -345,7 +345,7 @@ export default {
       const currentOptions = this.options["type"];
 
       if (currentOptions.length === 0) {
-        const link = "/ticketing/drop-down/order_type";
+        const link = "/ticketing/dropdown/order_type";
 
         this.$api
           .get(link)
@@ -367,7 +367,7 @@ export default {
       const currentOptions = this.options["department"];
 
       if (currentOptions.length === 0) {
-        const link = "/ticketing/drop-down/department";
+        const link = "/ticketing/dropdown/department";
 
         this.$api
           .get(link)
