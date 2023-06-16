@@ -150,9 +150,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public QueryResultArrayDTO queryDepartment(Integer dept){
+    public QueryResultArrayDTO queryDepartment(){
         try{
-            List<Department> departmentList = ticketMapper.queryDepartmentList(dept);
+            List<Department> departmentList = ticketMapper.queryDepartmentList();
             ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
             for (Department department: departmentList) {
                 Map<String, Object> mm = new LinkedHashMap<String, Object>();
@@ -168,9 +168,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
     @Override
-    public QueryResultArrayDTO queryOrderType(Integer ordtype){
+    public QueryResultArrayDTO queryOrderType(){
         try{
-            List<OrderType> orderTypeList = ticketMapper.queryOrderTypeList(ordtype);
+            List<OrderType> orderTypeList = ticketMapper.queryOrderTypeList();
             ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
             for (OrderType orderType: orderTypeList) {
                 Map<String, Object> mm = new LinkedHashMap<String, Object>();
@@ -187,9 +187,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public QueryResultArrayDTO queryStatus(Integer stat){
+    public QueryResultArrayDTO queryStatus(){
         try{
-            List<Status> statusList = ticketMapper.queryStatusList(stat);
+            List<Status> statusList = ticketMapper.queryStatusList();
             ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
             for (Status status: statusList) {
                 Map<String, Object> mm = new LinkedHashMap<String, Object>();

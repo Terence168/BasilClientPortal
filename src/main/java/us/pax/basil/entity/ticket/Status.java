@@ -11,5 +11,5 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "Status Object", description = "")
 public class Status {
     private Integer id;
-    private Integer status;
+    private String status;
 }

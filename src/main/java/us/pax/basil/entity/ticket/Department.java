@@ -11,5 +11,5 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "Department Object", description = "")
 public class Department {
     private Integer id;
-    private Integer department;
+    private String department;
 }
