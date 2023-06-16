@@ -231,6 +231,21 @@ export default {
         return;
       }
 
+      if (id === "department") {
+        this.filterDepartmentFn(_val, update, _abort);
+        return;
+      }
+
+      if (id === "type") {
+        this.filterTypeFn(_val, update, _abort);
+        return;
+      }
+
+      if (id === "status") {
+        this.filterStatusFn(_val, update, _abort);
+        return;
+      }
+
       const currentOptions = this.options[id];
 
       const link = "/basil/rma-setting/" + id + "/drop-down";
@@ -273,44 +288,6 @@ export default {
         });
     },
 
-    filterClientGroupFn(val, update, abort) {
-      const currentOptions = this.options["clientGroup"];
-
-      if (currentOptions.length === 0) {
-        const options = [
-          { label: "TPG Canada", value: "457" },
-          { label: "Small Markets", value: "458" },
-          { label: "Large Markets", value: "459" },
-          { label: "Fiserv", value: "460" },
-        ];
-
-        update(() => {
-          currentOptions.push(...options);
-        });
-      } else {
-        update();
-      }
-    },
-
-    filterStageFn(val, update, abort) {
-      const currentOptions = this.options["stage"];
-
-      if (currentOptions.length === 0) {
-        const options = [
-          { value: 1085, label: "Destruction Bin" },
-          { value: 1086, label: "Assign to Bin ID" },
-          { value: 1087, label: "Out for Destruction" },
-          { value: 1088, label: "Destroyed" },
-        ];
-
-        update(() => {
-          currentOptions.push(...options);
-        });
-      } else {
-        update();
-      }
-    },
-
     filterContactFn(val, update, abort) {
       const currentOptions = this.options["contact"];
 
@@ -342,17 +319,61 @@ export default {
       }
     },
 
-    filterStatusSchedulingFn(val, update, abort) {
+    filterStatusFn(val, update, abort) {
       const currentOptions = this.options["status"];
 
       if (currentOptions.length === 0) {
-        const link = "/basil/rma-scheduling/status/drop-down";
+        const link = "/ticketing/drop-down/status";
 
         this.$api
           .get(link)
           .then((response) => {
             update(() => {
               this.options["status"] = response.data.data;
+            });
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          });
+      } else {
+        update();
+      }
+    },
+
+    filterTypeFn(val, update, abort) {
+      const currentOptions = this.options["type"];
+
+      if (currentOptions.length === 0) {
+        const link = "/ticketing/drop-down/order_type";
+
+        this.$api
+          .get(link)
+          .then((response) => {
+            update(() => {
+              this.options["type"] = response.data.data;
+            });
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          });
+      } else {
+        update();
+      }
+    },
+
+    filterDepartmentFn(val, update, abort) {
+      const currentOptions = this.options["department"];
+
+      if (currentOptions.length === 0) {
+        const link = "/ticketing/drop-down/department";
+
+        this.$api
+          .get(link)
+          .then((response) => {
+            update(() => {
+              this.options["department"] = response.data.data;
             });
           })
           .catch(function (error) {
