@@ -9,12 +9,12 @@ import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
     Integer getTicketingTotal(String id,
-                              String ticketId,
+                              String[] ticketId,
                               Integer department,
                               Integer type,
                               Integer status,
                               String responder,
-                              String serialNumber,
+                              String[] serialNumber,
                               String createdFromDate,
                               String createdToDate
                               );
@@ -22,12 +22,12 @@ public interface TicketMapper extends BaseMapper<Integer> {
                                       Integer count,
                                       String sortColumns,
                                       String id,
-                                      String ticketId,//suppose it should be multiple searching
+                                      String[] ticketId,
                                       Integer department,
                                       Integer type,
                                       Integer status,
                                       String responder,
-                                      String serialNumber,
+                                      String[] serialNumber,
                                       String createdFromDate,
                                       String createdToDate
                                       );
