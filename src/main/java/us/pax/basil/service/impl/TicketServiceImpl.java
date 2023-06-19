@@ -53,17 +53,17 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try{
-            Integer total = ticketMapper.getTicketingTotal(companyId, ticketId, department, type, status, responder, serialNumber, createdFromDate,createdToDate);
+            Integer total = ticketMapper.getTicketingTotal(companyId, transformInputQuery(ticketId), department, type, status, responder, transformInputQuery(serialNumber), createdFromDate,createdToDate);
             List<TicketingQueue> ticketingQueueList = ticketMapper.getTicketing((currentPage-1) * sizePerPage,
                     sizePerPage,
                     buildSortString(sortColumns),
                     companyId,
-                    ticketId,
+                    transformInputQuery(ticketId),
                     department,
                     type,
                     status,
                     responder,
-                    serialNumber,
+                    transformInputQuery(serialNumber),
                     createdFromDate,
                     createdToDate
                     );
@@ -203,5 +203,18 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }catch(Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
+    }
+
+    private String[] transformInputQuery(String query) {
+        String[] output = null;
+
+        if (query != null) {
+            output = query.split(",");
+            for (int i = 0; i < output.length; i++) {
+                output[i] = output[i].trim();
+            }
+        }
+
+        return output;
     }
 }

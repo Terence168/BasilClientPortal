@@ -18,7 +18,10 @@
                 AND mc.MC_OID = #{id}
             </if>
             <if test = "ticketId != null">
-                AND pmo.MO_OID = #{ticketId}
+                AND
+                <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test = "department != null">
                 AND scavdept.SCV_OID = #{department}
@@ -28,6 +31,21 @@
             </if>
             <if test = "status != null">
                 AND scavstatus.SCV_OID = #{status}
+            </if>
+            <if test="serialNumber != null">
+                AND
+                pmo.MO_OID IN (
+                SELECT pxm.MO_OID
+                FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
+                WHERE pxm.MSN_OID IN (
+                SELECT msn.MSN_OID
+                FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
+                WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                )
             </if>
             <if test = "responder != null">
                 AND user.NAME = #{responder} OR user.NAME IS NULL
@@ -61,20 +79,39 @@
         <where>
             pmo.ACKNOWLEDGED = 0
             <if test = "id !=null">
-                    AND mc.MC_OID = #{id}
+                AND mc.MC_OID = #{id}
             </if>
             <if test = "ticketId != null">
-                    AND pmo.MO_OID = #{ticketId}
+                AND
+                <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test = "department != null">
-                    AND scavdept.SCV_OID = #{department}
+                AND scavdept.SCV_OID = #{department}
             </if>
             <if test = "type != null">
-                    AND scavtype.SCV_OID = #{type}
+                AND scavtype.SCV_OID = #{type}
             </if>
             <if test = "status != null">
-                    AND scavstatus.SCV_OID = #{status}
+                AND scavstatus.SCV_OID = #{status}
             </if>
+            <if test="serialNumber != null">
+                AND
+                pmo.MO_OID IN (
+                    SELECT pxm.MO_OID
+                    FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
+                    WHERE pxm.MSN_OID IN (
+                        SELECT msn.MSN_OID
+                        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
+                        WHERE msn.SERIAL_NUMBER IN
+                        <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
+                            #{item}
+                        </foreach>
+                    )
+                )
+            </if>
+
             <if test = "responder != null">
                     AND LOWER(user.NAME) LIKE CONCAT ('%', LOWER(#{responder}), '%')
             </if>
