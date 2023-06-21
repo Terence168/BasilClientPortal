@@ -11,6 +11,7 @@
           align="left"
         >
           <q-tab name="RMAStatus" label="Ticket Status" />
+          <q-tab name="Ticketing" label="Ticket Management" />
           <q-tab
             v-if="checkPermission('privilege')"
             name="privilege"
@@ -162,6 +163,7 @@
 
 <script>
 import RMAStatusSubMenu from "src/components/RMAStatusSubMenu.vue";
+import TicketingSubMenu from "src/components/TicketingSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
 import BaseModal from "src/components/BaseModal.vue";
 
@@ -178,7 +180,12 @@ const user = useUserStore();
 export default {
   name: "MainLayout",
 
-  components: { RMAStatusSubMenu, PrivilegeSubMenu, BaseModal },
+  components: {
+    RMAStatusSubMenu,
+    TicketingSubMenu,
+    PrivilegeSubMenu,
+    BaseModal,
+  },
 
   data() {
     return {

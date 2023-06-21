@@ -97,7 +97,7 @@ const routes = [
         },
         children: [
           {
-            path: "ticketing-queue",
+            path: "queue",
             name: "ticketing-queue",
             component: () => import("pages/TicketingQueuePage.vue"),
             meta: {
