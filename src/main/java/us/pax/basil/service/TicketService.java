@@ -30,6 +30,7 @@ public interface TicketService extends IService<Integer>{
                                      String createdDate,
                                      String serialNumber,
                                      String customerId);
+    QueryResultArrayDTO serialNumberStatus(String serialNumber);
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();

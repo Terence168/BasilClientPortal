@@ -29,10 +29,21 @@ import us.pax.basil.service.TicketService;
 @Api(tags = "Basil API Interface")
 @RestController
 @RequestMapping("/ticketing")
+
+
 public class TicketController {
 
     @Autowired
     private TicketService ticketService;
+    @GetMapping("/serialNumberQuery")
+    //check one serial number's status
+    //1. if this device belongs to U.S.
+    //2. if this device belongs to another ticket
+    //3. if this device within warranty
+    public QueryResultArrayDTO checkSerialNumberStatus(@RequestParam(value = "serialNumber", required = true) String serialNumber){
+        return ticketService.serialNumberStatus(serialNumber);
+    }
+
 
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
