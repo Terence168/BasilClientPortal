@@ -217,4 +217,20 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         return output;
     }
+
+    @Override
+    public QueryResultArrayDTO serialNumberStatus(String serialNumber){
+        try{
+            Device isUSBased = ticketMapper.queryDeviceBase(serialNumber);
+            if(isUSBased == null){
+                //if is not U.S. based device.
+                return new QueryResultArrayDTO(null, 0, -1, "This serial number shows the device is not a U.S. device.");
+            }else{
+                //todo
+                return new QueryResultArrayDTO(null, 0, -1, "This serial number shows the device is not a U.S. device.");
+            }
+        }catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
 }
