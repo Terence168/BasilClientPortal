@@ -18,13 +18,13 @@ package us.pax.basil.controller;
 
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.service.TicketService;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.persistence.EntityManager;
 
 
 @Api(tags = "Basil API Interface")
@@ -36,16 +36,19 @@ public class TicketController {
 
     @Autowired
     private TicketService ticketService;
-    @GetMapping("/serialNumberQuery")
-    //check one serial number's status
-    //1. if this device belongs to U.S.
-    //2. if this device belongs to another ticket
-    //3. if this device within warranty
-    public QueryResultDTO checkSerialNumberStatus(@RequestParam(value = "serialNumber", required = true) String serialNumber){
-        return ticketService.querySerialNumberStatus(serialNumber);
+    private EntityManager entityManager;
+    @PostMapping("/serialNumberUpdate")//BCP-25
+    //search serial number and return device information and repair price.
+    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber,
+                                                  @RequestParam(value = "repairLog", required = false) String repairLog){
+        return ticketService.serialNumberQuery(serialNumber,repairLog);
     }
-
-
+    @PostMapping("/batchSerialNumberQuery")//BCP-25
+    //upload Excel file, process serial number by batch processing.
+    public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
+                                                      @RequestParam("fileName") String fileName){
+        return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
+    }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -82,7 +85,7 @@ public class TicketController {
     public QueryResultArrayDTO statusDropDown(){
         return ticketService.queryStatus();
     }
-    @GetMapping("/dropdown/repairType")
+    @GetMapping("/dropdown/repairType") //BCP-25
     public QueryResultArrayDTO repairTypeDropDown(){
         return ticketService.queryRepairType();
     }

@@ -8,6 +8,10 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
+    List<Department> queryDepartmentList();
+    List<OrderType> queryOrderTypeList();
+    List<Status> queryStatusList();
+    List<RepairType> queryRepairTypeList();
     Integer getTicketingTotal(String id,
                               String[] ticketId,
                               Integer department,
@@ -31,14 +35,8 @@ public interface TicketMapper extends BaseMapper<Integer> {
                                       String createdFromDate,
                                       String createdToDate
                                       );
-    List<Department> queryDepartmentList();
-    List<OrderType> queryOrderTypeList();
-    List<Status> queryStatusList();
-    List<RepairType> queryRepairTypeList();
-
     /*
     queryDeviceBase is used to query if this device is U.S. based. If not, alert the front-end, otherwise, check if within warranty or another ticket.
      */
-    Device queryDevice(String serialNumber);
-    Device queryDeviceDuplicate(String serialNumber);
+
 }
