@@ -2,6 +2,7 @@ package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 
 /***
  * ============================================================================
@@ -30,8 +31,9 @@ public interface TicketService extends IService<Integer>{
                                      String createdDate,
                                      String serialNumber,
                                      String customerId);
-    QueryResultArrayDTO serialNumberStatus(String serialNumber);
+    QueryResultDTO querySerialNumberStatus(String serialNumber);
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();
+    QueryResultArrayDTO queryRepairType();
 }

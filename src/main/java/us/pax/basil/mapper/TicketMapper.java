@@ -34,9 +34,11 @@ public interface TicketMapper extends BaseMapper<Integer> {
     List<Department> queryDepartmentList();
     List<OrderType> queryOrderTypeList();
     List<Status> queryStatusList();
+    List<RepairType> queryRepairTypeList();
 
     /*
     queryDeviceBase is used to query if this device is U.S. based. If not, alert the front-end, otherwise, check if within warranty or another ticket.
      */
-    Device queryDeviceBase(String serialNumber);
+    Device queryDevice(String serialNumber);
+    Device queryDeviceDuplicate(String serialNumber);
 }
