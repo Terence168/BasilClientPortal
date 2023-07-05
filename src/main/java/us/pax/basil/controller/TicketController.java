@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.service.TicketService;
 
 
@@ -40,8 +41,8 @@ public class TicketController {
     //1. if this device belongs to U.S.
     //2. if this device belongs to another ticket
     //3. if this device within warranty
-    public QueryResultArrayDTO checkSerialNumberStatus(@RequestParam(value = "serialNumber", required = true) String serialNumber){
-        return ticketService.serialNumberStatus(serialNumber);
+    public QueryResultDTO checkSerialNumberStatus(@RequestParam(value = "serialNumber", required = true) String serialNumber){
+        return ticketService.querySerialNumberStatus(serialNumber);
     }
 
 
@@ -80,5 +81,9 @@ public class TicketController {
     @GetMapping("/dropdown/status")
     public QueryResultArrayDTO statusDropDown(){
         return ticketService.queryStatus();
+    }
+    @GetMapping("/dropdown/repairType")
+    public QueryResultArrayDTO repairTypeDropDown(){
+        return ticketService.queryRepairType();
     }
 }

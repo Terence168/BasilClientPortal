@@ -3,6 +3,7 @@ package us.pax.basil.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -12,6 +13,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import java.util.*;
 import org.springframework.stereotype.Service;
+import us.pax.basil.utils.QueryUtils;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Log4j2
 @Service
@@ -204,6 +208,24 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
+    @Override
+    public QueryResultArrayDTO queryRepairType(){
+        try{
+            List<RepairType> repairTypeList = ticketMapper.queryRepairTypeList();
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+            for (RepairType rt: repairTypeList) {
+                Map<String, Object> mm = new LinkedHashMap<String, Object>();
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, rt.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, rt.getRepairType());
+
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        }catch(Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
 
     private String[] transformInputQuery(String query) {
         String[] output = null;
@@ -219,18 +241,32 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public QueryResultArrayDTO serialNumberStatus(String serialNumber){
+    public QueryResultDTO querySerialNumberStatus(String serialNumber){
         try{
-            Device isUSBased = ticketMapper.queryDeviceBase(serialNumber);
-            if(isUSBased == null){
+            Device device = ticketMapper.queryDevice(serialNumber);
+            if(device == null){
                 //if is not U.S. based device.
-                return new QueryResultArrayDTO(null, 0, -1, "This serial number shows the device is not a U.S. device.");
+                return new QueryResultDTO(null,  -1, "This device is not a U.S. device.");
             }else{
-                //todo
-                return new QueryResultArrayDTO(null, 0, -1, "This serial number shows the device is not a U.S. device.");
+                String warrantyStatus = QueryUtils.calculateWarrantyStatus((Date) device.getEndDate(),(Date)device.getVoidDate(),Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                if (warrantyStatus == "Out Of Warranty"){
+                    return new QueryResultDTO(null, -1, "This device is out of warranty.");
+                }else {
+                    Device queryDuplicate = ticketMapper.queryDeviceDuplicate(serialNumber);
+                    if(queryDuplicate != null){ //means there is duplicate tickets have this serial number
+                        return new QueryResultDTO(null, -1, "This device is already in another ticket. Please check again");
+                    }
+                    else{
+                        Map<String, Object> result = new HashMap<>();
+                        result.put("voidDate",device.getVoidDate());
+
+                        //check if it is within another ticket. compared with ship date.
+                        return new QueryResultDTO(result, -1, "This device is in another open ticket.");
+                    }
+                }
             }
         }catch(Exception e) {
-            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+            return new QueryResultDTO(null, -1, e.getMessage());
         }
     }
 }

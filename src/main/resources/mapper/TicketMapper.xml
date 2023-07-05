@@ -161,4 +161,55 @@
         ORDER BY
             scav.SORT_ORDER ASC
     </select>
+
+    <select id = "queryRepairTypeList" resultType="us.pax.basil.entity.ticket.RepairType">
+        SELECT
+            scav.SCV_OID as id,
+            scav.VALUE as repairType
+        FROM
+            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        WHERE
+            scav.SC_OID = 1 AND scav.DEPARTMENT=100
+        ORDER BY
+            scav.SORT_ORDER ASC
+    </select>
+<!--
+    <select id = "queryDevice" resultType = "us.pax.basil.entity.ticket.Device">
+        SELECT
+            msn.WARRANTY_VOIDED_DATE as voidDate,
+            msn.WARRANTY_END_DATE as endDate
+        FROM
+            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
+            JOIN BASIL_
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryDeviceDuplicate" resultType="us.pax.basil.entity.ticket.Device">
+        SELECT msn.MSN_OID as masterSerialNumber
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        JOIN BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+            AND pxm.STATUS = 113
+        </where>
+
+        UNION
+
+        SELECT msn.MSN_OID as masterSerialNumber
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        JOIN BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+            AND xm.STATUS = 113
+        </where>
+    </select>
+-->
 </mapper>
