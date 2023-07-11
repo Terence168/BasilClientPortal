@@ -43,11 +43,16 @@ public class TicketController {
 //                                                  ){
 //        return ticketService.serialNumberQuery(serialNumber);
 //    }
-//    @PostMapping("/batchSerialNumberQuery")//BCP-25
-//    //upload Excel file, process serial number by batch processing.
-//    public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
-//                                                      @RequestParam("fileName") String fileName){
-//        return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
+    @PostMapping("/batchSerialNumberQuery")//BCP-25
+    //upload Excel file, process serial number by batch processing.
+    public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
+                                                      @RequestParam("fileName") String fileName){
+        return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
+    }
+//    @PostMapping("submitTicket")//BCP-25
+//    //submit the ticket
+//    public QueryResultArrayDTO ticketSubmit(@RequestBody List<submittingTicket> submittingTicketList){
+//        return null;
 //    }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,

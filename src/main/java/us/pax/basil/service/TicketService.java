@@ -40,5 +40,5 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO queryStatus();
     QueryResultArrayDTO queryRepairType();
     //QueryResultArrayDTO serialNumberQuery(String serialNumber);
-    //QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
+    QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
 }
