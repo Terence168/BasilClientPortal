@@ -37,18 +37,18 @@ public class TicketController {
     @Autowired
     private TicketService ticketService;
     private EntityManager entityManager;
-    @PostMapping("/serialNumberUpdate")//BCP-25
-    //search serial number and return device information and repair price.
-    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber,
-                                                  @RequestParam(value = "repairLog", required = false) String repairLog){
-        return ticketService.serialNumberQuery(serialNumber,repairLog);
-    }
-    @PostMapping("/batchSerialNumberQuery")//BCP-25
-    //upload Excel file, process serial number by batch processing.
-    public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
-                                                      @RequestParam("fileName") String fileName){
-        return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
-    }
+//    @PostMapping("/serialNumberUpdate")//BCP-25
+//    //search serial number and return device information and repair price.
+//    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber
+//                                                  ){
+//        return ticketService.serialNumberQuery(serialNumber);
+//    }
+//    @PostMapping("/batchSerialNumberQuery")//BCP-25
+//    //upload Excel file, process serial number by batch processing.
+//    public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
+//                                                      @RequestParam("fileName") String fileName){
+//        return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
+//    }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,

@@ -240,33 +240,33 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         return output;
     }
 
-    @Override
-    public QueryResultDTO querySerialNumberStatus(String serialNumber){
-        try{
-            Device device = ticketMapper.queryDevice(serialNumber);
-            if(device == null){
-                //if is not U.S. based device.
-                return new QueryResultDTO(null,  -1, "This device is not a U.S. device.");
-            }else{
-                String warrantyStatus = QueryUtils.calculateWarrantyStatus((Date) device.getEndDate(),(Date)device.getVoidDate(),Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-                if (warrantyStatus == "Out Of Warranty"){
-                    return new QueryResultDTO(null, -1, "This device is out of warranty.");
-                }else {
-                    Device queryDuplicate = ticketMapper.queryDeviceDuplicate(serialNumber);
-                    if(queryDuplicate != null){ //means there is duplicate tickets have this serial number
-                        return new QueryResultDTO(null, -1, "This device is already in another ticket. Please check again");
-                    }
-                    else{
-                        Map<String, Object> result = new HashMap<>();
-                        result.put("voidDate",device.getVoidDate());
-
-                        //check if it is within another ticket. compared with ship date.
-                        return new QueryResultDTO(result, -1, "This device is in another open ticket.");
-                    }
-                }
-            }
-        }catch(Exception e) {
-            return new QueryResultDTO(null, -1, e.getMessage());
-        }
-    }
+//    @Override
+//    public QueryResultDTO querySerialNumberStatus(String serialNumber){
+//        try{
+//            Device device = ticketMapper.queryDevice(serialNumber);
+//            if(device == null){
+//                //if is not U.S. based device.
+//                return new QueryResultDTO(null,  -1, "This device is not a U.S. device.");
+//            }else{
+//                String warrantyStatus = QueryUtils.calculateWarrantyStatus((Date) device.getEndDate(),(Date)device.getVoidDate(),Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+//                if (warrantyStatus == "Out Of Warranty"){
+//                    return new QueryResultDTO(null, -1, "This device is out of warranty.");
+//                }else {
+//                    Device queryDuplicate = ticketMapper.queryDeviceDuplicate(serialNumber);
+//                    if(queryDuplicate != null){ //means there is duplicate tickets have this serial number
+//                        return new QueryResultDTO(null, -1, "This device is already in another ticket. Please check again");
+//                    }
+//                    else{
+//                        Map<String, Object> result = new HashMap<>();
+//                        result.put("voidDate",device.getVoidDate());
+//
+//                        //check if it is within another ticket. compared with ship date.
+//                        return new QueryResultDTO(result, -1, "This device is in another open ticket.");
+//                    }
+//                }
+//            }
+//        }catch(Exception e) {
+//            return new QueryResultDTO(null, -1, e.getMessage());
+//        }
+//    }
 }
