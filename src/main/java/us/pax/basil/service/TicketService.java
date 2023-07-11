@@ -34,11 +34,11 @@ public interface TicketService extends IService<Integer>{
                                      String createdDate,
                                      String serialNumber,
                                      String customerId);
-    QueryResultDTO querySerialNumberStatus(String serialNumber);
+    //QueryResultDTO querySerialNumberStatus(String serialNumber);
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();
     QueryResultArrayDTO queryRepairType();
-    QueryResultArrayDTO serialNumberQuery(String serialNumber, String repairLog);
-    QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
+    //QueryResultArrayDTO serialNumberQuery(String serialNumber);
+    //QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
 }
