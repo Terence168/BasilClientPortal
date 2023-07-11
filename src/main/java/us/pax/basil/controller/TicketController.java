@@ -85,7 +85,7 @@ public class TicketController {
     public QueryResultArrayDTO statusDropDown(){
         return ticketService.queryStatus();
     }
-    @GetMapping("/dropdown/repairType") //BCP-25
+    @GetMapping("/dropdown/repair_type") //BCP-25
     public QueryResultArrayDTO repairTypeDropDown(){
         return ticketService.queryRepairType();
     }
