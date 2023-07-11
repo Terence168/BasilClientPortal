@@ -1,6 +1,7 @@
 package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.QueryResultDTO;
@@ -11,11 +12,20 @@ import us.pax.basil.service.TicketService;
 import us.pax.basil.utils.AuthUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+
+import java.io.IOException;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
-import java.time.LocalDate;
-import java.time.ZoneId;
+
+import javax.persistence.EntityManager;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Log4j2
 @Service
@@ -269,4 +279,66 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 //            return new QueryResultDTO(null, -1, e.getMessage());
 //        }
 //    }
+
+    @Override
+    public QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName){
+        Workbook workbook=null;
+        Sheet sheet=null;
+        Row row=null;
+
+        fileName = fileName.replaceAll("\\s", "_");
+        fileName = fileName.replaceAll(".xlsx", "");
+
+        /*
+        const newSerial = {
+        cosmetic: false,
+        serialNumber: serialNumber,
+        model: null,
+        version: null,
+        customerReportedIssue: customerReportedIssue,
+        terminalID: terminalID,
+        warrantyExpDate: null,
+        warrantyStatus: null,
+        repairPrice: null,
+        };
+        * */
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();//use to store final result and return to front end
+
+        List<String> serialNumberList = new ArrayList<>();
+        try {
+            workbook = WorkbookFactory.create(file.getInputStream());
+
+
+            for (int i = 0; i < workbook.getNumberOfSheets(); ++i) {
+                sheet = workbook.getSheetAt(i);
+                for (int j = 1; j <= sheet.getLastRowNum(); ++j){
+                    serialNumberList.add(QueryUtils.getCellValue(sheet.getRow(j).getCell(0)));//put serial number into list
+                }
+                //get result from database here
+                for (int j = 1; j <= sheet.getLastRowNum(); ++j) {
+                    row = sheet.getRow(j);
+
+                    if (row == null)
+                        break;
+                    for(int cellIndex = 0; cellIndex<row.getLastCellNum();++cellIndex) {
+                        Map<String, Object> batchDeviceInfo = new HashMap<>();
+                        //add every columns into result array.
+                    }
+                }
+            }
+        }catch(Exception e){
+            String msg = e.getMessage();
+            if (sheet != null && row != null)
+                msg = msg +  " sheet: " + sheet.getSheetName() + ", row: " + row.getRowNum();
+            return null;//todo
+        }finally {
+            try {
+                if (workbook != null)
+                    workbook.close();
+            } catch (IOException e) {
+                return null;//todo
+            }
+        }
+        return null;//todo
+    }
 }
