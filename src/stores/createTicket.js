@@ -3,7 +3,12 @@ import { api } from "boot/axios";
 import { Notify } from "quasar";
 
 export const useCreateTicketStore = defineStore("createTicket", {
-  state: () => ({ orderType: null, trackingNums: [], serials: [] }),
+  state: () => ({
+    orderType: null,
+    orderTypeOpt: null,
+    trackingNums: [],
+    serials: [],
+  }),
 
   getters: {},
 
@@ -14,6 +19,31 @@ export const useCreateTicketStore = defineStore("createTicket", {
 
     deleteTrackingNum(index) {
       this.trackingNums.splice(index, 1);
+    },
+
+    populateOrderTypeOpt(_, update) {
+      if (this.orderType) {
+        update();
+        return;
+      }
+
+      const link = "/ticketing/dropdown/repair_type";
+
+      api
+        .get(link)
+        .then((response) => {
+          update(() => {
+            this.orderTypeOpt = response.data.data;
+          });
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: "Order Type Dropdown cannot be populated",
+          });
+        });
     },
 
     addSerial(serialNumber, customerReportedIssue, terminalID) {

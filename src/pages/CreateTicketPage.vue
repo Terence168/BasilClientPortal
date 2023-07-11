@@ -22,8 +22,11 @@
               style="min-width: 200px"
               label="Please select"
               v-model="orderType"
-              :options="['Option 1', 'Option 2', 'Option 3']"
+              :options="orderTypeOpt"
+              @filter="populateOrderTypeOpt"
               dense
+              emit-value
+              map-options
             >
               <template v-slot:no-option>
                 <q-item>
@@ -36,8 +39,7 @@
           </div>
         </div>
 
-        <div v-if="true" class="row items-center">
-          <!-- re-repair only -->
+        <div v-if="isReRepair" class="row items-center">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
             <q-input style="min-width: 200px" dense />
@@ -161,13 +163,10 @@
 </template>
 
 <script>
-import FilterOptions from "src/components/FilterOptions.vue";
-import GenericTable from "src/components/GenericTable.vue";
-import GenericPagination from "src/components/GenericPagination.vue";
-
 import { useUserStore } from "stores/user";
 import { useCreateTicketStore } from "stores/createTicket";
 import { mapWritableState, mapActions } from "pinia";
+import { mapState } from "pinia";
 
 const user = useUserStore();
 
@@ -182,6 +181,12 @@ export default {
 
   computed: {
     ...mapWritableState(useCreateTicketStore, ["orderType", "trackingNums"]),
+
+    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
+
+    isReRepair() {
+      return this.orderType === 4;
+    },
 
     userName() {
       return user.username || "Guest";
@@ -203,6 +208,7 @@ export default {
       "addTrackingNum",
       "deleteTrackingNum",
       "resetTicket",
+      "populateOrderTypeOpt",
     ]),
   },
 };
