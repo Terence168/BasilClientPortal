@@ -120,7 +120,9 @@
         </div>
 
         <div class="row items-start">
-          <q-btn class="col-auto" color="primary">Add Serial Number</q-btn>
+          <q-btn class="col-auto" color="primary" @click="showModal = true">
+            Add Serial Number
+          </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
           <q-form class="col-auto" @submit="onFileSubmit">
             <div class="row items-start">
@@ -135,6 +137,7 @@
                 label="Upload Excel File"
                 dense
                 counter
+                :disable="fileUploading"
               >
                 <template v-slot:prepend>
                   <q-icon name="attach_file" />
@@ -149,6 +152,7 @@
                 label="Upload"
                 color="primary"
                 style="min-width: 150px"
+                :loading="fileUploading"
               >
                 <template v-slot:loading>
                   <q-spinner-facebook />
@@ -157,8 +161,84 @@
             </div>
           </q-form>
         </div>
+
+        <!-- add serials here -->
+        <TicketSerialsGrid />
       </div>
     </div>
+
+    <BaseModal
+      v-model:show="showModal"
+      title="Add Device to Ticket"
+      :width="500"
+    >
+      <q-form
+        ref="modalForm"
+        @submit.prevent="
+          addSerial(serialNumber, customerReportedIssue, customerTerminalID)
+        "
+      >
+        <q-input
+          class="col q-mb-sm"
+          outlined
+          v-model="serialNumber"
+          label="Serial Number"
+          lazy-rules
+          dense
+          :rules="[
+            (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
+          ]"
+        />
+
+        <q-input
+          class="col q-mt-sm q-mb-sm"
+          outlined
+          autogrow
+          v-model="customerReportedIssue"
+          label="Customer Reported Issue"
+          lazy-rules
+          dense
+          :rules="[
+            (val) =>
+              (val && val.length > 0) ||
+              'Customer Reported Issue cannot be empty',
+          ]"
+        />
+
+        <q-input
+          class="col q-mt-sm q-mb-sm"
+          outlined
+          v-model="customerTerminalID"
+          label="Customer Terminal ID"
+          dense
+        />
+
+        <div class="row justify-center q-mt-md">
+          <div class="col-auto">
+            <q-btn
+              class="q-mr-md"
+              type="submit"
+              label="Add Device"
+              color="primary"
+              style="min-width: 150px"
+            >
+              <template v-slot:loading>
+                <q-spinner-facebook />
+              </template>
+            </q-btn>
+          </div>
+          <div class="col-auto">
+            <q-btn
+              label="Cancel"
+              color="grey-4"
+              text-color="grey-6"
+              style="min-width: 150px"
+              @click="showModal = false"
+            />
+          </div>
+        </div>
+      </q-form>
+    </BaseModal>
   </div>
 </template>
 
@@ -168,14 +248,23 @@ import { useCreateTicketStore } from "stores/createTicket";
 import { mapWritableState, mapActions } from "pinia";
 import { mapState } from "pinia";
 
+import BaseModal from "src/components/BaseModal.vue";
+import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
+
 const user = useUserStore();
 
 export default {
-  components: {},
+  components: { BaseModal, TicketSerialsGrid },
 
   data() {
     return {
       file: null,
+      showModal: false,
+      fileUploading: false,
+
+      serialNumber: null,
+      customerReportedIssue: null,
+      customerTerminalID: null,
     };
   },
 
@@ -209,7 +298,41 @@ export default {
       "deleteTrackingNum",
       "resetTicket",
       "populateOrderTypeOpt",
+      "addSerial",
     ]),
+
+    onFileSubmit(e) {
+      if (!this.file) {
+        return;
+      }
+      this.fileUploading = true;
+      const actionURL = "";
+
+      const formData = new FormData(e.target);
+      formData.append("fileName", this.file ? this.file.name : "");
+
+      const vm = this;
+      this.$api
+        .post(actionURL, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then(function (response) {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+        })
+        .catch((e) => {
+          this.$q.notify({
+            type: "negative",
+            message: e.message,
+          });
+        })
+        .finally(() => {
+          this.fileUploading = false;
+        });
+    },
   },
 };
 </script>

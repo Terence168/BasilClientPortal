@@ -10,7 +10,11 @@ export const useCreateTicketStore = defineStore("createTicket", {
     serials: [],
   }),
 
-  getters: {},
+  getters: {
+    getSerials() {
+      return this.serials.slice().reverse();
+    },
+  },
 
   actions: {
     addTrackingNum() {
