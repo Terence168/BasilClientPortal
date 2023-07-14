@@ -306,7 +306,7 @@ export default {
         return;
       }
       this.fileUploading = true;
-      const actionURL = "";
+      const actionURL = "/ticketing/batchSerialNumberQuery";
 
       const formData = new FormData(e.target);
       formData.append("fileName", this.file ? this.file.name : "");
