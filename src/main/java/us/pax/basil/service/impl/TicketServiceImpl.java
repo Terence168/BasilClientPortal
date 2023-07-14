@@ -12,8 +12,10 @@ import us.pax.basil.service.TicketService;
 import us.pax.basil.utils.AuthUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-
+import us.pax.basil.security.CustomUserDetails;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
@@ -280,49 +282,105 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 //        }
 //    }
 
+
+        /*
+const newSerial = {
+
+serialNumber: serialNumber,
+model: null,
+version: null,
+customerReportedIssue: customerReportedIssue,
+customerRMA: customerRMA,
+terminalID: terminalID,
+warrantyExpDate: null,
+warrantyStatus: null, (e.g. "Out Of Warranty." | "Within Warranty.")
+cosmeticPrice: xxx,
+diagnosticPrice: xxx,
+minorPrice: xxx,
+errorMsg  (e.g. "This device is not a U.S. device."   |   "This device is already in another ticket. Please check again.")
+};
+* */
+
     @Override
     public QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName){
         Workbook workbook=null;
         Sheet sheet=null;
         Row row=null;
-
         fileName = fileName.replaceAll("\\s", "_");
         fileName = fileName.replaceAll(".xlsx", "");
 
-        /*
-        const newSerial = {
-        cosmetic: false,
-        serialNumber: serialNumber,
-        model: null,
-        version: null,
-        customerReportedIssue: customerReportedIssue,
-        terminalID: terminalID,
-        warrantyExpDate: null,
-        warrantyStatus: null,
-        repairPrice: null,
-        };
-        * */
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();//use to store final result and return to front end
+        int totalSerialNumber = 0;
 
-        List<String> serialNumberList = new ArrayList<>();
         try {
             workbook = WorkbookFactory.create(file.getInputStream());
 
-
             for (int i = 0; i < workbook.getNumberOfSheets(); ++i) {
                 sheet = workbook.getSheetAt(i);
-                for (int j = 1; j <= sheet.getLastRowNum(); ++j){
-                    serialNumberList.add(QueryUtils.getCellValue(sheet.getRow(j).getCell(0)));//put serial number into list
-                }
-                //get result from database here
+                totalSerialNumber += sheet.getLastRowNum();
+                //get WARRANTY_DATE, WARRANTY_STATUS, and other columns from database here
                 for (int j = 1; j <= sheet.getLastRowNum(); ++j) {
                     row = sheet.getRow(j);
+                    //dont need another for loop, because I can specify the 3rd and 4th columns into result Array.
 
-                    if (row == null)
+                    if (row == null){
+                        totalSerialNumber--;
                         break;
-                    for(int cellIndex = 0; cellIndex<row.getLastCellNum();++cellIndex) {
-                        Map<String, Object> batchDeviceInfo = new HashMap<>();
-                        //add every columns into result array.
+                    }
+
+                    String currSerialNumber = QueryUtils.getCellValue(sheet.getRow(j).getCell(0));
+                    Device device = ticketMapper.queryDevice(currSerialNumber);//query one serial Number
+
+                    if(device == null){//if is not U.S. based device.
+
+                        Map<String, Object> errorMap = new HashMap<>();
+                        errorMap.put("errorMsg","This device is not a U.S. device.");
+                        resultArray.add(errorMap);
+
+                    }else{
+
+                        String warrantyStatus = QueryUtils.calculateWarrantyStatus((Date) device.getWarrantyExpDate(),(Date)device.getVoidDate(),Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+
+                        if (warrantyStatus != "Under Warranty"){
+
+                            Map<String, Object> errorMap = new HashMap<>();
+                            errorMap.put("errorMsg",warrantyStatus);
+                            resultArray.add(errorMap);
+
+                        }else {
+
+                            warrantyStatus = "Within Warranty.";
+                            Device queryDuplicate = ticketMapper.queryDeviceDuplicate(currSerialNumber);
+
+                            if(queryDuplicate != null){ //means there is duplicate tickets have this serial number
+
+                                Map<String, Object> errorMap = new HashMap<>();
+                                errorMap.put("errorMsg","This device is already in another ticket. Please check again.");
+                                resultArray.add(errorMap);
+
+                            }
+                            else{
+                                CustomUserDetails user = AuthUtil.getUser();
+                                String companyId = String.valueOf(user.getCompanyId());
+                                Device getDevice = ticketMapper.queryDeviceInfo(currSerialNumber,companyId);
+                                for(int cellIndex = 0; cellIndex<row.getLastCellNum();++cellIndex) {
+                                    Map<String, Object> batchDeviceInfo = new HashMap<>();
+                                    batchDeviceInfo.put("serialNumber",currSerialNumber);
+                                    batchDeviceInfo.put("model",getDevice.getModel());
+                                    batchDeviceInfo.put("version",getDevice.getVersion());
+                                    batchDeviceInfo.put("customerReportedIssue",QueryUtils.getCellValue(sheet.getRow(j).getCell(1)));
+                                    batchDeviceInfo.put("customerRMA",QueryUtils.getCellValue(sheet.getRow(j).getCell(1)));
+                                    batchDeviceInfo.put("terminalID",QueryUtils.getCellValue(sheet.getRow(j).getCell(3)));
+                                    batchDeviceInfo.put("warrantyExpDate",getDevice.getWarrantyExpDate());
+                                    batchDeviceInfo.put("warrantyExpDate",warrantyStatus);
+                                    batchDeviceInfo.put("cosmeticPrice",getDevice.getCosmeticPrice());
+                                    batchDeviceInfo.put("diagnosticPrice",getDevice.getDiagnosticPrice());
+                                    batchDeviceInfo.put("minorPrice",getDevice.getMinorPrice());
+                                    batchDeviceInfo.put("errorMsg","");
+                                    resultArray.add(batchDeviceInfo);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -330,15 +388,15 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             String msg = e.getMessage();
             if (sheet != null && row != null)
                 msg = msg +  " sheet: " + sheet.getSheetName() + ", row: " + row.getRowNum();
-            return null;//todo
+            return new QueryResultArrayDTO(null,0,-1,msg);
         }finally {
             try {
                 if (workbook != null)
                     workbook.close();
             } catch (IOException e) {
-                return null;//todo
+                return new QueryResultArrayDTO(null,0,-1,e.getMessage());
             }
         }
-        return null;//todo
+        return new QueryResultArrayDTO(resultArray,totalSerialNumber,0,"");
     }
 }

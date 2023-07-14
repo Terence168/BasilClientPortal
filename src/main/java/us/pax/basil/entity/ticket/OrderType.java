@@ -9,6 +9,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain =  true)
 @ApiModel(value = "OrderType Object", description = "")
 public class OrderType {
+
     private Integer id;
+
     private String OrderType;
 }

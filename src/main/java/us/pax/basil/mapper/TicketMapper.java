@@ -38,5 +38,9 @@ public interface TicketMapper extends BaseMapper<Integer> {
     /*
     queryDeviceBase is used to query if this device is U.S. based. If not, alert the front-end, otherwise, check if within warranty or another ticket.
      */
+    Device queryDevice(String serialNumber);
+    Device queryDeviceDuplicate(String serialNumber);
+
+    Device queryDeviceInfo(String currSerialNumber, String companyId);
 
 }

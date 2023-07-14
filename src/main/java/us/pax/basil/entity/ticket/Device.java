@@ -12,13 +12,25 @@ import java.util.Date;
 @Accessors(chain =  true)
 @ApiModel(value = "Device Object", description = "")
 public class Device {
+
     String serialNumber;
+
     Date voidDate;
-    Date endDate;
+
+    Date warrantyExpDate;
+
     String model;
+
     String version;
-    String reportIssue;
-    String warrantyExpDate;
+
+    String customerReportedIssue;
+
     String warrantyStatus;
+
+    Integer cosmeticPrice;
+
+    Integer diagnosticPrice;
+
+    Integer minorPrice;
 
 }
