@@ -331,10 +331,11 @@ errorMsg  (e.g. "This device is not a U.S. device."   |   "This device is alread
                     String currSerialNumber = QueryUtils.getCellValue(sheet.getRow(j).getCell(0));
                     Device device = ticketMapper.queryDevice(currSerialNumber);//query one serial Number
 
-                    if(device == null){//if is not U.S. based device.
+                    if(device.getSerialNumber() == null){//if is not U.S. based device.
 
                         Map<String, Object> errorMap = new HashMap<>();
                         errorMap.put("errorMsg","This device is not a U.S. device.");
+                        errorMap.put("serialNumber", currSerialNumber);
                         resultArray.add(errorMap);
 
                     }else{
@@ -345,6 +346,7 @@ errorMsg  (e.g. "This device is not a U.S. device."   |   "This device is alread
 
                             Map<String, Object> errorMap = new HashMap<>();
                             errorMap.put("errorMsg",warrantyStatus);
+                            errorMap.put("serialNumber", currSerialNumber);
                             resultArray.add(errorMap);
 
                         }else {
@@ -352,10 +354,11 @@ errorMsg  (e.g. "This device is not a U.S. device."   |   "This device is alread
                             warrantyStatus = "Within Warranty.";
                             Device queryDuplicate = ticketMapper.queryDeviceDuplicate(currSerialNumber);
 
-                            if(queryDuplicate != null){ //means there is duplicate tickets have this serial number
+                            if(queryDuplicate!= null){ //means there is duplicate tickets have this serial number
 
                                 Map<String, Object> errorMap = new HashMap<>();
                                 errorMap.put("errorMsg","This device is already in another ticket. Please check again.");
+                                errorMap.put("serialNumber", currSerialNumber);
                                 resultArray.add(errorMap);
 
                             }
@@ -363,22 +366,21 @@ errorMsg  (e.g. "This device is not a U.S. device."   |   "This device is alread
                                 CustomUserDetails user = AuthUtil.getUser();
                                 String companyId = String.valueOf(user.getCompanyId());
                                 Device getDevice = ticketMapper.queryDeviceInfo(currSerialNumber,companyId);
-                                for(int cellIndex = 0; cellIndex<row.getLastCellNum();++cellIndex) {
-                                    Map<String, Object> batchDeviceInfo = new HashMap<>();
-                                    batchDeviceInfo.put("serialNumber",currSerialNumber);
-                                    batchDeviceInfo.put("model",getDevice.getModel());
-                                    batchDeviceInfo.put("version",getDevice.getVersion());
-                                    batchDeviceInfo.put("customerReportedIssue",QueryUtils.getCellValue(sheet.getRow(j).getCell(1)));
-                                    batchDeviceInfo.put("customerRMA",QueryUtils.getCellValue(sheet.getRow(j).getCell(1)));
-                                    batchDeviceInfo.put("terminalID",QueryUtils.getCellValue(sheet.getRow(j).getCell(3)));
-                                    batchDeviceInfo.put("warrantyExpDate",getDevice.getWarrantyExpDate());
-                                    batchDeviceInfo.put("warrantyExpDate",warrantyStatus);
-                                    batchDeviceInfo.put("cosmeticPrice",getDevice.getCosmeticPrice());
-                                    batchDeviceInfo.put("diagnosticPrice",getDevice.getDiagnosticPrice());
-                                    batchDeviceInfo.put("minorPrice",getDevice.getMinorPrice());
-                                    batchDeviceInfo.put("errorMsg","");
-                                    resultArray.add(batchDeviceInfo);
-                                }
+
+                                Map<String, Object> batchDeviceInfo = new HashMap<>();
+                                batchDeviceInfo.put("serialNumber",currSerialNumber);
+                                batchDeviceInfo.put("model",getDevice.getModel());
+                                batchDeviceInfo.put("version",getDevice.getVersion());
+                                batchDeviceInfo.put("customerReportedIssue",QueryUtils.getCellValue(sheet.getRow(j).getCell(1)));
+                                batchDeviceInfo.put("customerRMA",QueryUtils.getCellValue(sheet.getRow(j).getCell(2)));
+                                batchDeviceInfo.put("terminalID",QueryUtils.getCellValue(sheet.getRow(j).getCell(3)));
+                                batchDeviceInfo.put("warrantyExpDate",getDevice.getWarrantyExpDate());
+                                batchDeviceInfo.put("warrantyStatus",warrantyStatus);
+                                batchDeviceInfo.put("cosmeticPrice",getDevice.getCosmeticPrice());
+                                batchDeviceInfo.put("diagnosticPrice",getDevice.getDiagnosticPrice());
+                                batchDeviceInfo.put("minorPrice",getDevice.getMinorPrice());
+                                batchDeviceInfo.put("errorMsg","");
+                                resultArray.add(batchDeviceInfo);
                             }
                         }
                     }

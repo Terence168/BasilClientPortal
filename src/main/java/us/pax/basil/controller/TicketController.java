@@ -46,7 +46,8 @@ public class TicketController {
     @PostMapping("/batchSerialNumberQuery")//BCP-25
     //upload Excel file, process serial number by batch processing.
     public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
-                                                      @RequestParam("fileName") String fileName){
+                                                       @RequestParam("fileName") String fileName
+                                                      ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
 //    @PostMapping("submitTicket")//BCP-25
