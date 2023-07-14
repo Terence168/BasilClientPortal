@@ -173,14 +173,13 @@
         ORDER BY
             scav.SORT_ORDER ASC
     </select>
-<!--
+
     <select id = "queryDevice" resultType = "us.pax.basil.entity.ticket.Device">
         SELECT
             msn.WARRANTY_VOIDED_DATE as voidDate,
             msn.WARRANTY_END_DATE as endDate
         FROM
             BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
-            JOIN BASIL_
         <where>
             <if test="serialNumber != null">
                 msn.SERIAL_NUMBER = #{serialNumber}
@@ -196,7 +195,7 @@
             <if test="serialNumber != null">
                 msn.SERIAL_NUMBER = #{serialNumber}
             </if>
-            AND pxm.STATUS = 113
+            AND pxm.STATUS != 113
         </where>
 
         UNION
@@ -208,8 +207,38 @@
             <if test="serialNumber != null">
                 msn.SERIAL_NUMBER = #{serialNumber}
             </if>
-            AND xm.STATUS = 113
+            AND xm.STATUS != 113
         </where>
     </select>
--->
+
+
+
+    <select id="queryDeviceInfo" resultType = "us.pax.basil.entity.ticket.Device">
+        SELECT
+            hpcf.SN as serialNumber,
+            hpcf.`Full_PN#` as model,
+            hpcf.`Version_#` as version,
+            msn.WARRANTY_END_DATE as warrantyExpDate,
+            rc.PART_NUMBER_SHORT,
+            rc.CUSTOMER AS COMPANY,
+            rc.COSMETIC as cosmeticPrice,
+            rc.DIAGNOSTIC as diagnosticPrice,
+            rc.MINOR as minorPrice
+        FROM
+            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+            JOIN BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = msn.SERIAL_NUMBER
+            JOIN BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(hpcf.`Full_PN#`, LOCATE('-', hpcf.`Full_PN#`) - 1) = rc.PART_NUMBER_SHORT
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+            <if test="companyId != null">
+                AND (rc.CUSTOMER = #{companyId} OR rc.CUSTOMER IS NULL)
+            </if>
+        </where>
+        <if test="companyId != null">
+            ORDER BY rc.CUSTOMER DESC
+        </if>
+        LIMITED 1;
+    </select>
 </mapper>

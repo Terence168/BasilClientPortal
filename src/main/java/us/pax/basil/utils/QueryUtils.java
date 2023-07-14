@@ -472,4 +472,36 @@ public class QueryUtils {
         }
         return false;
     }
+
+    //
+    // calculateWarrantyStatus()
+    //
+    // Rules:
+    //	- If WARRANTY_VOIDED_DATE is populated, we use this date instead of WARRANTY_END_DATE.
+    //	- If WARRANTY_END_DATE or WARRANTY_VOIDED_DATE > ORDER_DATE, device is Under Warranty.
+    //	- If WARRANTY_END_DATE or WARRANTY_VOIDED_DATE < ORDER_DATE, device is Out of Warranty.
+    //	- If WARRANTY_END_DATE and WARRANTY_VOIDED_DATE = NULL, please display “N/A”
+    //	- If ORDER_DATE = NULL, please display “Order Date Missing”
+    //
+    public static String calculateWarrantyStatus(Date endDate, Date voidDate, Date orderDate) {
+        String warrantyStatus;
+        Date warrantyDate;
+
+        if (endDate == null && voidDate == null) {
+            warrantyStatus = "N/A";
+        } else if (orderDate == null) {
+            warrantyStatus = "Order Date Missing";
+        } else {
+            if (voidDate != null)
+                warrantyDate = voidDate;
+            else
+                warrantyDate = endDate;
+
+            if (warrantyDate.compareTo(orderDate) > 0)
+                warrantyStatus = "Under Warranty";
+            else
+                warrantyStatus = "Out Of Warranty";
+        }
+        return warrantyStatus;
+    }
 }
