@@ -176,8 +176,9 @@
 
     <select id = "queryDevice" resultType = "us.pax.basil.entity.ticket.Device">
         SELECT
+            msn.WARRANTY_END_DATE as warrantyExpDate,
             msn.WARRANTY_VOIDED_DATE as voidDate,
-            msn.WARRANTY_END_DATE as endDate
+            msn.SERIAL_NUMBER as serialNumber
         FROM
             BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
         <where>
@@ -188,7 +189,7 @@
     </select>
 
     <select id="queryDeviceDuplicate" resultType="us.pax.basil.entity.ticket.Device">
-        SELECT msn.MSN_OID as masterSerialNumber
+        SELECT msn.SERIAL_NUMBER as serialNumber
         FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
         JOIN BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
         <where>
@@ -200,7 +201,7 @@
 
         UNION
 
-        SELECT msn.MSN_OID as masterSerialNumber
+        SELECT msn.SERIAL_NUMBER as serialNumber
         FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
         JOIN BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
         <where>
@@ -239,6 +240,8 @@
         <if test="companyId != null">
             ORDER BY rc.CUSTOMER DESC
         </if>
-        LIMITED 1;
+        LIMIT 1;
     </select>
 </mapper>
+
+
