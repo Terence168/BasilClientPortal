@@ -271,7 +271,7 @@
             rc.COSMETIC AS cosmeticPrice,
             rc.DIAGNOSTIC AS diagnosticPrice,
             rc.MINOR AS minorPrice,
-            IF(xm.XM_OID IS NULL OR xm.STATUS = 113, 'No', 'another ticket have it :(') AS existInAnotherTicket
+            IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE) AS existInAnotherTicket
         FROM
             BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
         LEFT JOIN
