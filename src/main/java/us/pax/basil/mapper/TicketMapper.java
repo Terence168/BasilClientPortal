@@ -43,4 +43,6 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     Device queryDeviceInfo(String serialNumber, String companyId);
 
+    List<String> findUSBasedDevices(List<String> serialNumbersInFile);
+    List<Device> getDeviceInfos(List<String> usBasedDevices, String companyId);
 }
