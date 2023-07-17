@@ -252,54 +252,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         return output;
     }
 
-//    @Override
-//    public QueryResultDTO querySerialNumberStatus(String serialNumber){
-//        try{
-//            Device device = ticketMapper.queryDevice(serialNumber);
-//            if(device == null){
-//                //if is not U.S. based device.
-//                return new QueryResultDTO(null,  -1, "This device is not a U.S. device.");
-//            }else{
-//                String warrantyStatus = QueryUtils.calculateWarrantyStatus((Date) device.getEndDate(),(Date)device.getVoidDate(),Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()));
-//                if (warrantyStatus == "Out Of Warranty"){
-//                    return new QueryResultDTO(null, -1, "This device is out of warranty.");
-//                }else {
-//                    Device queryDuplicate = ticketMapper.queryDeviceDuplicate(serialNumber);
-//                    if(queryDuplicate != null){ //means there is duplicate tickets have this serial number
-//                        return new QueryResultDTO(null, -1, "This device is already in another ticket. Please check again");
-//                    }
-//                    else{
-//                        Map<String, Object> result = new HashMap<>();
-//                        result.put("voidDate",device.getVoidDate());
-//
-//                        //check if it is within another ticket. compared with ship date.
-//                        return new QueryResultDTO(result, -1, "This device is in another open ticket.");
-//                    }
-//                }
-//            }
-//        }catch(Exception e) {
-//            return new QueryResultDTO(null, -1, e.getMessage());
-//        }
-//    }
-
-
-        /*
-const newSerial = {
-
-serialNumber: serialNumber,
-model: null,
-version: null,
-customerReportedIssue: customerReportedIssue,
-customerRMA: customerRMA,
-terminalID: terminalID,
-warrantyExpDate: null,
-warrantyStatus: null, (e.g. "Out Of Warranty." | "Within Warranty.")
-cosmeticPrice: xxx,
-diagnosticPrice: xxx,
-minorPrice: xxx,
-errorMsg  (e.g. "This device is not a U.S. device."   |   "This device is already in another ticket. Please check again.")
-};
-* */
 
     @Override
     public QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName){
@@ -387,12 +339,29 @@ errorMsg  (e.g. "This device is not a U.S. device."   |   "This device is alread
             batchDeviceInfo.put("diagnosticPrice",d.getDiagnosticPrice());
             batchDeviceInfo.put("minorPrice",d.getMinorPrice());
             batchDeviceInfo.put("existInAnotherTicket",d.getExistInAnotherTicket());
-            if(!d.getExistInAnotherTicket().equals("No"))
+            if(d.getExistInAnotherTicket()==true)
                 errorMsg = "This device has already existed in another active ticket.";
             batchDeviceInfo.put("errorMsg",errorMsg);
             resultArray.add(batchDeviceInfo);
         }
+        /*
+const newSerial = {
 
+serialNumber: serialNumber,
+model: null,
+version: null,
+customerReportedIssue: customerReportedIssue,
+customerRMA: customerRMA,
+terminalID: terminalID,
+warrantyExpDate: null,
+warrantyStatus: null, (e.g. "Out Of Warranty." | "Within Warranty.")
+cosmeticPrice: xxx,
+diagnosticPrice: xxx,
+minorPrice: xxx,
+existInAnotherTicket: No/Another ticket have it :(
+errorMsg
+};
+* */
 
 
         return new QueryResultArrayDTO(resultArray,totalSerialNumber,0,"");
