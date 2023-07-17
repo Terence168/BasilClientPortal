@@ -242,6 +242,65 @@
         </if>
         LIMIT 1;
     </select>
+
+
+    <select id="findUSBasedDevices" parameterType="java.util.List" resultType="java.lang.String">
+        SELECT msn.SERIAL_NUMBER
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        WHERE msn.SERIAL_NUMBER IN
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item, jdbcType=INTEGER}
+        </foreach>
+    </select>
+
+
+    <select id="getDeviceInfos" parameterType="java.util.List" resultType="us.pax.basil.entity.ticket.Device">
+        SELECT
+            msn.SERIAL_NUMBER,
+            CASE
+                WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN msn.WARRANTY_VOIDED_DATE
+                ELSE msn.WARRANTY_END_DATE
+            END AS warrantyExpDate,
+            CASE
+                WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+                WHEN CURRENT_DATE <![CDATA[<]]> COALESCE (msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+                ELSE 'Out Of Warranty'
+            END AS warrantyStatus,
+            mp.PART_NUMBER_LONG AS model,
+            mp.VERSION_NUMBER AS version,
+            rc.COSMETIC AS cosmeticPrice,
+            rc.DIAGNOSTIC AS diagnosticPrice,
+            rc.MINOR AS minorPrice,
+            IF(xm.XM_OID IS NULL OR xm.STATUS = 113, 'No', 'another ticket have it :(') AS existInAnotherTicket
+        FROM
+            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        LEFT JOIN
+            BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
+        LEFT JOIN
+            BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+        LEFT JOIN
+            BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) = rc.PART_NUMBER_SHORT
+        <where>
+            msn.SERIAL_NUMBER IN
+            <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
+                #{item, jdbcType=INTEGER}
+            </foreach>
+            AND (
+                rc.CUSTOMER = #{companyId} OR
+                (
+                    rc.CUSTOMER IS NULL AND
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM BASIL_SBX_PRD.REPAIR_COST rc2
+                        WHERE rc2.PART_NUMBER_SHORT = rc.PART_NUMBER_SHORT
+                        <if test="companyId != null">
+                            AND rc2.CUSTOMER = #{companyId}
+                        </if>
+                    )
+                )
+            );
+        </where>
+    </select>
 </mapper>
 
 

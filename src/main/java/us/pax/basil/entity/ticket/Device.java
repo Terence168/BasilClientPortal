@@ -31,6 +31,8 @@ public class Device {
 
     Integer diagnosticPrice;
 
+    String existInAnotherTicket;
+
     Integer minorPrice;
 
 }
