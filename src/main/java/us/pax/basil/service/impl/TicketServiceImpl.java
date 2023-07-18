@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -12,22 +11,17 @@ import us.pax.basil.service.TicketService;
 import us.pax.basil.utils.AuthUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import us.pax.basil.security.CustomUserDetails;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
 
 import javax.persistence.EntityManager;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+
 
 @Log4j2
 @Service
@@ -154,10 +148,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     log.warn("Ignoring invalid sort field: {}", col);
                     continue;
             }
-
             sb.append(col).append(",");
         }
-
         if (sb.length() != 0) {
             sb.deleteCharAt(sb.length() - 1); // remove the comma at the end of the sort string
         }
@@ -209,10 +201,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
             for (Status status: statusList) {
                 Map<String, Object> mm = new LinkedHashMap<String, Object>();
-
                 mm.put(DropDownConstant.DROPDOWN_VALUE, status.getId());
                 mm.put(DropDownConstant.DROPDOWN_LABEL, status.getStatus());
-
                 jsonArray.add(mm);
             }
             return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
@@ -227,10 +217,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
             for (RepairType rt: repairTypeList) {
                 Map<String, Object> mm = new LinkedHashMap<String, Object>();
-
                 mm.put(DropDownConstant.DROPDOWN_VALUE, rt.getId());
                 mm.put(DropDownConstant.DROPDOWN_LABEL, rt.getRepairType());
-
                 jsonArray.add(mm);
             }
             return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
@@ -248,7 +236,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 output[i] = output[i].trim();
             }
         }
-
         return output;
     }
 
@@ -260,22 +247,19 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         Row row=null;
         fileName = fileName.replaceAll("\\s", "_");
         fileName = fileName.replaceAll(".xlsx", "");
-
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();//use to store final result and return to front end
         int totalSerialNumber = 0;
         List<String> serialNumbersInFile = new ArrayList<>();
         HashMap<String,String[]> deviceInfoMap = new HashMap<>();
+
         try {
             workbook = WorkbookFactory.create(file.getInputStream());
-
             for (int i = 0; i < workbook.getNumberOfSheets(); ++i) {
                 sheet = workbook.getSheetAt(i);
                 totalSerialNumber += sheet.getLastRowNum();
                 //get WARRANTY_DATE, WARRANTY_STATUS, and other columns from database here
                 for (int j = 1; j <= sheet.getLastRowNum(); ++j) {
                     row = sheet.getRow(j);
-                    //dont need another for loop, because I can specify the 3rd and 4th columns into result Array.
-
                     if (row == null) {
                         totalSerialNumber--;
                         break;
@@ -302,11 +286,55 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 return new QueryResultArrayDTO(null,0,-1,e.getMessage());
             }
         }
+        resultArray = getResult(serialNumbersInFile, deviceInfoMap);
+//        List<String> usBasedDevices = ticketMapper.findUSBasedDevices(serialNumbersInFile);
+//        List<String> notUSBasedDevices = new ArrayList<>();
+//        for(String s: serialNumbersInFile){
+//            if(!usBasedDevices.contains(s)){
+//                notUSBasedDevices.add(s);
+//            }
+//        }
+//
+//        for(String nus: notUSBasedDevices){
+//            Map<String, Object> batchDeviceInfo = new HashMap<>();
+//            batchDeviceInfo.put("serialNumber", nus);
+//            batchDeviceInfo.put("errorMsg","This is not a U.S.Device or you input the wrong Serial Number.");
+//            resultArray.add(batchDeviceInfo);
+//        }
+//        CustomUserDetails user = AuthUtil.getUser();
+//        String companyId = String.valueOf(user.getCompanyId());
+//        List<Device> getDevice = ticketMapper.getDeviceInfos(usBasedDevices,companyId);
+//        for(Device d : getDevice){
+//            Map<String, Object> batchDeviceInfo = new HashMap<>();
+//            String errorMsg = "";
+//            String curSN = d.getSerialNumber();
+//            batchDeviceInfo.put("serialNumber",curSN);
+//            batchDeviceInfo.put("model",d.getModel());
+//            batchDeviceInfo.put("version",d.getVersion());
+//            batchDeviceInfo.put("customerReportedIssue",deviceInfoMap.get(curSN)[0]);
+//            batchDeviceInfo.put("customerRMA",deviceInfoMap.get(curSN)[1]);
+//            batchDeviceInfo.put("terminalID",deviceInfoMap.get(curSN)[2]);
+//            batchDeviceInfo.put("warrantyExpDate",d.getWarrantyExpDate());
+//            batchDeviceInfo.put("warrantyStatus",d.getWarrantyStatus());
+//            if(!d.getWarrantyStatus().equals("Under Warranty"))
+//                errorMsg = d.getWarrantyStatus();
+//            batchDeviceInfo.put("cosmeticPrice",d.getCosmeticPrice());
+//            batchDeviceInfo.put("diagnosticPrice",d.getDiagnosticPrice());
+//            batchDeviceInfo.put("minorPrice",d.getMinorPrice());
+//            batchDeviceInfo.put("existInAnotherTicket",d.getExistInAnotherTicket());
+//            if(d.getExistInAnotherTicket()==true)
+//                errorMsg = "This device has already existed in another active ticket.";
+//            batchDeviceInfo.put("errorMsg",errorMsg);
+//            resultArray.add(batchDeviceInfo);
+//        }
+        return new QueryResultArrayDTO(resultArray,totalSerialNumber,0,"");
+    }
 
-
-        List<String> usBasedDevices = ticketMapper.findUSBasedDevices(serialNumbersInFile);
+    private ArrayList<Map<String, Object>> getResult(List<String> serialNumberList, HashMap<String,String[]> deviceInfoMap){
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        List<String> usBasedDevices = ticketMapper.findUSBasedDevices(serialNumberList);
         List<String> notUSBasedDevices = new ArrayList<>();
-        for(String s: serialNumbersInFile){
+        for(String s: serialNumberList){
             if(!usBasedDevices.contains(s)){
                 notUSBasedDevices.add(s);
             }
@@ -344,26 +372,20 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("errorMsg",errorMsg);
             resultArray.add(batchDeviceInfo);
         }
-        /*
-const newSerial = {
-
-serialNumber: serialNumber,
-model: null,
-version: null,
-customerReportedIssue: customerReportedIssue,
-customerRMA: customerRMA,
-terminalID: terminalID,
-warrantyExpDate: null,
-warrantyStatus: null, (e.g. "Out Of Warranty." | "Within Warranty.")
-cosmeticPrice: xxx,
-diagnosticPrice: xxx,
-minorPrice: xxx,
-existInAnotherTicket: No/Another ticket have it :(
-errorMsg
-};
-* */
-
-
-        return new QueryResultArrayDTO(resultArray,totalSerialNumber,0,"");
+        return resultArray;
+    }
+    @Override
+    public QueryResultArrayDTO serialNumberQuery(String serialNumber, String customerReportedIssue, String terminalID, String customerRMA){
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();//use to store final result and return to front end
+        List<String> serialNumbersInFile = new ArrayList<>();
+        HashMap<String,String[]> deviceInfoMap = new HashMap<>();
+        serialNumbersInFile.add(serialNumber);
+        String[] temp = new String[3];
+        temp[0] = customerReportedIssue; //customer reported issue
+        temp[1] = customerRMA; // customer RMA
+        temp[2] = terminalID; //terminalID
+        deviceInfoMap.put(serialNumber,temp);
+        resultArray = getResult(serialNumbersInFile,deviceInfoMap);
+        return new QueryResultArrayDTO(resultArray,1,0,"");
     }
 }

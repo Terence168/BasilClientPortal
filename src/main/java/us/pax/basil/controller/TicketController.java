@@ -37,12 +37,15 @@ public class TicketController {
     @Autowired
     private TicketService ticketService;
     private EntityManager entityManager;
-//    @PostMapping("/serialNumberUpdate")//BCP-25
-//    //search serial number and return device information and repair price.
-//    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber
-//                                                  ){
-//        return ticketService.serialNumberQuery(serialNumber);
-//    }
+    @GetMapping("/serialNumberUpdate")//BCP-25
+    //search serial number and return device information and repair price.
+    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber,
+                                                  @RequestParam(value = "customerReportedIssue", required = true) String customerReportedIssue,
+                                                  @RequestParam(value = "terminalID", required = false) String terminalID,
+                                                  @RequestParam(value = "customerRMA", required = false) String customerRMA
+                                                  ){
+        return ticketService.serialNumberQuery(serialNumber,customerReportedIssue,terminalID, customerRMA);
+    }
     @PostMapping("/batchSerialNumberQuery")//BCP-25
     //upload Excel file, process serial number by batch processing.
     public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,

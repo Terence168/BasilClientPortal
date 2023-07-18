@@ -2,9 +2,7 @@ package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.QueryResultDTO;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.persistence.EntityManager;
 
 /***
@@ -34,11 +32,10 @@ public interface TicketService extends IService<Integer>{
                                      String createdDate,
                                      String serialNumber,
                                      String customerId);
-    //QueryResultDTO querySerialNumberStatus(String serialNumber);
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();
     QueryResultArrayDTO queryRepairType();
-    //QueryResultArrayDTO serialNumberQuery(String serialNumber);
     QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
+    QueryResultArrayDTO serialNumberQuery(String serialNumber, String customerReportedIssue, String terminalID, String customerRMA);
 }
