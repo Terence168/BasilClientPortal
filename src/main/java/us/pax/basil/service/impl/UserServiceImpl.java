@@ -107,12 +107,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	        user.setToken(token);
 	        user.setTokenExp(new Timestamp(System.currentTimeMillis() + PasswordConstant.EXPIRATION));
 
-	        //
-	        // Need to manually set it to 0 because running on Linux results with the id field having a 
-	        // a value larger than INT
-	        //
-	        user.setId(0);
+            if (user.getCompanyId() == null) {
+                user.setCompanyId(178); // Default to PAX US
+            }
+            
 	        userMapper.addUser(user);
+            
+            System.out.println("newUserId: " + user.getId());
 	        
             for (Integer i: user.getRoles()) {
                 privilegeMapper.addUserRole(user.getId(), i);
