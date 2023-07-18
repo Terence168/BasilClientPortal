@@ -322,6 +322,7 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
+          vm.file = null;
         })
         .catch((e) => {
           this.$q.notify({
