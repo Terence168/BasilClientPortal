@@ -3,7 +3,7 @@
     <q-card :style="`width: ${width}px; max-width: 80vw; overflow: hidden`">
       <q-toolbar class="bg-primary text-white">
         <q-toolbar-title>{{ title }}</q-toolbar-title>
-
+        <!-- Button to remove the BaseModal -->
         <q-btn
           flat
           round

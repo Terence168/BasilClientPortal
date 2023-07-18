@@ -18,16 +18,8 @@
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Order Type:&nbsp;</div>
           <div class="col-auto">
-            <q-select
-              style="min-width: 200px"
-              label="Please select"
-              v-model="orderType"
-              :options="orderTypeOpt"
-              @filter="populateOrderTypeOpt"
-              dense
-              emit-value
-              map-options
-            >
+            <q-select style="min-width: 200px" label="Please select" v-model="orderType" :options="orderTypeOpt"
+              @filter="populateOrderTypeOpt" dense emit-value map-options>
               <template v-slot:no-option>
                 <q-item>
                   <q-item-section class="text-grey">
@@ -46,73 +38,37 @@
           </div>
         </div>
 
+        <!-- Add ticket  -->
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Organization:&nbsp;</div>
           <div class="col-auto">
-            <q-input
-              :model-value="companyName"
-              disable
-              style="min-width: 200px"
-              dense
-            />
+            <q-input :model-value="companyName" disable style="min-width: 200px" dense />
           </div>
         </div>
 
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Email:&nbsp;</div>
           <div class="col-auto">
-            <q-input
-              :model-value="userEmail"
-              disable
-              style="min-width: 200px"
-              dense
-            />
+            <q-input :model-value="userEmail" disable style="min-width: 200px" dense />
           </div>
         </div>
 
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Ticket Submitter:&nbsp;</div>
           <div class="col-auto">
-            <q-input
-              :model-value="userName"
-              disable
-              style="min-width: 200px"
-              dense
-            />
+            <q-input :model-value="userName" disable style="min-width: 200px" dense />
           </div>
         </div>
 
         <div class="row q-my-sm items-center">
           <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
           <div class="col">
-            <q-btn
-              label="Add"
-              outline
-              rounded
-              color="primary"
-              @click="addTrackingNum"
-            />
+            <q-btn label="Add" outline rounded color="primary" @click="addTrackingNum" />
           </div>
         </div>
-        <div
-          v-for="(trackingNum, index) in trackingNums"
-          :key="index"
-          class="row q-mb-sm items-center"
-        >
-          <q-input
-            class="q-mr-sm"
-            v-model="trackingNums[index]"
-            style="min-width: 300px"
-            dense
-            outlined
-          />
-          <q-btn
-            label="Remove"
-            outline
-            rounded
-            color="primary"
-            @click="deleteTrackingNum(index)"
-          />
+        <div v-for="(trackingNum, index) in trackingNums" :key="index" class="row q-mb-sm items-center">
+          <q-input class="q-mr-sm" v-model="trackingNums[index]" style="min-width: 300px" dense outlined />
+          <q-btn label="Remove" outline rounded color="primary" @click="deleteTrackingNum(index)" />
         </div>
 
         <div class="q-py-md text-subtitle1 text-weight-bold">
@@ -120,25 +76,16 @@
         </div>
 
         <div class="row items-start">
+          <!-- Add Serial Number -->
           <q-btn class="col-auto" color="primary" @click="showModal = true">
             Add Serial Number
           </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
+          <!-- Upload file -->
           <q-form class="col-auto" @submit="onFileSubmit">
             <div class="row items-start">
-              <q-file
-                style="min-width: 250px"
-                name="file"
-                class="col q-mr-sm"
-                clearable
-                bottom-slots
-                outlined
-                v-model="file"
-                label="Upload Excel File"
-                dense
-                counter
-                :disable="fileUploading"
-              >
+              <q-file style="min-width: 250px" name="file" class="col q-mr-sm" clearable bottom-slots outlined
+                v-model="file" label="Upload Excel File" dense counter :disable="fileUploading">
                 <template v-slot:prepend>
                   <q-icon name="attach_file" />
                 </template>
@@ -146,14 +93,8 @@
                 <template v-slot:hint> Allowed file format: .xlsx </template>
               </q-file>
 
-              <q-btn
-                class="col"
-                type="submit"
-                label="Upload"
-                color="primary"
-                style="min-width: 150px"
-                :loading="fileUploading"
-              >
+              <q-btn class="col" type="submit" label="Upload" color="primary" style="min-width: 150px"
+                :loading="fileUploading">
                 <template v-slot:loading>
                   <q-spinner-facebook />
                 </template>
@@ -163,82 +104,43 @@
         </div>
 
         <!-- add serials here -->
-        <TicketSerialsGrid />
+        <TicketSerialsGrid  @updateSerial="handleUpdateSerial"/>
       </div>
     </div>
 
-    <BaseModal
-      v-model:show="showModal"
-      title="Add Device to Ticket"
-      :width="500"
-    >
-      <q-form
-        ref="modalForm"
-        @submit.prevent="
-          addSerial(serialNumber, customerReportedIssue, customerTerminalID)
-        "
-      >
-        <q-input
-          class="col q-mb-sm"
-          outlined
-          v-model="serialNumber"
-          label="Serial Number"
-          lazy-rules
-          dense
-          :rules="[
+    <!-- Pop-up window: add or Update Device to Ticket Window -->
+    <BaseModal v-model:show="showModal" v-bind:title="modalState.title" :width="500" @update:show="resetModalState">
+      <q-form ref="modalForm" @submit.prevent="handleSubmitSerialForm">
+        <q-input class="col q-mb-sm" outlined v-model="modalState.serialData.serialNumber" label="Serial Number" lazy-rules
+          dense :rules="[
             (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
-          ]"
-        />
-
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          autogrow
-          v-model="customerReportedIssue"
-          label="Customer Reported Issue"
-          lazy-rules
-          dense
-          :rules="[
+          ]" />
+        <q-input class="col q-mt-sm q-mb-sm" outlined autogrow v-model="modalState.serialData.customerReportedIssue"
+          label="Customer Reported Issue" lazy-rules dense :rules="[
             (val) =>
               (val && val.length > 0) ||
               'Customer Reported Issue cannot be empty',
-          ]"
-        />
-
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          v-model="customerTerminalID"
-          label="Customer Terminal ID"
-          dense
-        />
-
+          ]" />
+        <q-input class="col q-mt-sm q-mb-sm" outlined v-model="modalState.serialData.terminalID" label="Customer Terminal ID"
+          dense />
         <div class="row justify-center q-mt-md">
           <div class="col-auto">
-            <q-btn
-              class="q-mr-md"
-              type="submit"
-              label="Add Device"
-              color="primary"
-              style="min-width: 150px"
-            >
+            <!-- submit Button -->
+            <q-btn class="q-mr-md" type="submit" v-bind:label="modalState.btnLable" color="primary"
+              style="min-width: 150px">
               <template v-slot:loading>
                 <q-spinner-facebook />
               </template>
             </q-btn>
           </div>
+          <!-- cancel Button -->
           <div class="col-auto">
-            <q-btn
-              label="Cancel"
-              color="grey-4"
-              text-color="grey-6"
-              style="min-width: 150px"
-              @click="showModal = false"
-            />
+            <q-btn label="Cancel" color="grey-4" text-color="grey-6" style="min-width: 150px" @click="resetModalState" />
           </div>
         </div>
       </q-form>
     </BaseModal>
+
   </div>
 </template>
 
@@ -253,6 +155,7 @@ import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
 
 const user = useUserStore();
 
+
 export default {
   components: { BaseModal, TicketSerialsGrid },
 
@@ -261,10 +164,22 @@ export default {
       file: null,
       showModal: false,
       fileUploading: false,
-
-      serialNumber: null,
-      customerReportedIssue: null,
-      customerTerminalID: null,
+      modalMap: {
+        addModal: {
+          title: "Add Device to Ticket",
+          btnLable: "Add Device",
+          serialData: {},
+          serialIndex: null,
+        },
+        updateModal: {
+          title: "Update Device to Ticket",
+          btnLable: "Update Device",
+          serialData: {},
+          serialIndex: null,
+        }
+      },
+      modalState: null, //current state of Modal
+      isModalStateAdd: true, //true: addState, false: updateState
     };
   },
 
@@ -290,7 +205,11 @@ export default {
     },
   },
 
-  created() {},
+  created() {
+    this.modalState = this.modalMap.addModal;
+  },
+
+  mounted() { },
 
   methods: {
     ...mapActions(useCreateTicketStore, [
@@ -299,6 +218,7 @@ export default {
       "resetTicket",
       "populateOrderTypeOpt",
       "addSerial",
+      "updateSerial",
     ]),
 
     onFileSubmit(e) {
@@ -332,6 +252,49 @@ export default {
         .finally(() => {
           this.fileUploading = false;
         });
+    },
+
+    /*
+      Event listener for updateSerial(TicketSerialsGrid)
+      1. Set modal state to update
+      2. Populate data and index
+     */
+    handleUpdateSerial({serialData, index}) {
+      this.modalState = this.modalMap.updateModal;
+      this.isModalStateAdd = false;
+      //deep copy to avoid input change cause serial data change
+      let serialDataDeepCopy = JSON.parse(JSON.stringify(serialData));
+      this.modalState.serialData = serialDataDeepCopy;
+
+      this.modalState.serialIndex = index;
+      this.showModal = true;
+    },
+
+    /*
+      1. Set Modal to addModal
+      2. Clear data inside
+      3. Remove Modal from screen
+     */
+    resetModalState() {
+      this.modalState = this.modalMap.addModal;
+      this.modalState.serialData = {};
+      this.isModalStateAdd = true;
+      this.showModal = false;
+    },
+
+    /*
+      1. If modal state is add, add data to serial
+      2. If modal state is update, update serial by data and index
+     */
+    handleSubmitSerialForm() {
+      const {serialData, serialIndex} = this.modalState;
+      if (this.isModalStateAdd === true) {
+        this.addSerial(serialData);
+      }
+      else {
+        this.updateSerial(serialData, serialIndex);
+      }
+      this.resetModalState();
     },
   },
 };

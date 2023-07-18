@@ -50,10 +50,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
         });
     },
 
-    addSerial(serialNumber, customerReportedIssue, terminalID) {
+    addSerial(serialData) {
+      const {serialNumber, customerReportedIssue, terminalID} = serialData;
       const newSerial = {
         cosmetic: false,
-
         serialNumber: serialNumber,
         model: null,
         version: null,
@@ -62,18 +62,42 @@ export const useCreateTicketStore = defineStore("createTicket", {
         warrantyExpDate: null,
         warrantyStatus: null,
         customerRMA: null,
-
         repairPrice: null,
-
         show: true,
         loading: false,
       };
-
       this.serials.push(newSerial);
     },
 
-    resetTicket() {
+    updateSerial(serialData, serialIndex) {
+      const {serialNumber, customerReportedIssue, terminalID} = serialData;
+      const newSerial = {
+        cosmetic: false,
+        serialNumber: serialNumber,
+        model: null,
+        version: null,
+        customerReportedIssue: customerReportedIssue,
+        terminalID: terminalID,
+        warrantyExpDate: null,
+        warrantyStatus: null,
+        customerRMA: null,
+        repairPrice: null,
+        show: true,
+        loading: false,
+      }
+      const len = this.serials.length;
+      this.serials[len - serialIndex - 1] = newSerial;
+    },
+
+    resetTicket(){
       this.$reset();
+    },
+
+    removeSerial(index){
+      if(index != null && index > -1){
+        let len = this.serials.length;
+        this.serials.splice(len - index - 1, 1);
+      }
     },
   },
 
