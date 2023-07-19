@@ -2,22 +2,6 @@ import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
 
-function compareAsc(p){
-   return function(m,n){
-      var a=m[p];
-      var b=n[p];
-      return a-b;
-   }
-}
-
-function compareDesc(p){
-   return function(m,n){
-      var a=m[p];
-      var b=n[p];
-
-      return b-a;
-   }
-}
 
 function selectMatchItem(lists,keyWord){
 
@@ -70,31 +54,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
          const startIndex = (this.perPage * (this.page - 1));
          const endIndex = startIndex + this.perPage;
 
-         //this.serials.sort((a, b) => b.serialNumber - a.serialNumber);
 
-         //this.serials.sort((s) => s[this.columnName]);
           return this.serials.slice(startIndex, endIndex);
      }
-     /*else if(this.order==false){
-          const startIndex = (this.perPage * (this.page - 1));
-          const endIndex = startIndex + this.perPage;
 
-          //this.serials.sort((a, b) => b.serialNumber - a.serialNumber);
-
-          //this.serials.sort((s) => s[this.columnName]);
-          return this.serials.slice(startIndex, endIndex);
-
-     }else{
-
-          const startIndex = (this.perPage * (this.page - 1));
-          const endIndex = startIndex + this.perPage;
-
-          //this.serials.sort((a, b) => a.serialNumber - b.serialNumber);
-
-          //this.serials.sort((s) => s[this.columnName]);
-
-          return this.serials.slice(startIndex, endIndex);
-     }*/
 
     },
     getTotal(){
