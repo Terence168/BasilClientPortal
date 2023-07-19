@@ -121,7 +121,7 @@ import { useCreateTicketStore } from "stores/createTicket";
 
 export default {
   props: ["pages", "total"],
-
+  emits: ["updateSerial"],
   data() {
         return {
           withClient: false,

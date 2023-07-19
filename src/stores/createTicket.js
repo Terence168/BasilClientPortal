@@ -47,8 +47,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
     //pagination
     page: 1,
     perPage:10,
-    pageData:[],
-    perPageData:[],
     inputValue:'',
     order:false,
   }),
@@ -65,16 +63,39 @@ export const useCreateTicketStore = defineStore("createTicket", {
         const startIndex = (this.perPage * (this.page - 1));
         const endIndex = startIndex + this.perPage;
 
-        return searchData.slice(startIndex, endIndex).reverse();
+        return searchData.slice(startIndex, endIndex);
 
 
      }else{
+         const startIndex = (this.perPage * (this.page - 1));
+         const endIndex = startIndex + this.perPage;
+
+         //this.serials.sort((a, b) => b.serialNumber - a.serialNumber);
+
+         //this.serials.sort((s) => s[this.columnName]);
+          return this.serials.slice(startIndex, endIndex);
+     }
+     /*else if(this.order==false){
           const startIndex = (this.perPage * (this.page - 1));
           const endIndex = startIndex + this.perPage;
 
-          return this.serials.slice(startIndex,endIndex).reverse();
+          //this.serials.sort((a, b) => b.serialNumber - a.serialNumber);
 
-     }
+          //this.serials.sort((s) => s[this.columnName]);
+          return this.serials.slice(startIndex, endIndex);
+
+     }else{
+
+          const startIndex = (this.perPage * (this.page - 1));
+          const endIndex = startIndex + this.perPage;
+
+          //this.serials.sort((a, b) => a.serialNumber - b.serialNumber);
+
+          //this.serials.sort((s) => s[this.columnName]);
+
+          return this.serials.slice(startIndex, endIndex);
+     }*/
+
     },
     getTotal(){
       return this.serials.length;
@@ -134,16 +155,21 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
 
     sort(columnName){
-      const startIndex =(this.perPage * (this.page - 1));
-      const endIndex = startIndex + this.perPage;
 
-      if(this.order==true){
-         this.order=false;
-         this.serials.sort(compareAsc(columnName)).reverse();;
-      }else{
-         this.order=true;
-         this.serials.sort(compareDesc(columnName)).reverse();;
-      }
+           if(this.order === true){
+
+              this.order=false;
+              this.columnName=columnName;
+              this.serials.sort((s) => s[columnName]).reverse();
+
+            }else{
+
+              this.order=true;
+              this.columnName=columnName;
+
+              this.serials.sort((s) => s[columnName]);
+
+            }
     },
 
     addSerial(serialData) {
