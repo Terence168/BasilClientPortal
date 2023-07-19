@@ -4,13 +4,7 @@
       <q-toolbar class="bg-primary text-white">
         <q-toolbar-title>{{ title }}</q-toolbar-title>
         <!-- Button to remove the BaseModal -->
-        <q-btn
-          flat
-          round
-          dense
-          icon="close"
-          @click="$emit('update:show', false)"
-        />
+        <q-btn flat round dense icon="close" @click="$emit('update:show', false)" />
       </q-toolbar>
       <q-scroll-area visible :style="{ height: scrollHeight + 'px' }">
         <q-card-section id="modalCardSection">

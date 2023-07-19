@@ -51,7 +51,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
 
     addSerial(serialData) {
-      const {serialNumber, customerReportedIssue, terminalID} = serialData;
+      const { serialNumber, customerReportedIssue, terminalID } = serialData;
+      if (this.isSerialNumberUnqiue(serialNumber) === false) {
+        return;
+      }
       const newSerial = {
         cosmetic: false,
         serialNumber: serialNumber,
@@ -69,8 +72,11 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.serials.push(newSerial);
     },
 
-    updateSerial(serialData, serialIndex) {
-      const {serialNumber, customerReportedIssue, terminalID} = serialData;
+    updateSerial(serialData, oldSerialNumber) {
+      const { serialNumber, customerReportedIssue, terminalID } = serialData;
+      if (serialNumber != oldSerialNumber && this.isSerialNumberUnqiue(serialNumber) === false) {
+        return;
+      }
       const newSerial = {
         cosmetic: false,
         serialNumber: serialNumber,
@@ -84,20 +90,35 @@ export const useCreateTicketStore = defineStore("createTicket", {
         repairPrice: null,
         show: true,
         loading: false,
-      }
-      const len = this.serials.length;
-      this.serials[len - serialIndex - 1] = newSerial;
+      };
+      const index = this.serials.findIndex(
+        (s) => oldSerialNumber === s.serialNumber
+      );
+      this.serials[index] = newSerial;
     },
 
-    resetTicket(){
+    resetTicket() {
       this.$reset();
     },
 
-    removeSerial(index){
-      if(index != null && index > -1){
-        let len = this.serials.length;
-        this.serials.splice(len - index - 1, 1);
+    removeSerial(serialNumber) {
+      const index = this.serials.findIndex(
+        (s) => serialNumber === s.serialNumber
+      );
+      if (index >= 0) {
+        this.serials.splice(index, 1);
       }
+    },
+
+    isSerialNumberUnqiue(serialNumber) {
+      const index = this.serials.findIndex(
+        (s) => serialNumber === s.serialNumber
+      );
+      if (index != -1) {
+        alert("Serial Numbers are not Unique !");
+        return false;
+      }
+      return true;
     },
   },
 

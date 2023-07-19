@@ -104,15 +104,15 @@
         </div>
 
         <!-- add serials here -->
-        <TicketSerialsGrid  @updateSerial="handleUpdateSerial"/>
+        <TicketSerialsGrid @updateSerial="handleUpdateSerial" />
       </div>
     </div>
 
     <!-- Pop-up window: add or Update Device to Ticket Window -->
     <BaseModal v-model:show="showModal" v-bind:title="modalState.title" :width="500" @update:show="resetModalState">
       <q-form ref="modalForm" @submit.prevent="handleSubmitSerialForm">
-        <q-input class="col q-mb-sm" outlined v-model="modalState.serialData.serialNumber" label="Serial Number" lazy-rules
-          dense :rules="[
+        <q-input class="col q-mb-sm" outlined v-model="modalState.serialData.serialNumber" label="Serial Number"
+          lazy-rules dense :rules="[
             (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
           ]" />
         <q-input class="col q-mt-sm q-mb-sm" outlined autogrow v-model="modalState.serialData.customerReportedIssue"
@@ -121,8 +121,8 @@
               (val && val.length > 0) ||
               'Customer Reported Issue cannot be empty',
           ]" />
-        <q-input class="col q-mt-sm q-mb-sm" outlined v-model="modalState.serialData.terminalID" label="Customer Terminal ID"
-          dense />
+        <q-input class="col q-mt-sm q-mb-sm" outlined v-model="modalState.serialData.terminalID"
+          label="Customer Terminal ID" dense />
         <div class="row justify-center q-mt-md">
           <div class="col-auto">
             <!-- submit Button -->
@@ -158,7 +158,6 @@ const user = useUserStore();
 
 export default {
   components: { BaseModal, TicketSerialsGrid },
-
   data() {
     return {
       file: null,
@@ -169,13 +168,13 @@ export default {
           title: "Add Device to Ticket",
           btnLable: "Add Device",
           serialData: {},
-          serialIndex: null,
+          serialNumber: null,
         },
         updateModal: {
           title: "Update Device to Ticket",
           btnLable: "Update Device",
           serialData: {},
-          serialIndex: null,
+          serialNumber: null,
         }
       },
       modalState: null, //current state of Modal
@@ -220,7 +219,6 @@ export default {
       "addSerial",
       "updateSerial",
     ]),
-
     onFileSubmit(e) {
       if (!this.file) {
         return;
@@ -253,20 +251,19 @@ export default {
           this.fileUploading = false;
         });
     },
-
     /*
       Event listener for updateSerial(TicketSerialsGrid)
       1. Set modal state to update
       2. Populate data and index
      */
-    handleUpdateSerial({serialData, index}) {
+    handleUpdateSerial({ serialData, serialNumber }) {
       this.modalState = this.modalMap.updateModal;
       this.isModalStateAdd = false;
       //deep copy to avoid input change cause serial data change
       let serialDataDeepCopy = JSON.parse(JSON.stringify(serialData));
       this.modalState.serialData = serialDataDeepCopy;
 
-      this.modalState.serialIndex = index;
+      this.modalState.serialNumber = serialNumber;
       this.showModal = true;
     },
 
@@ -287,12 +284,12 @@ export default {
       2. If modal state is update, update serial by data and index
      */
     handleSubmitSerialForm() {
-      const {serialData, serialIndex} = this.modalState;
+      const { serialData, serialNumber } = this.modalState;
       if (this.isModalStateAdd === true) {
         this.addSerial(serialData);
       }
       else {
-        this.updateSerial(serialData, serialIndex);
+        this.updateSerial(serialData, serialNumber);
       }
       this.resetModalState();
     },
