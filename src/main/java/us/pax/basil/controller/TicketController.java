@@ -20,11 +20,10 @@ import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.persistence.EntityManager;
+import java.util.List;
 
 
 @Api(tags = "Basil API Interface")
@@ -53,11 +52,12 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-//    @PostMapping("submitTicket")//BCP-25
-//    //submit the ticket
-//    public QueryResultArrayDTO ticketSubmit(@RequestBody List<submittingTicket> submittingTicketList){
-//        return null;
-//    }
+    @PostMapping("submitTicket")//BCP-25
+    //submit the ticket
+    public QueryResultArrayDTO ticketSubmit(@RequestBody List<Object> submittingTicketList){
+        return null;
+
+    }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
