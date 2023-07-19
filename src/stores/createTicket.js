@@ -2,20 +2,92 @@ import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
 
+function compareAsc(p){
+   return function(m,n){
+      var a=m[p];
+      var b=n[p];
+      return a-b;
+   }
+}
+
+function compareDesc(p){
+   return function(m,n){
+      var a=m[p];
+      var b=n[p];
+
+      return b-a;
+   }
+}
+
+function selectMatchItem(lists,keyWord){
+
+    let resArr=[];
+
+    lists.filter(item=>{
+       for(let i in item){
+          if(item[i]!=null){
+              if(item[i].toString().indexOf(keyWord)>=0){
+                  resArr.push(item);
+                  break;
+              }
+            }
+       }
+    })
+
+    return resArr;
+}
+
+
 export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
     orderType: null,
     orderTypeOpt: null,
     trackingNums: [],
     serials: [],
+    //pagination
+    page: 1,
+    perPage:10,
+    pageData:[],
+    perPageData:[],
+    inputValue:'',
+    order:false,
   }),
 
   getters: {
     getSerials() {
-      return this.serials.slice().reverse();
+
+     if(this.inputValue!='' && this.inputValue!=null){
+        const searchData=selectMatchItem(this.serials,this.inputValue);
+
+        this.page=1;
+        this.perPage=10;
+
+        const startIndex = (this.perPage * (this.page - 1));
+        const endIndex = startIndex + this.perPage;
+
+        return searchData.slice(startIndex, endIndex).reverse();
+
+
+     }else{
+          const startIndex = (this.perPage * (this.page - 1));
+          const endIndex = startIndex + this.perPage;
+
+          return this.serials.slice(startIndex,endIndex).reverse();
+
+     }
+    },
+    getTotal(){
+      return this.serials.length;
+    },
+
+    getTotalPages(){
+      const numberOfPages = Math.ceil(this.serials.length/this.perPage);
+      return numberOfPages;
     },
   },
-
+  reset(){
+     this.$refs.state.inputText.value='';
+  },
   actions: {
     addTrackingNum() {
       this.trackingNums.push("");
@@ -24,7 +96,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
     deleteTrackingNum(index) {
       this.trackingNums.splice(index, 1);
     },
-
     populateOrderTypeOpt(_, update) {
       if (this.orderType) {
         update();
@@ -48,6 +119,31 @@ export const useCreateTicketStore = defineStore("createTicket", {
             message: "Order Type Dropdown cannot be populated",
           });
         });
+    },
+
+    getNextPages(pages){
+      this.page=pages;
+    },
+
+    changeToPage(perPage,pages){
+       this.perPage=perPage;
+    },
+
+    goToPage(pages){
+      this.page=pages;
+    },
+
+    sort(columnName){
+      const startIndex =(this.perPage * (this.page - 1));
+      const endIndex = startIndex + this.perPage;
+
+      if(this.order==true){
+         this.order=false;
+         this.serials.sort(compareAsc(columnName)).reverse();;
+      }else{
+         this.order=true;
+         this.serials.sort(compareDesc(columnName)).reverse();;
+      }
     },
 
     addSerial(serialData) {
