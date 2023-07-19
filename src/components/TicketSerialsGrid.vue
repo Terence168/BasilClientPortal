@@ -101,6 +101,7 @@ export default {
       const top = parseInt(this.positionStyle.top);
       const width = this.removeUnitWidth * 2 + this.spaceInBtnGroup;
 
+      
       this.positionStyle = {
         "top": top - this.removeUnitWidth / 2 + "px",
         "left": left - this.removeUnitWidth - this.spaceInBtnGroup / 2 + "px",
