@@ -74,7 +74,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
 
     updateSerial(serialData, oldSerialNumber) {
       const { serialNumber, customerReportedIssue, terminalID } = serialData;
-      if (serialNumber != oldSerialNumber && this.isSerialNumberUnqiue(serialNumber) === false) {
+      if (
+        serialNumber != oldSerialNumber &&
+        this.isSerialNumberUnqiue(serialNumber) === false
+      ) {
         return;
       }
       const newSerial = {

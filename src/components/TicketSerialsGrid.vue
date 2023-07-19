@@ -59,8 +59,8 @@
         </div>
       </div>
     </div>
-    <!-- button group: delete -->
-    <div class="popup-button-group" v-if="withClient" :style="positionStyle" ref="buttonsGroup">
+    <!-- button group: delete and update-->
+    <div class="popup-button-group" v-show="withClient" :style="positionStyle">
       <q-btn class="remove-unit" size="sm" color="red" icon="close" round @click.stop="handleRemoveSerial" />
       <q-btn class="edit-unit" size="sm" color="primary" icon="edit" round @click.stop="handleUpdateSerial" />
     </div>
@@ -94,13 +94,8 @@ export default {
    */
   updated() {
     if (this.withClient === true && this.removeUnitWidth == null) {
-      this.isFirstTimeUpdateBtnGroups = false;
-      let btns = document.getElementsByClassName(
-        "remove-unit"
-      );
-      const btn = btns[0];
+      const btn = document.querySelector(".remove-unit");
       this.removeUnitWidth = btn.getBoundingClientRect().width;
-      this.positionStyle["width"] = this.removeUnitWidth * 2 + this.spaceInBtnGroup;
 
       const left = parseInt(this.positionStyle.left);
       const top = parseInt(this.positionStyle.top);
@@ -171,6 +166,7 @@ export default {
       }
       this.mouseX = event.pageX;
       this.mouseY = event.pageY;
+
       if (this.removeUnitWidth === null) {
         this.positionStyle = { "top": this.mouseY + 'px', "left": this.mouseX + 'px' };
       }
@@ -265,7 +261,6 @@ export default {
   display: flex;
   flex-direction: row;
 
-  // justify-content: start;
   .remove-unit {
     position: relative;
     z-index: 1200;
