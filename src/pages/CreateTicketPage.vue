@@ -158,6 +158,16 @@
                   <q-spinner-facebook />
                 </template>
               </q-btn>
+
+              &nbsp;
+              <q-input
+                clearable
+                class="q-mr-sm"
+                label="Serial Number OR Model OR Reported Issue"
+                style="min-width: 380px"
+                v-model="inputValue"
+            />&nbsp;
+
             </div>
           </q-form>
         </div>
@@ -269,7 +279,7 @@ export default {
   },
 
   computed: {
-    ...mapWritableState(useCreateTicketStore, ["orderType", "trackingNums"]),
+    ...mapWritableState(useCreateTicketStore, ["orderType", "trackingNums","inputValue"]),
 
     ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
 
