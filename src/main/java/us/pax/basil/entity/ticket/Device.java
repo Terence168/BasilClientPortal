@@ -12,26 +12,28 @@ import java.util.Date;
 @ApiModel(value = "Device Object", description = "")
 public class Device {
 
-    String serialNumber;
+    private String serialNumber;
 
-    Date voidDate;
+    private Date voidDate;
 
-    Date warrantyExpDate;
+    private Date warrantyExpDate;
 
-    String model;
+    private String model;
 
-    String version;
+    private String version;
 
-    String customerReportedIssue;
+    private String customerReportedIssue;
 
-    String warrantyStatus;
+    private String warrantyStatus;
 
-    Integer cosmeticPrice;
+    private Integer cosmeticPrice;
 
-    Integer diagnosticPrice;
+    private Integer diagnosticPrice;
 
-    Boolean existInAnotherTicket;
+    private Boolean existInAnotherTicket;
 
-    Integer minorPrice;
+    private Integer minorPrice;
+
+    private String xm_OID;
 
 }

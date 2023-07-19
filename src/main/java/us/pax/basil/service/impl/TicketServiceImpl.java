@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -331,22 +332,29 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if(d.getExistInAnotherTicket()==true)
                 errorMsg = "This device has already existed in another active ticket.";
             batchDeviceInfo.put("errorMsg",errorMsg);
+            batchDeviceInfo.put("xm_OID",d.getXm_OID());
             resultArray.add(batchDeviceInfo);
         }
         return resultArray;
     }
     @Override
-    public QueryResultArrayDTO serialNumberQuery(String serialNumber, String customerReportedIssue, String terminalID, String customerRMA){
+    public QueryResultArrayDTO serialNumberQuery(String serialNumber){
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>(); //use to store final result and return to front end
         List<String> serialNumberList = new ArrayList<>();
         HashMap<String,String[]> deviceInfoMap = new HashMap<>();
         serialNumberList.add(serialNumber);
         String[] temp = new String[3];
-        temp[0] = customerReportedIssue; // customer reported issue
-        temp[1] = customerRMA; // customer RMA
-        temp[2] = terminalID; // terminalID
+        temp[0] = ""; // customer reported issue, there is no need to pass these parameters when query device information, only when submitting ticket. These information will be stored in database.
+        temp[1] = ""; // customer RMA
+        temp[2] = ""; // terminalID
         deviceInfoMap.put(serialNumber,temp);
         resultArray = getResult(serialNumberList,deviceInfoMap);
         return new QueryResultArrayDTO(resultArray,1,0,"");
+    }
+
+    @Override
+    public SqlResultDTO submitTicket(List<SubmittingTicket> submittingTicketList){
+
+        return null;
     }
 }

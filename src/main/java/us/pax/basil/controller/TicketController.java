@@ -20,6 +20,8 @@ import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.entity.ticket.SubmittingTicket;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
@@ -38,12 +40,8 @@ public class TicketController {
     private EntityManager entityManager;
     @GetMapping("/serialNumberUpdate")//BCP-25
     //search serial number and return device information and repair price.
-    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber,
-                                                  @RequestParam(value = "customerReportedIssue", required = true) String customerReportedIssue,
-                                                  @RequestParam(value = "terminalID", required = false) String terminalID,
-                                                  @RequestParam(value = "customerRMA", required = false) String customerRMA
-                                                  ){
-        return ticketService.serialNumberQuery(serialNumber,customerReportedIssue,terminalID, customerRMA);
+    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber){
+        return ticketService.serialNumberQuery(serialNumber);
     }
     @PostMapping("/batchSerialNumberQuery")//BCP-25
     //upload Excel file, process serial number by batch processing.
@@ -54,8 +52,8 @@ public class TicketController {
     }
     @PostMapping("submitTicket")//BCP-25
     //submit the ticket
-    public QueryResultArrayDTO ticketSubmit(@RequestBody List<Object> submittingTicketList){
-        return null;
+    public SqlResultDTO ticketSubmit(@RequestBody List<SubmittingTicket> submittingTicketList){
+        return ticketService.submitTicket(submittingTicketList);
 
     }
     @GetMapping("/queue")
