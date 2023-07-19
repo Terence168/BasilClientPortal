@@ -244,7 +244,7 @@ export default {
       let output = text.trim();
 
       if (output.length > maxLength) {
-        return text.slice(0, maxLength).trim() + "...";
+        return text.(0, maxLength).trim() + "...";
       } else {
         return output;
       }
