@@ -5,9 +5,9 @@
         <div class="col-4">
           <div class="row">
             <div class="col-1">Cosmetic</div>
-            <div class="col-4">SN</div>
-            <div class="col-5">Model</div>
-            <div class="col-2">Version</div>
+            <div class="col-4" @click="sort('serialNumber')">SN</div>
+            <div class="col-5" @click="sort('model')">Model</div>
+            <div class="col-2" @click="sort('version')">Version</div>
           </div>
         </div>
 
@@ -56,15 +56,124 @@
       <q-btn class="edit-unit" size="sm" color="primary" icon="edit" round />
     </div>
   </div>
+
+   <div class="q-pa-lg flex flex-center">
+      <div class="col-auto">
+         <span class="q-mr-xs">Show</span>
+         <q-select
+          class="inline"
+          style="padding: 0"
+          outlined
+          v-model="perPage"
+          :options="perPageOptions"
+          @update:model-value="changeToPage(this.perPage,this.page)"
+          dense
+          />
+         <span class="q-ml-xs">records per page</span>
+         </div>
+
+
+      <div class="col text-right q-mr-md">
+        Showing {{ dataRange }} of {{ getTotal }} records
+      </div>
+
+          <q-pagination
+              v-model="page"
+              :min="1"
+              :max="getTotalPages"
+              :max-pages="0"
+              ellipsess
+              :direction-links="true"
+              @click="getNextPages(this.page)"
+            >
+            </q-pagination>
+
+
+                <div class="col-auto">
+                  <span class="q-ml-md">Go to</span>
+                  <q-input
+                    class="inline q-mx-sm"
+                    style="max-width: 40px"
+                    outlined
+                    v-model.number="pageInput"
+                    dense
+                  />
+                  <q-btn outline label="Go" @click="goToPage(this.pageInput)" />
+                </div>
+
+     </div>
+
 </template>
 
 <script>
-import { useCreateTicketStore } from "stores/createTicket";
-import { mapState } from "pinia";
 
+import { mapState } from "pinia";
+import { useCreateTicketStore } from "stores/createTicket";
 export default {
+
+  props: ["pages", "total"],
+
+  data() {
+      return {
+        page: 1,
+        pageInput: 1,
+        perPage: 10,
+        perPageOptions: [10, 25, 50, 100],
+        serials: [],
+      };
+  },
+
+  created() {
+    this.page = Number(this.$route.query.page) || 1;
+    this.perPage = Number(this.$route.query.per_page) || 10;
+  },
+
+  watch: {
+      page(newPage) {
+        this.buildQuery(newPage);
+      },
+      perPage() {
+        this.buildQuery(this.page);
+      },
+  },
+
+  methods:{
+          buildQuery(page) {
+               const query = Object.assign({}, this.$route.query);
+
+               if (page !== 1) {
+                 query.page = page;
+               } else if (query.page) {
+                 delete query.page;
+               }
+
+               if (this.perPage !== 10) {
+                 query.per_page = this.perPage;
+               } else if (query.per_page) {
+                 delete query.per_page;
+               }
+
+               this.changeRouteByQuery(query);
+             },
+
+             changeRouteByQuery(query) {
+               const resolved = this.$router.resolve({ path: this.$route.path, query });
+
+               if (resolved.href !== this.$route.fullPath) {
+                 this.$router.push({ path: this.$route.path, query });
+               }
+          }
+  },
   computed: {
-    ...mapState(useCreateTicketStore, ["getSerials"]),
+
+     dataRange() {
+        const rangeFrom = (this.page - 1) * this.perPage + 1;
+        const rangeTo = Math.min(this.page * this.perPage, this.getTotal);
+
+        return rangeFrom + "-" + rangeTo;
+     },
+
+    ...mapState(useCreateTicketStore, ["getSerials","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort"]),
   },
 };
 </script>
