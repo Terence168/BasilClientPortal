@@ -115,7 +115,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
         (s) => serialNumber === s.serialNumber
       );
       if (index != -1) {
-        alert("Serial Numbers are not Unique !");
+        Notify.create({
+          type: "negative",
+          message: "Serial Numbers are not Unique",
+        });
         return false;
       }
       return true;
