@@ -5,24 +5,22 @@ import { Notify } from "quasar";
 /**
   filter input words
 **/
-function selectMatchItem(lists,keyWord){
+function selectMatchItem(lists, keyWord) {
+  let resArr = [];
 
-    let resArr=[];
+  lists.filter((item) => {
+    for (let i in item) {
+      if (item[i] != null) {
+        if (item[i].toString().indexOf(keyWord) >= 0) {
+          resArr.push(item);
+          break;
+        }
+      }
+    }
+  });
 
-    lists.filter(item=>{
-       for(let i in item){
-          if(item[i]!=null){
-              if(item[i].toString().indexOf(keyWord)>=0){
-                  resArr.push(item);
-                  break;
-              }
-            }
-       }
-    })
-
-    return resArr;
+  return resArr;
 }
-
 
 export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
@@ -32,71 +30,61 @@ export const useCreateTicketStore = defineStore("createTicket", {
     serials: [],
     //pagination
     page: 1,
-    perPage:10,
-    inputValue:'',
-    order:false,
-    rangeFrom:0,
-    rangeTo:0,
-    searchData:[],
+    perPage: 10,
+    inputValue: "",
+    order: false,
+    rangeFrom: 0,
+    rangeTo: 0,
+    searchData: [],
+    sortColumn: null,
   }),
 
   getters: {
     getSerials() {
-
-     this.rangeFrom = (this.page - 1) * this.perPage + 1;
-
-     if(this.inputValue!='' && this.inputValue!=null){
-        this.searchData=selectMatchItem(this.serials,this.inputValue);
-
-        this.page=1;
-        this.perPage=10;
-
-        const startIndex = (this.perPage * (this.page - 1));
-        const endIndex = startIndex + this.perPage;
-        //when typing reload getTotal
-        this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
-
-        return this.searchData.slice(startIndex, endIndex);
-
-
-     }else{
-         const startIndex = (this.perPage * (this.page - 1));
-         const endIndex = startIndex + this.perPage;
-
-         this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
-         return this.serials.slice(startIndex, endIndex);
-     }
-
-
+      if (this.sortColumn != null) {
+        this.sortWithoutReverseOrder();
+      }
+      this.rangeFrom = (this.page - 1) * this.perPage + 1;
+      var data = null;
+      if (this.inputValue != "" && this.inputValue != null) {
+        data = selectMatchItem(this.serials, this.inputValue);
+      } else {
+        data = this.serials;
+      }
+      const startIndex = this.perPage * (this.page - 1);
+      const endIndex = startIndex + this.perPage;
+      //when typing reload getTotal
+      this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
+      return data.slice(startIndex, endIndex);
     },
-    getTotal(){
-     if(this.inputValue!='' && this.inputValue!=null){
+    getTotal() {
+      if (this.inputValue != "" && this.inputValue != null) {
         return this.searchData.length;
-     }else{
+      } else {
         return this.serials.length;
       }
     },
 
-    getTotalPages(){
-      if(this.inputValue!='' && this.inputValue!=null){
-            const numberOfPages = Math.ceil(this.searchData.length/this.perPage);
-            return numberOfPages;
-         }else{
-            const numberOfPages = Math.ceil(this.serials.length/this.perPage);
-            return numberOfPages;
+    getTotalPages() {
+      if (this.inputValue != "" && this.inputValue != null) {
+        const numberOfPages = Math.ceil(this.searchData.length / this.perPage);
+        return numberOfPages;
+      } else {
+        const numberOfPages = Math.ceil(this.serials.length / this.perPage);
+        return numberOfPages;
       }
     },
 
-    getRangeForm(){
-       return this.rangeFrom;
+    getRangeForm() {
+      return this.rangeFrom;
     },
 
-    getRangeTo(){
-       return this.rangeTo;
-    }
+    getRangeTo() {
+      return this.rangeTo;
+    },
   },
-  reset(){
-     this.$refs.state.inputText.value='';
+  reset() {
+    this.$refs.state.inputText.value = "";
   },
   actions: {
     addTrackingNum() {
@@ -131,40 +119,44 @@ export const useCreateTicketStore = defineStore("createTicket", {
         });
     },
 
-    getNextPages(pages){
-      this.page=pages;
+    getNextPages(pages) {
+      this.page = pages;
     },
 
-    changeToPage(perPage,pages){
-       this.perPage=perPage;
+    changeToPage(perPage, pages) {
+      this.perPage = perPage;
     },
 
-    goToPage(pages){
-      this.page=pages;
+    goToPage(pages) {
+      this.page = pages;
     },
 
-    sort(columnName){
-
-           if(this.order === true){
-              console.log("==================DESC====================");
-              this.order=false;
-              this.columnName=columnName;
-              this.serials.sort((s) => s[this.columnName]).reverse();
-              console.log("==================DESC===================="+this.serials);
-
-            }else{
-
-              this.order=true;
-              this.columnName=columnName;
-              console.log("==================ASC====================");
-              this.serials.sort((s) => s[this.columnName]);
-
-              console.log("==================ASC===================="+this.serials);
-
-
-            }
+    sort(columnName) {
+      this.sortColumn = columnName;
+      this.sortWithoutReverseOrder();
+      this.order = !this.order;
     },
 
+    sortWithoutReverseOrder() {
+      const columnName = this.sortColumn;
+      if (this.order === false) {
+        this.serials.sort((s1, s2) =>
+          s1[columnName] > s2[columnName]
+            ? 1
+            : s1[columnName] < s2[columnName]
+            ? -1
+            : 0
+        );
+      } else {
+        this.serials.sort((s1, s2) =>
+          s1[columnName] > s2[columnName]
+            ? -1
+            : s1[columnName] < s2[columnName]
+            ? 1
+            : 0
+        );
+      }
+    },
     addSerial(serialData) {
       const { serialNumber, customerReportedIssue, terminalID } = serialData;
       if (this.isSerialNumberUnqiue(serialNumber) === false) {
@@ -185,6 +177,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
         loading: false,
       };
       this.serials.push(newSerial);
+      // if (this.sortColumn != null) {
+      //   this.sortWithoutReverseOrder();
+      // }
     },
 
     updateSerial(serialData, oldSerialNumber) {
@@ -213,6 +208,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
         (s) => oldSerialNumber === s.serialNumber
       );
       this.serials[index] = newSerial;
+      // if (this.sortColumn != null) {
+      //   this.sortWithoutReverseOrder();
+      // }
     },
 
     resetTicket() {
