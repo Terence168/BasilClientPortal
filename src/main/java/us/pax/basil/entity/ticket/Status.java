@@ -10,6 +10,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain =  true)
 @ApiModel(value = "Status Object", description = "")
 public class Status {
+
     private Integer id;
+
     private String status;
 }

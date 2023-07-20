@@ -303,7 +303,10 @@
         </where>
     </select>
 
-    <insert></insert>
+    <insert id="insertPrep_Master_Order" parameterType="TicketInsertionObject" useGeneratedKeys="true" keyProperty="mo_OID">
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE)
+        VALUES (#{mc_OID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))
+    </insert>
 </mapper>
 
 
