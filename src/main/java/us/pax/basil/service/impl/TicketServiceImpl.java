@@ -362,4 +362,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         ticketMapper.insertPrep_Master_Order(tio);
         return tio.getMo_OID();
     }
+
+    @Override
+    public SqlResultDTO submitTicket(List<SubmittingTicket> submittingTicketList){
+        return new SqlResultDTO(-1,null);
+    }
 }
