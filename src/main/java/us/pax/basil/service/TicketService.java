@@ -44,4 +44,6 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
     QueryResultArrayDTO serialNumberQuery(String serialNumber);
     int insertTicketToPMO(TicketInsertionObject tio);
+
+    SqlResultDTO submitTicket(List<SubmittingTicket> submittingTicketList);
 }

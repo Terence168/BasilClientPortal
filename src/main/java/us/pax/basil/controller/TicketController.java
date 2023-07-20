@@ -50,12 +50,12 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    @PostMapping("submitTicket")//BCP-25
-    //submit the ticket
-    public SqlResultDTO ticketSubmit(@RequestBody List<SubmittingTicket> submittingTicketList){
-        return ticketService.submitTicket(submittingTicketList);
-
-    }
+//    @PostMapping("submitTicket")//BCP-25
+//    //submit the ticket
+//    public SqlResultDTO ticketSubmit(@RequestBody List<SubmittingTicket> submittingTicketList){
+//        return ticketService.submitTicket(submittingTicketList);
+//
+//    }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
