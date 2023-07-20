@@ -6,7 +6,7 @@
         <div class="col-4">
           <div class="row">
             <div class="col-1">Cosmetic</div>
-            <div class="col-4" @click="sort('serialNumber')">SN</div>
+            <div class="col-4" @click="sort('serialNumber')"> <img style="width: 20px" v-bind:src="getIconPath" /> SN</div>
             <div class="col-5" @click="sort('model')">Model</div>
             <div class="col-2" @click="sort('version')">Version</div>
           </div>
@@ -178,6 +178,7 @@ export default {
     },
 
    methods:{
+
            buildQuery(page) {
                 const query = Object.assign({}, this.$route.query);
 
@@ -299,7 +300,7 @@ export default {
 
   computed: {
 
-    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo"]),
+    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconPath"]),
   },
 };
 </script>

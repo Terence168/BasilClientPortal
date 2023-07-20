@@ -5,22 +5,24 @@ import { Notify } from "quasar";
 /**
   filter input words
 **/
-function selectMatchItem(lists, keyWord) {
-  let resArr = [];
+function selectMatchItem(lists,keyWord){
 
-  lists.filter((item) => {
-    for (let i in item) {
-      if (item[i] != null) {
-        if (item[i].toString().indexOf(keyWord) >= 0) {
-          resArr.push(item);
-          break;
-        }
-      }
-    }
-  });
+    let resArr=[];
 
-  return resArr;
+    lists.filter(item=>{
+       for(let i in item){
+          if(item[i]!=null){
+              if(item[i].toString().indexOf(keyWord)>=0){
+                  resArr.push(item);
+                  break;
+              }
+            }
+       }
+    })
+
+    return resArr;
 }
+
 
 export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
@@ -30,37 +32,48 @@ export const useCreateTicketStore = defineStore("createTicket", {
     serials: [],
     //pagination
     page: 1,
-    perPage: 10,
-    inputValue: "",
-    order: false,
-    rangeFrom: 0,
-    rangeTo: 0,
-    searchData: [],
-    sortColumn: null,
+    perPage:10,
+    inputValue:'',
+    order:false,
+    rangeFrom:0,
+    rangeTo:0,
+    searchData:[],
+    iconPath:"/src/assets/asc.png",
   }),
 
   getters: {
     getSerials() {
-      if (this.sortColumn != null) {
-        this.sortWithoutReverseOrder();
-      }
-      this.rangeFrom = (this.page - 1) * this.perPage + 1;
-      var data = null;
-      if (this.inputValue != "" && this.inputValue != null) {
-        data = selectMatchItem(this.serials, this.inputValue);
-      } else {
-        data = this.serials;
-      }
-      const startIndex = this.perPage * (this.page - 1);
-      const endIndex = startIndex + this.perPage;
-      //when typing reload getTotal
-      this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
-      return data.slice(startIndex, endIndex);
+
+     this.rangeFrom = (this.page - 1) * this.perPage + 1;
+
+     if(this.inputValue!='' && this.inputValue!=null){
+        this.searchData=selectMatchItem(this.serials,this.inputValue);
+
+        this.page=1;
+        this.perPage=10;
+
+        const startIndex = (this.perPage * (this.page - 1));
+        const endIndex = startIndex + this.perPage;
+        //when typing reload getTotal
+        this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
+
+        return this.searchData.slice(startIndex, endIndex);
+
+
+     }else{
+         const startIndex = (this.perPage * (this.page - 1));
+         const endIndex = startIndex + this.perPage;
+
+         this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
+         return this.serials.slice(startIndex, endIndex);
+     }
+
+
     },
-    getTotal() {
-      if (this.inputValue != "" && this.inputValue != null) {
+    getTotal(){
+     if(this.inputValue!='' && this.inputValue!=null){
         return this.searchData.length;
-      } else {
+     }else{
         return this.serials.length;
       }
     },
@@ -82,6 +95,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
     getRangeTo() {
       return this.rangeTo;
     },
+
+    getIconPath(){
+       return this.iconPath;
+    }
   },
   reset() {
     this.$refs.state.inputText.value = "";
@@ -135,6 +152,15 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.sortColumn = columnName;
       this.sortWithoutReverseOrder();
       this.order = !this.order;
+
+      if(this.order === true){
+        this.order = true;
+        this.iconPath='/src/assets/desc.png';
+      }else{
+        this.order = false;
+        this.iconPath='/src/assets/asc.png';
+      }
+
     },
 
     sortWithoutReverseOrder() {
@@ -147,6 +173,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
             ? -1
             : 0
         );
+
       } else {
         this.serials.sort((s1, s2) =>
           s1[columnName] > s2[columnName]
@@ -155,8 +182,11 @@ export const useCreateTicketStore = defineStore("createTicket", {
             ? 1
             : 0
         );
+
+
       }
     },
+
     addSerial(serialData) {
       const { serialNumber, customerReportedIssue, terminalID } = serialData;
       if (this.isSerialNumberUnqiue(serialNumber) === false) {
@@ -177,9 +207,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         loading: false,
       };
       this.serials.push(newSerial);
-      // if (this.sortColumn != null) {
-      //   this.sortWithoutReverseOrder();
-      // }
     },
 
     updateSerial(serialData, oldSerialNumber) {
@@ -208,9 +235,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         (s) => oldSerialNumber === s.serialNumber
       );
       this.serials[index] = newSerial;
-      // if (this.sortColumn != null) {
-      //   this.sortWithoutReverseOrder();
-      // }
     },
 
     resetTicket() {
