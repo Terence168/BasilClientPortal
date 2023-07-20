@@ -146,17 +146,21 @@ export const useCreateTicketStore = defineStore("createTicket", {
     sort(columnName){
 
            if(this.order === true){
-
+              console.log("==================DESC====================");
               this.order=false;
               this.columnName=columnName;
-              this.serials.sort((s) => s[columnName]).reverse();
+              this.serials.sort((s) => s[this.columnName]).reverse();
+              console.log("==================DESC===================="+this.serials);
 
             }else{
 
               this.order=true;
               this.columnName=columnName;
+              console.log("==================ASC====================");
+              this.serials.sort((s) => s[this.columnName]);
 
-              this.serials.sort((s) => s[columnName]);
+              console.log("==================ASC===================="+this.serials);
+
 
             }
     },
