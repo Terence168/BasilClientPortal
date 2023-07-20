@@ -83,7 +83,7 @@
 
 
       <div class="col text-right q-mr-md">
-        Showing {{ dataRange }} of {{ getTotal }} records
+        Showing {{ getRangeForm }} - {{getRangeTo}} of {{ getTotal }} records
       </div>
 
           <q-pagination
@@ -299,14 +299,7 @@ export default {
 
   computed: {
 
-    dataRange() {
-          const rangeFrom = (this.page - 1) * this.perPage + 1;
-          const rangeTo = Math.min(this.page * this.perPage, this.getTotal);
-
-          return rangeFrom + "-" + rangeTo;
-    },
-
-    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort"]),
+    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo"]),
   },
 };
 </script>

@@ -2,7 +2,9 @@ import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
 
-
+/**
+  filter input words
+**/
 function selectMatchItem(lists,keyWord){
 
     let resArr=[];
@@ -33,41 +35,65 @@ export const useCreateTicketStore = defineStore("createTicket", {
     perPage:10,
     inputValue:'',
     order:false,
+    rangeFrom:0,
+    rangeTo:0,
+    searchData:[],
   }),
 
   getters: {
     getSerials() {
 
+     this.rangeFrom = (this.page - 1) * this.perPage + 1;
+
      if(this.inputValue!='' && this.inputValue!=null){
-        const searchData=selectMatchItem(this.serials,this.inputValue);
+        this.searchData=selectMatchItem(this.serials,this.inputValue);
 
         this.page=1;
         this.perPage=10;
 
         const startIndex = (this.perPage * (this.page - 1));
         const endIndex = startIndex + this.perPage;
+        //when typing reload getTotal
+        this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
 
-        return searchData.slice(startIndex, endIndex);
+        return this.searchData.slice(startIndex, endIndex);
 
 
      }else{
          const startIndex = (this.perPage * (this.page - 1));
          const endIndex = startIndex + this.perPage;
 
-
-          return this.serials.slice(startIndex, endIndex);
+         this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
+         return this.serials.slice(startIndex, endIndex);
      }
 
 
     },
     getTotal(){
-      return this.serials.length;
+     if(this.inputValue!='' && this.inputValue!=null){
+        return this.searchData.length;
+     }else{
+        return this.serials.length;
+      }
     },
 
     getTotalPages(){
-      const numberOfPages = Math.ceil(this.serials.length/this.perPage);
-      return numberOfPages;
+      if(this.inputValue!='' && this.inputValue!=null){
+            const numberOfPages = Math.ceil(this.searchData.length/this.perPage);
+            return numberOfPages;
+         }else{
+            const numberOfPages = Math.ceil(this.serials.length/this.perPage);
+            return numberOfPages;
+      }
     },
+
+    getRangeForm(){
+       return this.rangeFrom;
+    },
+
+    getRangeTo(){
+       return this.rangeTo;
+    }
   },
   reset(){
      this.$refs.state.inputText.value='';
