@@ -1,10 +1,12 @@
 package us.pax.basil.mapper;
 
 
+import java.util.Date;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import org.apache.ibatis.annotations.Options;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
@@ -38,4 +40,7 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     List<String> findUSBasedDevices(List<String> serialNumbersInFile);
     List<Device> getDeviceInfos(List<String> usBasedDevices, String companyId);
+
+    @Options(useGeneratedKeys = true, keyProperty = "mo_OID")
+    Void insertPrep_Master_Order(TicketInsertionObject tio);
 }

@@ -353,8 +353,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public SqlResultDTO submitTicket(List<SubmittingTicket> submittingTicketList){
-
-        return null;
+    public int insertTicketToPMO(TicketInsertionObject tio){ // PMO is prep_master_order
+        CustomUserDetails user = AuthUtil.getUser();
+        Integer companyId = user.getCompanyId();
+        tio.setMc_OID(companyId);
+        tio.setOrderStatus("12");
+        tio.setOrderDateToCurrentDate();
+        ticketMapper.insertPrep_Master_Order(tio);
+        return tio.getMo_OID();
     }
 }
