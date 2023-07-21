@@ -51,7 +51,7 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    @PostMapping("submitTicket")//BCP-25
+    @PostMapping("/submitTicket")//BCP-25
     //submit the ticket
     public SqlResultDTO ticketSubmit(@RequestBody List<SNsInsertionObject> sNsInsertionObjectList){
         return ticketService.submitTicket(sNsInsertionObjectList);
