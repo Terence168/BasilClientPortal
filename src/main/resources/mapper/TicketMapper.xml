@@ -256,63 +256,85 @@
 
     <select id="getDeviceInfos" parameterType="java.util.List" resultType="us.pax.basil.entity.ticket.Device">
         SELECT
-            msn.SERIAL_NUMBER,
-            CASE
-                WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN msn.WARRANTY_VOIDED_DATE
-                ELSE msn.WARRANTY_END_DATE
-            END AS warrantyExpDate,
-            CASE
-                WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
-                WHEN CURRENT_DATE <![CDATA[<]]> COALESCE (msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
-                ELSE 'Out Of Warranty'
-            END AS warrantyStatus,
-            mp.PART_NUMBER_LONG AS model,
-            mp.VERSION_NUMBER AS version,
-            rc.COSMETIC AS cosmeticPrice,
-            rc.DIAGNOSTIC AS diagnosticPrice,
-            rc.MINOR AS minorPrice,
-            xm.XM_OID,
-            IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE) AS existInAnotherTicket
+            SERIAL_NUMBER as serialNumber,
+            msnOID,
+            xmOID,
+            warrantyExpDate,
+            warrantyStatus,
+            model,
+            version,
+            cosmeticPrice,
+            diagnosticPrice,
+            minorPrice,
+            existInAnotherTicket
+        FROM(
+        SELECT
+        msn.SERIAL_NUMBER,
+        xm.MSN_OID as msnOID,
+        CASE
+        WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN msn.WARRANTY_VOIDED_DATE
+        ELSE msn.WARRANTY_END_DATE
+        END AS warrantyExpDate,
+        CASE
+        WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE (msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        ELSE 'Out Of Warranty'
+        END AS warrantyStatus,
+        mp.PART_NUMBER_LONG AS model,
+        mp.VERSION_NUMBER AS version,
+        rc.COSMETIC AS cosmeticPrice,
+        rc.DIAGNOSTIC AS diagnosticPrice,
+        rc.MINOR AS minorPrice,
+        xm.XM_OID as xmOID,
+        IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE) AS existInAnotherTicket,
+        ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE) DESC) AS RN
         FROM
-            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
         LEFT JOIN
-            BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
+        BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
         LEFT JOIN
-            BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+        BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
         LEFT JOIN
-            BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) = rc.PART_NUMBER_SHORT
+        BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) = rc.PART_NUMBER_SHORT
+
         <where>
             msn.SERIAL_NUMBER IN
             <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
                 #{item, jdbcType=INTEGER}
             </foreach>
             AND (
-                rc.CUSTOMER = #{companyId} OR
-                (
-                    rc.CUSTOMER IS NULL AND
-                    NOT EXISTS (
-                        SELECT 1
-                        FROM BASIL_SBX_PRD.REPAIR_COST rc2
-                        WHERE rc2.PART_NUMBER_SHORT = rc.PART_NUMBER_SHORT
-                        <if test="companyId != null">
-                            AND rc2.CUSTOMER = #{companyId}
-                        </if>
-                    )
-                )
-            );
+            rc.CUSTOMER = #{companyId} OR
+            (
+            rc.CUSTOMER IS NULL AND
+            NOT EXISTS (
+            SELECT 1
+            FROM BASIL_SBX_PRD.REPAIR_COST rc2
+            WHERE rc2.PART_NUMBER_SHORT = rc.PART_NUMBER_SHORT
+            <if test="companyId != null">
+                AND rc2.CUSTOMER = #{companyId}
+            </if>
+            )
+            )
+            )
         </where>
+        ) AS CTE
+        <where>
+            (existInAnotherTicket = 1) OR
+            (existInAnotherTicket = 0 AND RN = 1);
+        </where>
+
     </select>
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject" useGeneratedKeys="true" keyProperty="mo_OID" keyColumn="MO_OID">
         INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE)
-        VALUES (#{mc_OID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))
     </insert>
 
     <insert id="insertPrep_Xref_Materials" useGeneratedKeys="false">
         INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID, CUSTOMER_REPORTED_ISSUE_EXT)
         VALUES
         <foreach item="item" collection="sNsInsertionObjectList" separator=",">
-            (#{item.mo_OID}, #{item.xm_OID}, #{item.msn_OID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
+            (#{item.moOID}, #{item.xmOID}, #{item.msnOID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
         </foreach>
     </insert>
 </mapper>

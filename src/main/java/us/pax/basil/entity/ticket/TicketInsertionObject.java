@@ -14,9 +14,9 @@ import java.util.Date;
 public class TicketInsertionObject {
 
     // this object is used to insert tickets into prep_master_order database
-    private Integer mo_OID; //ticket id
+    private Integer moOID; //ticket id
 
-    private Integer mc_OID; //customer id, get from session
+    private Integer mcOID; //customer id, get from session
 
     private String orderStatus; // 12 is open
 

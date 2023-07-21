@@ -34,6 +34,8 @@ public class Device {
 
     private Integer minorPrice;
 
-    private String xm_OID;
+    private Integer xmOID;
+
+    private Integer msnOID;
 
 }

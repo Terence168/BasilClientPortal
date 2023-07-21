@@ -316,6 +316,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             String errorMsg = "";
             String curSN = d.getSerialNumber();
             batchDeviceInfo.put("serialNumber",curSN);
+            batchDeviceInfo.put("xm_OID",d.getXmOID());
+            batchDeviceInfo.put("msn_OID",d.getMsnOID());
             batchDeviceInfo.put("model",d.getModel());
             batchDeviceInfo.put("version",d.getVersion());
             batchDeviceInfo.put("customerReportedIssue",deviceInfoMap.get(curSN)[0]);
@@ -332,7 +334,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if(d.getExistInAnotherTicket()==true)
                 errorMsg = "This device has already existed in another active ticket.";
             batchDeviceInfo.put("errorMsg",errorMsg);
-            batchDeviceInfo.put("xm_OID",d.getXm_OID());
             resultArray.add(batchDeviceInfo);
         }
         return resultArray;
@@ -357,11 +358,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     public int insertTicketToPMO(TicketInsertionObject tio){ // PMO is prep_master_order
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = user.getCompanyId();
-        tio.setMc_OID(companyId);
+        tio.setMcOID(companyId);
         tio.setOrderStatus("12");
         tio.setOrderDateToCurrentDate();
         ticketMapper.insertPrep_Master_Order(tio);
-        return tio.getMo_OID();
+        return tio.getMoOID();
     }
 
     @Override
@@ -369,7 +370,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         TicketInsertionObject tio = new TicketInsertionObject();
         int mo_OID = insertTicketToPMO(tio);
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
-            snsObject.setMo_OID(mo_OID);
+            snsObject.setMoOID(mo_OID);
         }
         try {
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
