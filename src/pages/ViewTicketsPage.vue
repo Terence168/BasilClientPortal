@@ -8,6 +8,9 @@
       <q-separator />
 
       <div class="q-px-lg q-py-md">
+        <div class="row">
+          <q-btn color="primary" label="Create Ticket" />
+        </div>
         <div class="text-subtitle1 text-weight-medium">
           Search within the table
         </div>
@@ -52,16 +55,6 @@ export default {
 
   data() {
     return {
-      showModal: false,
-
-      exportInProgress: false,
-
-      modalFormOptions: {
-        id: null,
-        action: "",
-        submitting: false,
-      },
-
       filterFields: [
         { id: "ticketId", label: "Ticket ID" },
         { id: "department", label: "Department", type: "select" },
@@ -86,11 +79,11 @@ export default {
           { id: "status", label: "Status", sortable: true },
           { id: "department", label: "Department", sortable: true },
           { id: "type", label: "Type", sortable: true },
-          {
-            id: "customer",
-            label: "Customer",
-            sortable: true,
-          },
+          //   {
+          //     id: "customer",
+          //     label: "Customer",
+          //     sortable: true,
+          //   },
           {
             id: "createdDate",
             label: "Created Date",

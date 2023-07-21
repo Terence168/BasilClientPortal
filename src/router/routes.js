@@ -107,6 +107,16 @@ const routes = [
           },
 
           {
+            path: "view",
+            name: "view-tickets",
+            component: () => import("pages/ViewTicketsPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["rma.status"],
+            },
+          },
+
+          {
             path: "create",
             name: "create-ticket",
             component: () => import("pages/CreateTicketPage.vue"),
