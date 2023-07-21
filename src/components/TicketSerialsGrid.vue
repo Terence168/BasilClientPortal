@@ -116,7 +116,7 @@
 
 <script>
 
-import { mapState } from "pinia";
+import { mapState,mapWritableState } from "pinia";
 import { useCreateTicketStore } from "stores/createTicket";
 
 export default {
@@ -132,7 +132,6 @@ export default {
           timeOutId: null,
           removeUnitWidth: null,
           spaceInBtnGroup: 6,
-          page: 1,
           pageInput: 1,
           perPage: 10,
           perPageOptions: [10, 25, 50, 100],
@@ -301,6 +300,7 @@ export default {
   computed: {
 
     ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconSerialNumberPath","getIconModelPath"]),
+    ...mapWritableState(useCreateTicketStore,['page']),
   },
 };
 </script>
