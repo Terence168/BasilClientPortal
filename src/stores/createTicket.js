@@ -38,13 +38,15 @@ export const useCreateTicketStore = defineStore("createTicket", {
     rangeFrom:0,
     rangeTo:0,
     searchData:[],
-    iconPath:"/src/assets/asc.png",
+    iconSerialNumberPath:"/src/assets/asc.png",
+    iconModelPath:"",
   }),
 
   getters: {
     getSerials() {
 
      this.rangeFrom = (this.page - 1) * this.perPage + 1;
+
 
      if(this.inputValue!='' && this.inputValue!=null){
         this.searchData=selectMatchItem(this.serials,this.inputValue);
@@ -96,8 +98,12 @@ export const useCreateTicketStore = defineStore("createTicket", {
       return this.rangeTo;
     },
 
-    getIconPath(){
-       return this.iconPath;
+    getIconSerialNumberPath(){
+       return this.iconSerialNumberPath;
+    },
+
+   getIconModelPath(){
+       return this.iconModelPath;
     }
   },
   reset() {
@@ -155,10 +161,32 @@ export const useCreateTicketStore = defineStore("createTicket", {
 
       if(this.order === true){
         this.order = true;
-        this.iconPath='/src/assets/desc.png';
+
+        if(this.sortColumn=='serialNumber'){
+          this.iconModelPath='';
+          this.iconSerialNumberPath='/src/assets/desc.png';
+        }
+
+        if(this.sortColumn=="model"){
+          this.iconModelPath='/src/assets/desc.png';
+          this.iconSerialNumberPath='';
+        }
+
+
       }else{
         this.order = false;
-        this.iconPath='/src/assets/asc.png';
+
+        if(this.sortColumn=='serialNumber'){
+          this.iconModelPath='';
+          this.iconSerialNumberPath='/src/assets/asc.png';
+        }
+
+       if(this.sortColumn=="model"){
+          this.iconModelPath='/src/assets/asc.png';
+          this.iconSerialNumberPath='';
+       }
+
+
       }
 
     },

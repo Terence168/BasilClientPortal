@@ -6,8 +6,8 @@
         <div class="col-4">
           <div class="row">
             <div class="col-1">Cosmetic</div>
-            <div class="col-4" @click="sort('serialNumber')"> <img style="width: 20px" v-bind:src="getIconPath" /> SN</div>
-            <div class="col-5" @click="sort('model')">Model</div>
+            <div class="col-4" @click="sort('serialNumber')"> <img style="width: 20px" v-bind:src="getIconSerialNumberPath" /> Serial Number</div>
+            <div class="col-5" @click="sort('model')" > <img style="width: 20px" v-bind:src="getIconModelPath" /> Model Number Short</div>
             <div class="col-2" @click="sort('version')">Version</div>
           </div>
         </div>
@@ -300,7 +300,7 @@ export default {
 
   computed: {
 
-    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconPath"]),
+    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconSerialNumberPath","getIconModelPath"]),
   },
 };
 </script>
