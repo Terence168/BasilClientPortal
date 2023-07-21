@@ -9,7 +9,12 @@
 
       <div class="q-px-lg q-py-md">
         <div class="row">
-          <q-btn color="primary" label="Create Ticket" />
+          <q-btn
+            :to="{ name: 'create-ticket' }"
+            class="q-mb-md"
+            color="primary"
+            label="Create a New Ticket"
+          />
         </div>
         <div class="text-subtitle1 text-weight-medium">
           Search within the table
