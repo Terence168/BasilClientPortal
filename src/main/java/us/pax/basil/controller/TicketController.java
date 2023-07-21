@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.entity.ticket.SNsInsertionObject;
 import us.pax.basil.entity.ticket.SubmittingTicket;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,12 +51,12 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-//    @PostMapping("submitTicket")//BCP-25
-//    //submit the ticket
-//    public SqlResultDTO ticketSubmit(@RequestBody List<SubmittingTicket> submittingTicketList){
-//        return ticketService.submitTicket(submittingTicketList);
-//
-//    }
+    @PostMapping("submitTicket")//BCP-25
+    //submit the ticket
+    public SqlResultDTO ticketSubmit(@RequestBody List<SNsInsertionObject> sNsInsertionObjectList){
+        return ticketService.submitTicket(sNsInsertionObjectList);
+
+    }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,

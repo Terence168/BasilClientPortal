@@ -303,10 +303,18 @@
         </where>
     </select>
 
-<!--    <insert id="insertPrep_Master_Order" parameterType="TicketInsertionObject" useGeneratedKeys="true" keyProperty="mo_OID">-->
-<!--        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE)-->
-<!--        VALUES (#{mc_OID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))-->
-<!--    </insert>-->
+    <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject" useGeneratedKeys="true" keyProperty="mo_OID" keyColumn="MO_OID">
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE)
+        VALUES (#{mc_OID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))
+    </insert>
+
+    <insert id="insertPrep_Xref_Materials" useGeneratedKeys="false">
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID, CUSTOMER_REPORTED_ISSUE_EXT)
+        VALUES
+        <foreach item="item" collection="sNsInsertionObjectList" separator=",">
+            (#{item.mo_OID}, #{item.xm_OID}, #{item.msn_OID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
+        </foreach>
+    </insert>
 </mapper>
 
 

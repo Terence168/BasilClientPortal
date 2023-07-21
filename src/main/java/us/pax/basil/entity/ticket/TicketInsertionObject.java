@@ -13,11 +13,10 @@ import java.util.Date;
 @ApiModel(value = "TicketInsertion Object", description = "")
 public class TicketInsertionObject {
 
-
-    // this object is used to insert ticket into prep_master_order database
+    // this object is used to insert tickets into prep_master_order database
     private Integer mo_OID; //ticket id
 
-    private Integer mc_OID; //customer id, get from sessioin
+    private Integer mc_OID; //customer id, get from session
 
     private String orderStatus; // 12 is open
 
