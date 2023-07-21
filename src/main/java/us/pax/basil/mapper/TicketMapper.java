@@ -42,5 +42,7 @@ public interface TicketMapper extends BaseMapper<Integer> {
     List<Device> getDeviceInfos(List<String> usBasedDevices, String companyId);
 
     @Options(useGeneratedKeys = true, keyProperty = "mo_OID")
-    Void insertPrep_Master_Order(TicketInsertionObject tio);
+    void insertPrep_Master_Order(TicketInsertionObject tio);
+
+    void insertPrep_Xref_Materials(List<SNsInsertionObject> sNsInsertionObjectList);
 }

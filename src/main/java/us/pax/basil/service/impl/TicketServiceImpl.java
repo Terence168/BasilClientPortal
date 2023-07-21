@@ -1,6 +1,7 @@
 package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
@@ -16,7 +17,6 @@ import java.io.IOException;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
-
 import javax.persistence.EntityManager;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -352,6 +352,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         return new QueryResultArrayDTO(resultArray,1,0,"");
     }
 
+
     @Override
     public int insertTicketToPMO(TicketInsertionObject tio){ // PMO is prep_master_order
         CustomUserDetails user = AuthUtil.getUser();
@@ -364,7 +365,17 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public SqlResultDTO submitTicket(List<SubmittingTicket> submittingTicketList){
-        return new SqlResultDTO(-1,null);
+    public SqlResultDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList) {
+        TicketInsertionObject tio = new TicketInsertionObject();
+        int mo_OID = insertTicketToPMO(tio);
+        for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
+            snsObject.setMo_OID(mo_OID);
+        }
+        try {
+            ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
+            return new SqlResultDTO(0, "");
+        } catch (Exception e) {
+            return new SqlResultDTO(-1, e.getMessage());
+        }
     }
 }
