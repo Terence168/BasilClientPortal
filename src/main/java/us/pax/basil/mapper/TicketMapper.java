@@ -38,6 +38,36 @@ public interface TicketMapper extends BaseMapper<Integer> {
                                       String createdToDate
                                       );
 
+    Integer getTicketingViewsTotal(String id,
+                              String[] ticketId,
+                              Integer department,
+                              Integer type,
+                              Integer status,
+                              String responder,
+                              String[] serialNumber,
+                              String createdFromDate,
+                              String createdToDate, String lastResponse,String customerOrganization, String customerId
+    );
+
+    List<TicketView> getTicketingViews(Integer offset,
+                      Integer count,
+                      String sortColumns,
+                      String id,
+                      String[] ticketId,
+                      Integer department,
+                      Integer type,
+                      Integer status,
+                      String responder,
+                      String[] serialNumber,
+                      String createdFromDate,
+                      String createdToDate, String lastResponse,String customerOrganization, String customerId
+    );
+    /*
+    queryDeviceBase is used to query if this device is U.S. based. If not, alert the front-end, otherwise, check if within warranty or another ticket.
+     */
+    Device queryDevice(String serialNumber);
+    Device queryDeviceDuplicate(String serialNumber);
+
     List<String> findUSBasedDevices(List<String> serialNumbersInFile);
     List<Device> getDeviceInfos(List<String> usBasedDevices, String companyId);
 

@@ -25,6 +25,7 @@ import us.pax.basil.entity.ticket.SNsInsertionObject;
 import us.pax.basil.entity.ticket.SubmittingTicket;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.persistence.EntityManager;
 import java.util.List;
 
@@ -57,6 +58,38 @@ public class TicketController {
         return ticketService.submitTicket(sNsInsertionObjectList);
 
     }
+//    @PostMapping("submitTicket")//BCP-25
+//    //submit the ticket
+//    public QueryResultArrayDTO ticketSubmit(@RequestBody List<submittingTicket> submittingTicketList){
+//        return null;
+//    }
+
+    @GetMapping("/viewTickets")
+                public QueryResultArrayDTO viewTickets(@RequestParam(value = "page", required = false) Integer currentPage,
+                                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
+                                                       @RequestParam(value = "sort", required = false) String sortColumns,
+                                                       @RequestParam(value = "ticketId", required = false) String ticketId,
+                                                       @RequestParam(value = "department", required = false) Integer department,
+                                                       @RequestParam(value = "responder", required = false) String responder,
+                                                       @RequestParam(value = "status", required = false) Integer status,
+                                                       @RequestParam(value = "type", required = false) Integer type,
+                                                       @RequestParam(value = "createdDate", required = false) String createdDate,
+                                                       @RequestParam(value = "lastResponse", required = false) String lastResponse,
+                                                       @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                                       @RequestParam(value = "customerOrganization", required = false) String customerOrganization,
+                                                       @RequestParam(value = "customerId", required = false) String customerId){
+
+        if (null == currentPage || 0 == currentPage) {
+            currentPage = 1; // show the first page by default
+        }
+
+        if(null == sizePerPage){
+            sizePerPage = 10;
+        }
+
+        return ticketService.ticketQueryViews(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate,lastResponse, serialNumber,customerOrganization,customerId);
+    }
+
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,

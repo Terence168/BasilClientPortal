@@ -99,6 +99,70 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
+    @Override
+    public QueryResultArrayDTO ticketQueryViews(Integer currentPage, Integer sizePerPage, String sortColumns, String ticketId, Integer department, String responder, Integer status, Integer type, String createdDate, String lastResponse, String serialNumber, String customerOrganization,String customerId) {
+        String[] createdDates;
+        String createdFromDate = null;
+        String createdToDate = null;
+
+        if(createdDate != null){
+            createdDates = createdDate.split("~");
+            createdFromDate = createdDates[0];
+            createdToDate = createdDates[1];
+        }
+
+        CustomUserDetails user = AuthUtil.getUser();
+        String companyId = null;
+
+        if(user!=null){
+            if(user.getStandardUser() == 1)
+                companyId = String.valueOf(user.getCompanyId());
+            else
+                companyId = customerId;
+        }
+
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        try{
+            Integer total = ticketMapper.getTicketingViewsTotal(companyId, transformInputQuery(ticketId), department, type, status, responder, transformInputQuery(serialNumber), createdFromDate,createdToDate,lastResponse,customerOrganization,customerId);
+            List<TicketView> ticketingQueueList = ticketMapper.getTicketingViews((currentPage-1) * sizePerPage,
+                    sizePerPage,
+                    buildSortString(sortColumns),
+                    companyId,
+                    transformInputQuery(ticketId),
+                    department,
+                    type,
+                    status,
+                    responder,
+                    transformInputQuery(serialNumber),
+                    createdFromDate,
+                    createdToDate,
+                    lastResponse,
+                    customerOrganization,
+                    customerId
+
+            );
+
+            for(TicketView ticketingviews: ticketingQueueList){
+
+                Map<String, Object> ticketingQueueMap = new HashMap<>();
+                ticketingQueueMap.put("ticketId", ticketingviews.getTicketId());
+                ticketingQueueMap.put("status", ticketingviews.getStatus());
+                ticketingQueueMap.put("department", ticketingviews.getDepartment());
+                ticketingQueueMap.put("type", ticketingviews.getType());
+                ticketingQueueMap.put("createdDate", ticketingviews.getCreatedDate());
+                ticketingQueueMap.put("responder", ticketingviews.getResponder());
+                ticketingQueueMap.put("lastResponse", ticketingviews.getLastResponse());
+                ticketingQueueMap.put("customer", ticketingviews.getCustomerOrganization());
+
+                resultArray.add(ticketingQueueMap);
+            }
+            return new QueryResultArrayDTO(resultArray, total, 0,"");
+        }
+        catch(Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
     private String buildSortString(String sortColumns) {
         if (null == sortColumns) {
             return null;
