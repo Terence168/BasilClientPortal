@@ -450,7 +450,6 @@ export default {
 
     handleSubmitSerials() {
       const serials = this.getAllSerials;
-      // console.log(serials);
       if (serials === undefined || serials.length == 0) {
         return;
       }
