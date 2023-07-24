@@ -125,6 +125,162 @@
         LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
     </select>
 
+
+    <select id = "getTicketingViewsTotal" resultType = "Integer">
+        SELECT
+        count(*)
+        FROM
+        BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+        JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        LEFT JOIN (
+        select response.* from ( select response.*,row_number() over (partition by mo_oid order by response_date desc) rn from BASIL_SEC_PRD.XREF_RESPONSE as response ) AS response where response.rn=1 ) AS res on res.MO_OID=pmo.MO_OID
+        <where>
+            <if test = "id !=null">
+                AND mc.MC_OID = #{id}
+            </if>
+            <if test = "ticketId != null">
+                AND
+                <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test = "department != null">
+                AND scavdept.SCV_OID = #{department}
+            </if>
+            <if test = "type != null">
+                AND scavtype.SCV_OID = #{type}
+            </if>
+            <if test = "status != null">
+                AND scavstatus.SCV_OID = #{status}
+            </if>
+
+
+            <if test = "lastResponse != null">
+                AND resp.RESPONSE_DATE = #{lastResponse}
+            </if>
+
+            <if test = "customerOrganization != null">
+                AND mc.CUSTOMER_ORGANIZATION = #{customerOrganization}
+            </if>
+
+            <if test = "customerId != null">
+                AND mc.MC_OID = #{customerId}
+            </if>
+
+            <if test="serialNumber != null">
+                AND
+                pmo.MO_OID IN (
+                SELECT pxm.MO_OID
+                FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
+                WHERE pxm.MSN_OID IN (
+                SELECT msn.MSN_OID
+                FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
+                WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                )
+            </if>
+            <if test = "responder != null">
+                AND user.NAME = #{responder} OR user.NAME IS NULL
+            </if>
+            <if test = "createdFromDate != null and createdToDate">
+                AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
+            </if>
+        </where>
+    </select>
+
+    <select id = "getTicketingViews" resultType = "us.pax.basil.entity.ticket.TicketView">
+        SELECT
+        pmo.MO_OID as ticketId,
+        scavstatus.VALUE as status,
+        scavdept.VALUE as department,
+        scavtype.VALUE as type,
+        mc.CUSTOMER_ORGANIZATION as customerOrganization,
+        pmo.ORDER_DATE as createdDate,
+        resp.RESPONSE_DATE as lastResponse,
+        user.NAME as responder
+
+        FROM
+        BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+        JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        LEFT JOIN (
+        select response.* from ( select response.*,row_number() over (partition by mo_oid order by response_date desc) rn from BASIL_SEC_PRD.XREF_RESPONSE as response ) AS response where response.rn=1 ) AS res on res.MO_OID=pmo.MO_OID
+        <where>
+            <if test = "id !=null">
+                AND mc.MC_OID = #{id}
+            </if>
+            <if test = "ticketId != null">
+                AND
+                <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test = "department != null">
+                AND scavdept.SCV_OID = #{department}
+            </if>
+            <if test = "type != null">
+                AND scavtype.SCV_OID = #{type}
+            </if>
+            <if test = "status != null">
+                AND scavstatus.SCV_OID = #{status}
+            </if>
+
+            <if test = "customerOrganization != null">
+                AND mc.CUSTOMER_ORGANIZATION = #{customerOrganization}
+            </if>
+
+            <if test = "lastResponse != null">
+                AND resp.RESPONSE_DATE = #{lastResponse}
+            </if>
+
+            <if test = "customerId != null">
+                AND mc.MC_OID = #{customerId}
+            </if>
+
+            <if test="serialNumber != null">
+                AND
+                pmo.MO_OID IN (
+                SELECT pxm.MO_OID
+                FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
+                WHERE pxm.MSN_OID IN (
+                SELECT msn.MSN_OID
+                FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
+                WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                )
+            </if>
+
+            <if test = "responder != null">
+                AND LOWER(user.NAME) LIKE CONCAT ('%', LOWER(#{responder}), '%')
+            </if>
+            <if test = "createdFromDate != null and createdToDate">
+                AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
+            </if>
+        </where>
+        <if test="sortColumns != null and sortColumns != ''">
+            ORDER BY ${sortColumns}
+        </if>
+        LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
     <select id = "queryDepartmentList" resultType="us.pax.basil.entity.ticket.Department">
         SELECT
             scav.SCV_OID as id,
