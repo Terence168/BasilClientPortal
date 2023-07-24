@@ -104,6 +104,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
 
    getIconModelPath(){
        return this.iconModelPath;
+    },
+    getAllSerials(){
+      return this.serials;
     }
   },
   reset() {
