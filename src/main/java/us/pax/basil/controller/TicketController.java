@@ -64,6 +64,7 @@ public class TicketController {
 //        return null;
 //    }
 
+    // bcp 26
     @GetMapping("/viewTickets")
                 public QueryResultArrayDTO viewTickets(@RequestParam(value = "page", required = false) Integer currentPage,
                                                        @RequestParam(value = "per_page", required = false) Integer sizePerPage,
