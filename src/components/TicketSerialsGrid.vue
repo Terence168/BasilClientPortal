@@ -47,12 +47,13 @@
               <div class="col-3">{{ serialData.terminalID }}</div>
               <div class="col-4">{{ serialData.warrantyExpDate }}</div>
               <div class="col-3">{{ serialData.warrantyStatus }}</div>
-              <div class="col-2">{{ serialData.repairPrice }}</div>
+              <!-- <div class="col-2">{{ serialData.repairPrice }}</div> -->
+              <div class="col-2">{{ getInvoiceAmt }}</div>
             </div>
           </div>
 
         </div>
-      </div>
+      </div>  
       <div v-if="getSerials === undefined || getSerials.length == 0" class="row grid-row text-center items-center">
         <div class="col-12 text-center">
           No Serial Number Input
@@ -299,8 +300,10 @@ export default {
    },
 
   computed: {
-
     ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconSerialNumberPath","getIconModelPath"]),
+    getInvoiceAmt(price){
+      return 0;
+    }
   },
 };
 </script>

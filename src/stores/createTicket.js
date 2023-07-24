@@ -171,8 +171,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
           this.iconModelPath='/src/assets/desc.png';
           this.iconSerialNumberPath='';
         }
-
-
       }else{
         this.order = false;
 
@@ -216,49 +214,26 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
 
     addSerial(serialData) {
-      const { serialNumber, customerReportedIssue, terminalID } = serialData;
-      if (this.isSerialNumberUnqiue(serialNumber) === false) {
+      const newSerial = {...serialData, cosmetic:false, show:true, loading:false };
+      if(newSerial.serialNumber === "00000000"){
+        console.log("null serial number input");
         return;
       }
-      const newSerial = {
-        cosmetic: false,
-        serialNumber: serialNumber,
-        model: null,
-        version: null,
-        customerReportedIssue: customerReportedIssue,
-        terminalID: terminalID,
-        warrantyExpDate: null,
-        warrantyStatus: null,
-        customerRMA: null,
-        repairPrice: null,
-        show: true,
-        loading: false,
-      };
-      this.serials.push(newSerial);
+      if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
+          return;
+      }
+      this.serials.unshift(newSerial);
     },
 
     updateSerial(serialData, oldSerialNumber) {
-      const { serialNumber, customerReportedIssue, terminalID } = serialData;
+      const { serialNumber} = serialData;
       if (
         serialNumber != oldSerialNumber &&
         this.isSerialNumberUnqiue(serialNumber) === false
       ) {
         return;
       }
-      const newSerial = {
-        cosmetic: false,
-        serialNumber: serialNumber,
-        model: null,
-        version: null,
-        customerReportedIssue: customerReportedIssue,
-        terminalID: terminalID,
-        warrantyExpDate: null,
-        warrantyStatus: null,
-        customerRMA: null,
-        repairPrice: null,
-        show: true,
-        loading: false,
-      };
+      const newSerial = {...serialData, cosmetic:false, show:true, loading:false };
       const index = this.serials.findIndex(
         (s) => oldSerialNumber === s.serialNumber
       );
@@ -283,6 +258,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         (s) => serialNumber === s.serialNumber
       );
       if (index != -1) {
+        console.log("serial Number is duplicate " + serialNumber);
         Notify.create({
           type: "negative",
           message: "Serial Numbers are not Unique",
