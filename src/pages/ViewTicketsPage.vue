@@ -122,7 +122,20 @@ export default {
   },
 
   methods: {
-    queryData() {},
+    queryData() {
+      const vm = this;
+
+      this.$api
+        .get("/ticketing/viewTickets" + window.location.search)
+        .then(function (response) {
+          vm.tableData.rows = response.data.data;
+          vm.total = response.data.total;
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        });
+    },
 
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);
