@@ -21,11 +21,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
+
 import us.pax.basil.entity.ticket.SNsInsertionObject;
+import us.pax.basil.entity.ticket.SNsInsertionObjectList;
 import us.pax.basil.entity.ticket.SubmittingTicket;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -51,11 +55,12 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    @PostMapping("/submitTicket")//BCP-25
+    @PostMapping(value = "/submitTicket")//BCP-25
     //submit the ticket
-    public SqlResultDTO ticketSubmit(@RequestBody List<SNsInsertionObject> sNsInsertionObjectList){
+    public SqlResultDTO ticketSubmit(@RequestBody SNsInsertionObject [] sNsInsertionObjectArray){
+        // Convert array to a list manually
+        List<SNsInsertionObject>  sNsInsertionObjectList = Arrays.asList(sNsInsertionObjectArray);
         return ticketService.submitTicket(sNsInsertionObjectList);
-
     }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
