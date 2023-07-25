@@ -330,10 +330,10 @@
         VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))
     </insert>
 
-    <insert id="insertPrep_Xref_Materials" useGeneratedKeys="false">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID, CUSTOMER_REPORTED_ISSUE_EXT)
+    <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false" >
+        INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID, CUSTOMER_REPORTED_ISSUE_EXT)
         VALUES
-        <foreach item="item" collection="sNsInsertionObjectList" separator=",">
+        <foreach item="item" collection="list" separator=",">
             (#{item.moOID}, #{item.xmOID}, #{item.msnOID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
         </foreach>
     </insert>
