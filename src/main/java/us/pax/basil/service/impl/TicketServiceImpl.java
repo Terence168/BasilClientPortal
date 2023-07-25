@@ -142,19 +142,21 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             );
 
-            for(TicketView ticketingviews: ticketingQueueList){
+            if(!ticketingQueueList.isEmpty()) {
+                for (TicketView ticketingviews : ticketingQueueList) {
 
-                Map<String, Object> ticketingViewsMap = new HashMap<>();
-                ticketingViewsMap.put("ticketId", ticketingviews.getTicketId());
-                ticketingViewsMap.put("status", ticketingviews.getStatus());
-                ticketingViewsMap.put("department", ticketingviews.getDepartment());
-                ticketingViewsMap.put("type", ticketingviews.getType());
-                ticketingViewsMap.put("createdDate", ticketingviews.getCreatedDate());
-                ticketingViewsMap.put("responder", ticketingviews.getResponder());
-                ticketingViewsMap.put("lastResponse", ticketingviews.getLastResponse());
-                ticketingViewsMap.put("customer", ticketingviews.getCustomerOrganization());
+                    Map<String, Object> ticketingViewsMap = new HashMap<>();
+                    ticketingViewsMap.put("ticketId", ticketingviews.getTicketId());
+                    ticketingViewsMap.put("status", ticketingviews.getStatus());
+                    ticketingViewsMap.put("department", ticketingviews.getDepartment());
+                    ticketingViewsMap.put("type", ticketingviews.getType());
+                    ticketingViewsMap.put("createdDate", ticketingviews.getCreatedDate());
+                    ticketingViewsMap.put("responder", ticketingviews.getResponder());
+                    ticketingViewsMap.put("lastResponse", ticketingviews.getLastResponse());
+                    ticketingViewsMap.put("customer", ticketingviews.getCustomerOrganization());
 
-                resultArray.add(ticketingViewsMap);
+                    resultArray.add(ticketingViewsMap);
+                }
             }
             return new QueryResultArrayDTO(resultArray, total, 0,"");
         }
