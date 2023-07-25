@@ -50,10 +50,9 @@
           <div class="col-4" v-show="serialData.valid">
             <div class="row items-center">
               <div class="col-3">{{ serialData.terminalID }}</div>
-              <div class="col-4">{{ serialData.warrantyExpDate === null? 'N/A' : serialData.warrantyExpDate === null}}</div>
-              <div class="col-3">{{ serialData.warrantyExpDate === null? 'N/A' : serialData.warrantyExpDate === null }}</div>
-              <!-- <div class="col-2">{{ serialData.repairPrice }}</div> -->
-              <div class="col-2">N/A</div>
+              <div class="col-4">{{ serialData.warrantyExpDate}}</div>
+              <div class="col-3">{{ serialData.warrantyStatus }}</div>
+              <div class="col-2">{{ serialData.invoiceAmt}}</div>
             </div>
           </div>
         </div>
@@ -61,6 +60,11 @@
       <div v-if="getSerials === undefined || getSerials.length == 0" class="row grid-row text-center items-center">
         <div class="col-12 text-center">
           No Serial Number Input
+        </div>
+      </div>
+      <div class="row grid-row justify-end bg-white">
+        <div class="text-h6">
+          Total Estimated Cost: {{totalInvoice}} $
         </div>
       </div>
     </div>
@@ -303,8 +307,14 @@ export default {
    },
 
   computed: {
-    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconSerialNumberPath","getIconModelPath"]),
+    ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconSerialNumberPath","getIconModelPath", "getAllSerials"]),
     ...mapWritableState(useCreateTicketStore,['page']),
+    totalInvoice(){
+      const serials = this.getAllSerials;
+      let amount = 0;
+      serials.forEach((s) => amount=amount+s.invoiceAmt);
+      return amount;
+    },
   },
 };
 </script>

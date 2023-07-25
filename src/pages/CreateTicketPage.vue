@@ -272,6 +272,7 @@ import { mapState } from "pinia";
 import BaseModal from "src/components/BaseModal.vue";
 import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
 import { mapGetters } from "pinia";
+// import { Notify } from "quasar";
 
 const user = useUserStore();
 
@@ -310,6 +311,11 @@ export default {
       "inputValue",
     ]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt", "getSerials", "getAllSerials"]),
+    totalInvoice(){
+      const serials = this.getAllSerials();
+      let amount = serials.reduce((s1, s2) => s1.invoiceAmt + s2.invoiceAmt, 0);
+      return amount;
+    },
     isReRepair() {
       return this.orderType === 4;
     },
@@ -367,6 +373,7 @@ export default {
           serials.forEach((s) => {
             vm.addSerial(s);
           });
+          console.log(serials);
         })
         .catch((e) => {
           this.$q.notify({
@@ -470,27 +477,42 @@ export default {
         };
         return sNsInsertionObject;
       });
-      // const payload = {"sNsInsertionObjectList": sNsInsertionObjectList};
-      // console.log(payload);
-      const vm = this;
-      this.$api.post(actionURL, sNsInsertionObjectList, {
-          headers: {
-            "Content-Type": 'application/json',
-        }})
-        .then(function (response) {
-          if (response.data.resultCode !== 0) {
-            throw new Error(response.data.errorMessage);
+        //if SN isn't found. Don't let customer submit ticket before Remove the record.
+        for(const serial of serials){
+          if(serial.valid === false){
+            this.$q.notify({
+              type: "negative",
+              message: "Please Delete Invalid SN before Submiting",
+            });
+            this.serialsSubmitting = false;
+            return;
           }
-        })
-        .catch((e) => {
-          this.$q.notify({
-            type: "negative",
-            message: e.message,
-          });
-        })
-        .finally(() => {
-          this.serialsSubmitting = false;
-        });
+        }
+        console.log(serials);
+      // const vm = this;
+      // this.$api.post(actionURL, sNsInsertionObjectList, {
+      //     headers: {
+      //       "Content-Type": 'application/json',
+      //   }})
+      //   .then(function (response) {
+      //     if (response.data.resultCode !== 0) {
+      //       throw new Error(response.data.errorMessage);
+      //     }
+      //     this.$q.notify({
+      //       type: "negative",
+      //       message: "Thank you for submitting a ticket. \r\n" + 
+      //             "Your RMA number is: XXXX", //TODO:What RMA number?? 
+      //     });
+      //   })
+      //   .catch((e) => {
+      //     this.$q.notify({
+      //       type: "negative",
+      //       message: e.message,
+      //     });
+      //   })
+      //   .finally(() => {
+      //     this.serialsSubmitting = false;
+      //   });
     },
   },
 };

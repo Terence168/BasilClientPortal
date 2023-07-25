@@ -30,28 +30,28 @@ export const useCreateTicketStore = defineStore("createTicket", {
     serials: [],
     //pagination
     page: 1,
-    perPage:10,
-    inputValue:'',
-    order:false,
-    rangeFrom:0,
-    rangeTo:0,
-    numberOfPages:0,
-    searchData:[],
-    iconSerialNumberPath:"/src/assets/asc.png",
-    iconModelPath:"",
+    perPage: 10,
+    inputValue: "",
+    order: false,
+    rangeFrom: 0,
+    rangeTo: 0,
+    numberOfPages: 0,
+    searchData: [],
+    iconSerialNumberPath: "/src/assets/asc.png",
+    iconModelPath: "",
   }),
 
   getters: {
     getSerials() {
-     this.rangeFrom = (this.page - 1) * this.perPage + 1;
+      this.rangeFrom = (this.page - 1) * this.perPage + 1;
 
-     if(this.inputValue!='' && this.inputValue!=null){
-        this.searchData=selectMatchItem(this.serials,this.inputValue);
+      if (this.inputValue != "" && this.inputValue != null) {
+        this.searchData = selectMatchItem(this.serials, this.inputValue);
 
-        this.page=1;
-        this.perPage=10;
+        this.page = 1;
+        this.perPage = 10;
 
-        const startIndex = (this.perPage * (this.page - 1));
+        const startIndex = this.perPage * (this.page - 1);
         const endIndex = startIndex + this.perPage;
         //when typing reload getTotal
         this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
@@ -147,9 +147,8 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
 
     goToPage(pages) {
-
-      if(pages>this.numberOfPages){
-        this.page=1;
+      if (pages > this.numberOfPages) {
+        this.page = 1;
         return this.page;
       }
 
@@ -215,23 +214,33 @@ export const useCreateTicketStore = defineStore("createTicket", {
         cosmetic: false,
         show: true,
         loading: false,
-        valid:true,
+        valid: true,
         bgColor: null,
+        invoiceAmt: 0,
       };
       //If the SN is duplicate, show error
       if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
         return;
       }
-      //If it's not a us-based serial, hightlight yellow
-      if(newSerial.resultCode === -1){
-        newSerial.bgColor = 'bg-warning';
-        newSerial.valid = false;
-      }
       //If the serial don't have warranty information, hightlight grey
-      else if(newSerial.warrantyDate === null || newSerial.warrantyStatus === null || newSerial.warrantyStatus === 'N/A' || newSerial.warrantyDate === 'N/A'){
-        newSerial.bgColor = 'bg-grey-5';
-        newSerial.warrantyDate = 'N/A';
-        newSerial.warrantyStatus = 'N/A';
+      if (
+        newSerial.warrantyExpDate === null ||
+        newSerial.warrantyStatus === null ||
+        newSerial.warrantyStatus === "N/A" ||
+        newSerial.warrantyExpDate === "N/A"
+      ) {
+        newSerial.bgColor = "bg-grey-5";
+        newSerial.warrantyExpDate = "N/A";
+        newSerial.warrantyStatus = "N/A";
+      }
+      if(newSerial.warrantyExpDate != null && newSerial.warrantyExpDate != "N/A"){
+        const date = new Date(newSerial.warrantyExpDate);
+        newSerial.warrantyExpDate = date.toLocaleDateString("un-US");
+      }
+      //If it's not a us-based serial, hightlight yellow
+      if (newSerial.resultCode === -1) {
+        newSerial.bgColor = "bg-warning";
+        newSerial.valid = false;
       }
       this.serials.unshift(newSerial);
     },
@@ -268,7 +277,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         this.serials.splice(index, 1);
       }
 
-      if(this.page>1){
+      if (this.page > 1) {
         this.page = Math.ceil(this.getTotal / this.perPage);
       }
     },
