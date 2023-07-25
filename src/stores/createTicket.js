@@ -218,20 +218,20 @@ export const useCreateTicketStore = defineStore("createTicket", {
         valid:true,
         bgColor: null,
       };
-      
-      if (newSerial.serialNumber === "00000000") {
+      //If the SN is duplicate, show error
+      if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
+        return;
+      }
+      //If it's not a us-based serial, hightlight yellow
+      if(newSerial.resultCode === -1){
         newSerial.bgColor = 'bg-warning';
         newSerial.valid = false;
-        // return;
       }
-      if(newSerial.warrantyDate === null || newSerial.warrantyStatus === null || newSerial.warrantyStatus === 'N/A' || newSerial.warrantyDate === 'N/A'){
-        console.log("non warranty");
+      //If the serial don't have warranty information, hightlight grey
+      else if(newSerial.warrantyDate === null || newSerial.warrantyStatus === null || newSerial.warrantyStatus === 'N/A' || newSerial.warrantyDate === 'N/A'){
         newSerial.bgColor = 'bg-grey-5';
         newSerial.warrantyDate = 'N/A';
         newSerial.warrantyStatus = 'N/A';
-      }
-      if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
-        return;
       }
       this.serials.unshift(newSerial);
     },
@@ -278,10 +278,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
         (s) => serialNumber === s.serialNumber
       );
       if (index != -1) {
-        console.log("serial Number is duplicate " + serialNumber);
         Notify.create({
           type: "negative",
-          message: "Please Not Enter Duplicate Serial Number.",
+          message: "SN's Already in the Table.",
         });
         return false;
       }

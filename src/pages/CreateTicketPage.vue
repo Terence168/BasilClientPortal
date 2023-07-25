@@ -366,9 +366,6 @@ export default {
           let serials = [...response.data.data];
           serials.forEach((s) => {
             vm.addSerial(s);
-            if(s.warrantyExpDate === null && s.warrantyStatus === null){
-              
-            }
           });
         })
         .catch((e) => {
@@ -422,7 +419,6 @@ export default {
       this.$api
         .get(actionURL)
         .then(function (response) {
-          console.log(response);
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
