@@ -7,7 +7,7 @@
           <div class="row">
             <div class="col-1">Cosmetic</div>
             <div class="col-4 box" @click="sort('serialNumber')"><img style="width: 5%" v-bind:src="getIconSerialNumberPath"/>Serial Number</div>
-            <div class="col-5" @click="sort('model')" ><img style="width: 5%" v-bind:src="getIconModelPath" />Model Number Short</div>
+            <div class="col-5" @click="sort('model')" ><img style="width: 4%" v-bind:src="getIconModelPath" />Model Number Short</div>
             <div class="col-2" @click="sort('version')">Version</div>
           </div>
         </div>
