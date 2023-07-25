@@ -306,7 +306,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             Map<String, Object> batchDeviceInfo = new HashMap<>();
             batchDeviceInfo.put("serialNumber", nus);
             batchDeviceInfo.put("errorMsg","This is not a U.S.Device or you input the wrong Serial Number.");
+            batchDeviceInfo.put("resultCode", -1);
             resultArray.add(batchDeviceInfo);
+        }
+        //if there is no us-based devices, return it the result array directly
+        if(usBasedDevices.isEmpty()){
+            return resultArray;
         }
         CustomUserDetails user = AuthUtil.getUser();
         String companyId = String.valueOf(user.getCompanyId());
