@@ -124,7 +124,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try{
             Integer total = ticketMapper.getTicketingViewsTotal(companyId, transformInputQuery(ticketId), department, type, status, responder, transformInputQuery(serialNumber), createdFromDate,createdToDate,lastResponse,customerOrganization,customerId);
-            List<TicketView> ticketingQueueList = ticketMapper.getTicketingViews((currentPage-1) * sizePerPage,
+            List<TicketView> ticketingViewsList = ticketMapper.getTicketingViews((currentPage-1) * sizePerPage,
                     sizePerPage,
                     buildSortString(sortColumns),
                     companyId,
@@ -142,8 +142,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             );
 
-            if(!ticketingQueueList.isEmpty()) {
-                for (TicketView ticketingviews : ticketingQueueList) {
+            if(!ticketingViewsList.isEmpty()) {
+                for (TicketView ticketingviews : ticketingViewsList) {
 
                     Map<String, Object> ticketingViewsMap = new HashMap<>();
                     ticketingViewsMap.put("ticketId", ticketingviews.getTicketId());
