@@ -25,7 +25,7 @@
       </div>
 
       <div v-for="(serialData, index) in getSerials" :key="index" id="serials">
-        <div class="row grid-row text-center items-center"  :class="computeSerialBgColor(serialData)"
+        <div class="row grid-row text-center items-center"  :class="serialData.bgColor"
  @click.stop="handleClickOnSerials(index, $event)">
           <div class="col-4">
             <div class="row items-center">
@@ -34,25 +34,28 @@
                 <q-checkbox v-model="serialData.cosmetic" />
               </div>
               <div class="col-4">{{ serialData.serialNumber }}</div>
-              <div class="col-5">{{ serialData.model }}</div>
-              <div class="col-2">{{ serialData.version }}</div>
+              <div class="col-5" v-show="serialData.valid">{{ serialData.model }}</div>
+              <div class="col-2" v-show="serialData.valid">{{ serialData.version }}</div>
             </div>
           </div>
-
-          <div class="col-4 text-left">
+          <div class="row items-center" v-show="!serialData.valid">
+            <div class="col-12 text-bold">
+              Your SN was not found. Please remove this record and contact the RMA Support.
+            </div>
+          </div>
+          <div class="col-4 text-left" v-show="serialData.valid">
             {{ serialData.customerReportedIssue }}
           </div>
 
-          <div class="col-4">
+          <div class="col-4" v-show="serialData.valid">
             <div class="row items-center">
               <div class="col-3">{{ serialData.terminalID }}</div>
-              <div class="col-4">{{ serialData.warrantyExpDate }}</div>
-              <div class="col-3">{{ serialData.warrantyStatus }}</div>
+              <div class="col-4">{{ serialData.warrantyExpDate === null? 'N/A' : serialData.warrantyExpDate === null}}</div>
+              <div class="col-3">{{ serialData.warrantyExpDate === null? 'N/A' : serialData.warrantyExpDate === null }}</div>
               <!-- <div class="col-2">{{ serialData.repairPrice }}</div> -->
-              <div class="col-2">{{ getInvoiceAmt }}</div>
+              <div class="col-2">N/A</div>
             </div>
           </div>
-
         </div>
       </div>  
       <div v-if="getSerials === undefined || getSerials.length == 0" class="row grid-row text-center items-center">
@@ -297,17 +300,6 @@ export default {
                  this.$emit("updateSerial", { serialData, serialNumber });
                  this.removePopupBtns();
                },
-
-               computeSerialBgColor(serial){
-                const SNNOTFOUND = "00000000";
-                if(serial.warrantyExpDate === null && serial.warrantyStatus === null){
-                  return 'bg-grey-6';
-                }
-                if(serial.serialNumber === SNNOTFOUND) {
-                  return 'bg-warning';
-                }
-                return '';
-              },
    },
 
   computed: {

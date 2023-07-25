@@ -215,12 +215,21 @@ export const useCreateTicketStore = defineStore("createTicket", {
         cosmetic: false,
         show: true,
         loading: false,
+        valid:true,
+        bgColor: null,
       };
-      // console.log(newSerial.serialNumber);
-      // if (newSerial.serialNumber === "00000000") {
-      //   console.log("null serial number input");
-      //   return;
-      // }
+      
+      if (newSerial.serialNumber === "00000000") {
+        newSerial.bgColor = 'bg-warning';
+        newSerial.valid = false;
+        // return;
+      }
+      if(newSerial.warrantyDate === null || newSerial.warrantyStatus === null || newSerial.warrantyStatus === 'N/A' || newSerial.warrantyDate === 'N/A'){
+        console.log("non warranty");
+        newSerial.bgColor = 'bg-grey-5';
+        newSerial.warrantyDate = 'N/A';
+        newSerial.warrantyStatus = 'N/A';
+      }
       if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
         return;
       }
@@ -272,7 +281,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         console.log("serial Number is duplicate " + serialNumber);
         Notify.create({
           type: "negative",
-          message: "Serial Numbers are not Unique",
+          message: "Please Not Enter Duplicate Serial Number.",
         });
         return false;
       }
