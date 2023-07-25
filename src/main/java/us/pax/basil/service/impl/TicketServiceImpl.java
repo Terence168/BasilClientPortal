@@ -144,17 +144,17 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             for(TicketView ticketingviews: ticketingQueueList){
 
-                Map<String, Object> ticketingQueueMap = new HashMap<>();
-                ticketingQueueMap.put("ticketId", ticketingviews.getTicketId());
-                ticketingQueueMap.put("status", ticketingviews.getStatus());
-                ticketingQueueMap.put("department", ticketingviews.getDepartment());
-                ticketingQueueMap.put("type", ticketingviews.getType());
-                ticketingQueueMap.put("createdDate", ticketingviews.getCreatedDate());
-                ticketingQueueMap.put("responder", ticketingviews.getResponder());
-                ticketingQueueMap.put("lastResponse", ticketingviews.getLastResponse());
-                ticketingQueueMap.put("customer", ticketingviews.getCustomerOrganization());
+                Map<String, Object> ticketingViewsMap = new HashMap<>();
+                ticketingViewsMap.put("ticketId", ticketingviews.getTicketId());
+                ticketingViewsMap.put("status", ticketingviews.getStatus());
+                ticketingViewsMap.put("department", ticketingviews.getDepartment());
+                ticketingViewsMap.put("type", ticketingviews.getType());
+                ticketingViewsMap.put("createdDate", ticketingviews.getCreatedDate());
+                ticketingViewsMap.put("responder", ticketingviews.getResponder());
+                ticketingViewsMap.put("lastResponse", ticketingviews.getLastResponse());
+                ticketingViewsMap.put("customer", ticketingviews.getCustomerOrganization());
 
-                resultArray.add(ticketingQueueMap);
+                resultArray.add(ticketingViewsMap);
             }
             return new QueryResultArrayDTO(resultArray, total, 0,"");
         }
