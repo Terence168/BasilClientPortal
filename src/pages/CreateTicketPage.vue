@@ -373,7 +373,6 @@ export default {
           serials.forEach((s) => {
             vm.addSerial(s);
           });
-          console.log(serials);
         })
         .catch((e) => {
           this.$q.notify({
@@ -488,31 +487,32 @@ export default {
             return;
           }
         }
-        console.log(serials);
-      // const vm = this;
-      // this.$api.post(actionURL, sNsInsertionObjectList, {
-      //     headers: {
-      //       "Content-Type": 'application/json',
-      //   }})
-      //   .then(function (response) {
-      //     if (response.data.resultCode !== 0) {
-      //       throw new Error(response.data.errorMessage);
-      //     }
-      //     this.$q.notify({
-      //       type: "negative",
-      //       message: "Thank you for submitting a ticket. \r\n" + 
-      //             "Your RMA number is: XXXX", //TODO:What RMA number?? 
-      //     });
-      //   })
-      //   .catch((e) => {
-      //     this.$q.notify({
-      //       type: "negative",
-      //       message: e.message,
-      //     });
-      //   })
-      //   .finally(() => {
-      //     this.serialsSubmitting = false;
-      //   });
+        
+      const vm = this;
+      this.$api.post(actionURL, sNsInsertionObjectList, {
+          headers: {
+            "Content-Type": 'application/json',
+        }})
+        .then(function (response) {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          this.$q.notify({
+            type: "negative",
+            message: "Thank you for submitting a ticket. \r\n" + 
+                  "Your RMA number is: XXXX", //TODO:What RMA number?? mc_oid
+          });
+        })
+        .catch((e) => {
+          this.$q.notify({
+            type: "negative",
+            message: e.message,
+          });
+        })
+        .finally(() => {
+          this.serialsSubmitting = false;
+          vm.resetTicket();
+        });
     },
   },
 };
