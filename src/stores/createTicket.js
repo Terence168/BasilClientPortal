@@ -30,27 +30,28 @@ export const useCreateTicketStore = defineStore("createTicket", {
     serials: [],
     //pagination
     page: 1,
-    perPage: 10,
-    inputValue: "",
-    order: false,
-    rangeFrom: 0,
-    rangeTo: 0,
-    searchData: [],
-    iconSerialNumberPath: "/src/assets/asc.png",
-    iconModelPath: "",
+    perPage:10,
+    inputValue:'',
+    order:false,
+    rangeFrom:0,
+    rangeTo:0,
+    numberOfPages:0,
+    searchData:[],
+    iconSerialNumberPath:"/src/assets/asc.png",
+    iconModelPath:"",
   }),
 
   getters: {
     getSerials() {
-      this.rangeFrom = (this.page - 1) * this.perPage + 1;
+     this.rangeFrom = (this.page - 1) * this.perPage + 1;
 
-      if (this.inputValue != "" && this.inputValue != null) {
-        this.searchData = selectMatchItem(this.serials, this.inputValue);
+     if(this.inputValue!='' && this.inputValue!=null){
+        this.searchData=selectMatchItem(this.serials,this.inputValue);
 
-        this.page = 1;
-        this.perPage = 10;
+        this.page=1;
+        this.perPage=10;
 
-        const startIndex = this.perPage * (this.page - 1);
+        const startIndex = (this.perPage * (this.page - 1));
         const endIndex = startIndex + this.perPage;
         //when typing reload getTotal
         this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
@@ -74,11 +75,11 @@ export const useCreateTicketStore = defineStore("createTicket", {
 
     getTotalPages() {
       if (this.inputValue != "" && this.inputValue != null) {
-        const numberOfPages = Math.ceil(this.searchData.length / this.perPage);
-        return numberOfPages;
+        this.numberOfPages = Math.ceil(this.searchData.length / this.perPage);
+        return this.numberOfPages;
       } else {
-        const numberOfPages = Math.ceil(this.serials.length / this.perPage);
-        return numberOfPages;
+        this.numberOfPages = Math.ceil(this.serials.length / this.perPage);
+        return this.numberOfPages;
       }
     },
 
@@ -146,6 +147,12 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
 
     goToPage(pages) {
+
+      if(pages>this.numberOfPages){
+        this.page=1;
+        return this.page;
+      }
+
       this.page = pages;
     },
 
@@ -250,6 +257,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
       );
       if (index >= 0) {
         this.serials.splice(index, 1);
+      }
+
+      if(this.page>1){
+        this.page = Math.ceil(this.getTotal / this.perPage);
       }
     },
 

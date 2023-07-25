@@ -6,8 +6,8 @@
         <div class="col-4">
           <div class="row">
             <div class="col-1">Cosmetic</div>
-            <div class="col-4" @click="sort('serialNumber')"> <img style="width: 20px" v-bind:src="getIconSerialNumberPath" /> Serial Number</div>
-            <div class="col-5" @click="sort('model')" > <img style="width: 20px" v-bind:src="getIconModelPath" /> Model Number Short</div>
+            <div class="col-4 box" @click="sort('serialNumber')"><img style="width: 5%" v-bind:src="getIconSerialNumberPath"/>Serial Number</div>
+            <div class="col-5" @click="sort('model')" ><img style="width: 4%" v-bind:src="getIconModelPath" />Model Number Short</div>
             <div class="col-2" @click="sort('version')">Version</div>
           </div>
         </div>
@@ -117,7 +117,7 @@
 
 <script>
 
-import { mapState } from "pinia";
+import { mapState,mapWritableState } from "pinia";
 import { useCreateTicketStore } from "stores/createTicket";
 
 export default {
@@ -133,7 +133,6 @@ export default {
           timeOutId: null,
           removeUnitWidth: null,
           spaceInBtnGroup: 6,
-          page: 1,
           pageInput: 1,
           perPage: 10,
           perPageOptions: [10, 25, 50, 100],
@@ -303,7 +302,8 @@ export default {
     ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconSerialNumberPath","getIconModelPath"]),
     getInvoiceAmt(price){
       return 0;
-    }
+    },
+    ...mapWritableState(useCreateTicketStore,['page']),
   },
 };
 </script>
