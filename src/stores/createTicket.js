@@ -217,10 +217,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
         loading: false,
       };
       // console.log(newSerial.serialNumber);
-      if (newSerial.serialNumber === "00000000") {
-        console.log("null serial number input");
-        return;
-      }
+      // if (newSerial.serialNumber === "00000000") {
+      //   console.log("null serial number input");
+      //   return;
+      // }
       if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
         return;
       }

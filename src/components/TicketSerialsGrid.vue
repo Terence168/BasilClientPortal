@@ -25,7 +25,8 @@
       </div>
 
       <div v-for="(serialData, index) in getSerials" :key="index" id="serials">
-        <div class="row grid-row text-center items-center" @click.stop="handleClickOnSerials(index, $event)">
+        <div class="row grid-row text-center items-center"  :class="computeSerialBgColor(serialData)"
+ @click.stop="handleClickOnSerials(index, $event)">
           <div class="col-4">
             <div class="row items-center">
               <!-- Where to add btn group -->
@@ -296,13 +297,21 @@ export default {
                  this.$emit("updateSerial", { serialData, serialNumber });
                  this.removePopupBtns();
                },
+
+               computeSerialBgColor(serial){
+                const SNNOTFOUND = "00000000";
+                if(serial.warrantyExpDate === null && serial.warrantyStatus === null){
+                  return 'bg-grey-6';
+                }
+                if(serial.serialNumber === SNNOTFOUND) {
+                  return 'bg-warning';
+                }
+                return '';
+              },
    },
 
   computed: {
     ...mapState(useCreateTicketStore, ["getSerials","removeSerial","getTotal","getTotalPages","getNextPages","changeToPage","goToPage","sort","getRangeForm","getRangeTo","getIconSerialNumberPath","getIconModelPath"]),
-    getInvoiceAmt(price){
-      return 0;
-    },
     ...mapWritableState(useCreateTicketStore,['page']),
   },
 };
