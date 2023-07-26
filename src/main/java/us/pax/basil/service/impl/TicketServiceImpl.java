@@ -382,7 +382,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
             return new SubmitTicketDTO(mo_OID, 0, "");
         } catch (Exception e) {
-            return new SubmitTicketDTO(null, 0, "");
+            return new SubmitTicketDTO(null, -1, e.getMessage());
         }
     }
 }
