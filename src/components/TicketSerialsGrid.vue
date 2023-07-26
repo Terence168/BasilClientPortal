@@ -32,7 +32,7 @@
         </div>
       </div>
 
-      <div v-for="(serialData, index) in getSerials" :key="index" id="serials">
+      <div v-for="(serialData, index) in getSerials" :key="index" ref="serials">
         <div
           class="row grid-row text-center items-center"
           :class="serialData.bgColor"
@@ -69,18 +69,18 @@
               <div class="col-4">{{ serialData.warrantyExpDate }}</div>
               <div class="col-3">{{ serialData.warrantyStatus }}</div>
               <!-- <div class="col-2">{{ serialData.invoiceAmt }}</div> -->
-              <div class="col-2" v-if="orderType === 3">
+              <div class="col-2" v-if="orderType === 3" >
                 {{
                   serialData.cosmetic === true
                     ? serialData.minorPrice + serialData.cosmeticPrice
                     : serialData.minorPrice
                 }} 
               </div>
-              <div class="col-2" v-else-if="orderType === 7">
+              <div class="col-2" v-else-if="orderType === 7" >
                 {{
                   serialData.cosmetic === true
                     ? serialData.diagnosticPrice + serialData.cosmeticPrice
-                    : serialData.minorPrice
+                    : serialData.diagnosticPrice
                 }}
               </div>
               <div class="col-2" v-else>
@@ -170,6 +170,7 @@
 <script>
 import { mapState, mapWritableState } from "pinia";
 import { useCreateTicketStore } from "stores/createTicket";
+import {onMounted, ref} from 'vue';
 
 export default {
   props: ["pages", "total", "orderType"],
@@ -349,37 +350,12 @@ export default {
       this.$emit("updateSerial", { serialData, serialNumber });
       this.removePopupBtns();
     },
-    computeInvoiceAmt(serial) {
-      let amount = 0;
-      switch (this.orderType) {
-        case "3":
-          //repair
-          amount += parseInt(
-            serial.minorPrice === null ? 0 : serial.minorPrice
-          );
-          break;
-        case "4":
-          //re-repair
-          amount = 0;
-          break;
-        case "7":
-          //diagnostic
-          amount += parseInt(
-            serial.diagnosticPrice === null ? 0 : serial.diagnosticPrice
-          );
-          break;
-        default:
-          //null
-          break;
-      }
-      if (serialData.cosmetic === true) {
-        amount += parseInt(
-          serial.cosmeticPrice === null ? 0 : serial.cosmeticPrice
-        );
-      }
-    },
   },
-
+  onMounted(){
+    const itemRefs = ref([]);
+    console.log(itemRefs);
+    console.log(itemRefs.value);
+  },
   computed: {
     ...mapState(useCreateTicketStore, [
       "getSerials",
@@ -399,9 +375,22 @@ export default {
     ...mapWritableState(useCreateTicketStore, ["page"]),
     totalInvoice() {
       const serials = this.getAllSerials;
-      let amount = 0;
-      serials.forEach((s) => (amount = amount + s.invoiceAmt));
-      return amount;
+      let amt = 0;
+      console.log(serials);
+      if(this.orderType === 3){
+        serials.forEach((s) => 
+          amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)
+        );
+      }
+      if(this.orderType === 7){
+        serials.forEach((s) => amt=amt+(s.minorPrice == null ? 0: s.minorPrice));
+      }
+      serials.forEach((s) => {
+        if(s.cosmetic === true){
+          amt = amt + s.cosmeticPrice;
+        }
+      })
+      return amt;
     },
   },
 };
