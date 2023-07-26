@@ -64,6 +64,13 @@ public class TicketController {
 //        return null;
 //    }
 
+
+    @GetMapping("/viewTicketDetails")//BCP-28
+    //search serial number and return device information and repair price.
+    public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) String id){
+        return ticketService.viewTicketDetails(id);
+    }
+
     // bcp 26
     @GetMapping("/viewTickets")
                 public QueryResultArrayDTO viewTickets(@RequestParam(value = "page", required = false) Integer currentPage,

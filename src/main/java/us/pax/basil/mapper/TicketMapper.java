@@ -62,6 +62,9 @@ public interface TicketMapper extends BaseMapper<Integer> {
                       String createdFromDate,
                       String createdToDate, String lastResponse,String customerOrganization, String customerId
     );
+
+    List<TicketViewDetail> getTicketingViewsDetail(String id);
+
     /*
     queryDeviceBase is used to query if this device is U.S. based. If not, alert the front-end, otherwise, check if within warranty or another ticket.
      */

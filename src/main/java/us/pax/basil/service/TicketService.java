@@ -53,6 +53,7 @@ public interface TicketService extends IService<Integer>{
                                     String serialNumber,
                                     String customerOrganization,String customerId);
 
+    QueryResultArrayDTO viewTicketDetails(String id);
 
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
