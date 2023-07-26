@@ -175,7 +175,7 @@
         </div>
 
         <!-- add serials here -->
-        <TicketSerialsGrid @updateSerial="handleUpdateSerial" />
+        <TicketSerialsGrid @updateSerial="handleUpdateSerial" :orderType="orderType" />
         <!-- Button for submit ticket -->
         <div class="row justify-center">
           <q-btn
@@ -272,6 +272,7 @@ import { mapState } from "pinia";
 import BaseModal from "src/components/BaseModal.vue";
 import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
 import { mapGetters } from "pinia";
+import { Notify } from "quasar";
 // import { Notify } from "quasar";
 
 const user = useUserStore();
@@ -311,11 +312,6 @@ export default {
       "inputValue",
     ]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt", "getSerials", "getAllSerials"]),
-    totalInvoice(){
-      const serials = this.getAllSerials();
-      let amount = serials.reduce((s1, s2) => s1.invoiceAmt + s2.invoiceAmt, 0);
-      return amount;
-    },
     isReRepair() {
       return this.orderType === 4;
     },
@@ -370,6 +366,7 @@ export default {
             throw new Error(response.data.errorMessage);
           }
           let serials = [...response.data.data];
+          console.log(serials);
           serials.forEach((s) => {
             vm.addSerial(s);
           });
@@ -497,11 +494,12 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          this.$q.notify({
-            type: "negative",
-            message: "Thank you for submitting a ticket. \r\n" + 
-                  "Your RMA number is: XXXX", //TODO:What RMA number?? mc_oid
-          });
+          console.log(response.data);
+          const mo_OID = response.data.mo_OID;
+          Notify.create({
+            type: "positive",
+            message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
+          })
         })
         .catch((e) => {
           this.$q.notify({

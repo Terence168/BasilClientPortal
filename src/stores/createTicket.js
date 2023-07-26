@@ -222,6 +222,16 @@ export const useCreateTicketStore = defineStore("createTicket", {
       if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
         return;
       }
+      //TODO: why there is a xm_OID? Dose it means it exists on another ticket?
+      if (newSerial.existInAnotherTicket === true || newSerial.xm_OID != null) {
+        console.log(newSerial);
+        Notify.create({
+          type: "negative",
+          message:
+            `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,
+        });
+        return;
+      }
       //If the serial don't have warranty information, hightlight grey
       if (
         newSerial.warrantyExpDate === null ||
@@ -233,7 +243,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
         newSerial.warrantyExpDate = "N/A";
         newSerial.warrantyStatus = "N/A";
       }
-      if(newSerial.warrantyExpDate != null && newSerial.warrantyExpDate != "N/A"){
+      if (
+        newSerial.warrantyExpDate != null &&
+        newSerial.warrantyExpDate != "N/A"
+      ) {
         const date = new Date(newSerial.warrantyExpDate);
         newSerial.warrantyExpDate = date.toLocaleDateString("un-US");
       }
