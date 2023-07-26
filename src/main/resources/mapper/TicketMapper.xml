@@ -330,12 +330,14 @@
         VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))
     </insert>
 
+<!--    todo: ON DUPLICATE KEY UPDATE: https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html-->
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false" >
         INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID, CUSTOMER_REPORTED_ISSUE_EXT)
         VALUES
         <foreach item="item" collection="list" separator=",">
             (#{item.moOID}, #{item.xmOID}, #{item.msnOID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
         </foreach>
+
     </insert>
 </mapper>
 

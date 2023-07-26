@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.SNsInsertionObject;
 import us.pax.basil.entity.ticket.SubmittingTicket;
 import us.pax.basil.entity.ticket.TicketInsertionObject;
@@ -46,5 +47,6 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO serialNumberQuery(String serialNumber);
     int insertTicketToPMO(TicketInsertionObject tio);
 
-    SqlResultDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList);
+//    SqlResultDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList);
+    SubmitTicketDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList);
 }

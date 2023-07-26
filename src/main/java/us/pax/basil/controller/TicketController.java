@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 
+import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.SNsInsertionObject;
 import us.pax.basil.entity.ticket.SNsInsertionObjectList;
 import us.pax.basil.entity.ticket.SubmittingTicket;
@@ -57,7 +58,7 @@ public class TicketController {
     }
     @PostMapping(value = "/submitTicket")//BCP-25
     //submit the ticket
-    public SqlResultDTO ticketSubmit(@RequestBody SNsInsertionObject [] sNsInsertionObjectArray){
+    public SubmitTicketDTO ticketSubmit(@RequestBody SNsInsertionObject [] sNsInsertionObjectArray){
         // Convert array to a list manually
         List<SNsInsertionObject>  sNsInsertionObjectList = Arrays.asList(sNsInsertionObjectArray);
         return ticketService.submitTicket(sNsInsertionObjectList);

@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -371,7 +372,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public SqlResultDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList) {
+    public SubmitTicketDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList) {
         TicketInsertionObject tio = new TicketInsertionObject();
         int mo_OID = insertTicketToPMO(tio);
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
@@ -379,9 +380,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
         try {
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
-            return new SqlResultDTO(0, "");
+            return new SubmitTicketDTO(mo_OID, 0, "");
         } catch (Exception e) {
-            return new SqlResultDTO(-1, e.getMessage());
+            return new SubmitTicketDTO(null, 0, "");
         }
     }
 }
