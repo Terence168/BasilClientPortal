@@ -300,7 +300,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
       if (index != -1) {
         Notify.create({
           type: "negative",
-          message: "SN's Already in the Table.",
+          message: `SN ${serialNumber} Already in the Table.`,
         });
         return false;
       }

@@ -351,11 +351,6 @@ export default {
       this.removePopupBtns();
     },
   },
-  onMounted(){
-    const itemRefs = ref([]);
-    console.log(itemRefs);
-    console.log(itemRefs.value);
-  },
   computed: {
     ...mapState(useCreateTicketStore, [
       "getSerials",
@@ -376,7 +371,6 @@ export default {
     totalInvoice() {
       const serials = this.getAllSerials;
       let amt = 0;
-      console.log(serials);
       if(this.orderType === 3){
         serials.forEach((s) => 
           amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)
