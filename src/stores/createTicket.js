@@ -101,6 +101,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     getAllSerials() {
       return this.serials;
     },
+    getTrackingNums(){
+      return this.trackingNums;
+    }
   },
   reset() {
     this.$refs.state.inputText.value = "";
@@ -223,7 +226,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         return;
       }
       if (newSerial.existInAnotherTicket === true || newSerial.xm_OID != null) {
-        // console.log(newSerial);
         Notify.create({
           type: "negative",
           message: `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,

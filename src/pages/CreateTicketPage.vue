@@ -42,7 +42,7 @@
         <div v-if="isReRepair" class="row items-center">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
-            <q-input style="min-width: 200px" dense />
+            <q-input style="min-width: 200px" dense v-model="originalRMA" />
           </div>
         </div>
 
@@ -175,7 +175,10 @@
         </div>
 
         <!-- add serials here -->
-        <TicketSerialsGrid @updateSerial="handleUpdateSerial" :orderType="orderType" />
+        <TicketSerialsGrid
+          @updateSerial="handleUpdateSerial"
+          :orderType="orderType"
+        />
         <!-- Button for submit ticket -->
         <div class="row justify-center">
           <q-btn
@@ -273,7 +276,6 @@ import BaseModal from "src/components/BaseModal.vue";
 import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
 import { mapGetters } from "pinia";
 import { Notify } from "quasar";
-// import { Notify } from "quasar";
 
 const user = useUserStore();
 
@@ -310,8 +312,14 @@ export default {
       "orderType",
       "trackingNums",
       "inputValue",
+      "originalRMA",
     ]),
-    ...mapState(useCreateTicketStore, ["orderTypeOpt", "getSerials", "getAllSerials"]),
+    ...mapState(useCreateTicketStore, [
+      "orderTypeOpt",
+      "getSerials",
+      "getAllSerials",
+      "getTrackingNums"
+    ]),
     isReRepair() {
       return this.orderType === 4;
     },
@@ -332,8 +340,6 @@ export default {
   created() {
     this.modalState = this.modalMap.addModal;
   },
-
-  mounted() {},
 
   methods: {
     ...mapActions(useCreateTicketStore, [
@@ -460,11 +466,19 @@ export default {
       this.serialsSubmitting = true;
       const actionURL = "/ticketing/submitTicket";
 
-      const sNsInsertionObjectList = serials.map((serial) => {
-        const {serialNumber, customerReportedIssue:customerReportedIssueExt, terminalID:customerTerminalID, xm_OID:xmOID, msn_OID: msnOID, customerID, customerRMA} = serial;
+      const sNsInsertionObjects = serials.map((serial) => {
+        const {
+          serialNumber,
+          customerReportedIssue: customerReportedIssueExt,
+          terminalID: customerTerminalID,
+          xm_OID: xmOID,
+          msn_OID: msnOID,
+          customerID,
+          customerRMA,
+        } = serial;
         const sNsInsertionObject = {
-          serialNumber, 
-          customerID, 
+          serialNumber,
+          customerID,
           xmOID,
           customerReportedIssueExt,
           customerRMA,
@@ -473,33 +487,48 @@ export default {
         };
         return sNsInsertionObject;
       });
-        //if SN isn't found. Don't let customer submit ticket before Remove the record.
-        for(const serial of serials){
-          if(serial.valid === false){
-            this.$q.notify({
-              type: "negative",
-              message: "Please Delete Invalid SN before Submiting",
-            });
-            this.serialsSubmitting = false;
-            return;
-          }
+
+      //If user didn't choose order type, don't allow user to submit the ticket
+      if (this.orderType === null) {
+        this.$q.notify({
+          type: "negative",
+          message: "Please Select Order Type before Submitting.",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
+
+      //if SN isn't found. Don't let customer submit ticket before Remove the record.
+      for (const serial of serials) {
+        if (serial.valid === false) {
+          this.$q.notify({
+            type: "negative",
+            message: "Please Delete Invalid SN before Submiting",
+          });
+          this.serialsSubmitting = false;
+          return;
         }
-        
+      }
+
+      const trackingNumbers = [...this.getTrackingNums];
+      const payload = { orderType: this.orderType, trackingNumbers, originalRMA: this.originalRMA, serials: sNsInsertionObjects};
+
       const vm = this;
-      this.$api.post(actionURL, sNsInsertionObjectList, {
+      this.$api
+        .post(actionURL, payload, {
           headers: {
-            "Content-Type": 'application/json',
-        }})
+            "Content-Type": "application/json"
+          },
+        })
         .then(function (response) {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          console.log(response.data);
           const mo_OID = response.data.mo_OID;
           Notify.create({
             type: "positive",
             message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
-          })
+          });
         })
         .catch((e) => {
           this.$q.notify({

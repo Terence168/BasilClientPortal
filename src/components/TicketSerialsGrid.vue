@@ -69,14 +69,14 @@
               <div class="col-4">{{ serialData.warrantyExpDate }}</div>
               <div class="col-3">{{ serialData.warrantyStatus }}</div>
               <!-- <div class="col-2">{{ serialData.invoiceAmt }}</div> -->
-              <div class="col-2" v-if="orderType === 3" >
+              <div class="col-2" v-if="orderType === 3">
                 {{
                   serialData.cosmetic === true
                     ? serialData.minorPrice + serialData.cosmeticPrice
                     : serialData.minorPrice
-                }} 
+                }}
               </div>
-              <div class="col-2" v-else-if="orderType === 7" >
+              <div class="col-2" v-else-if="orderType === 7">
                 {{
                   serialData.cosmetic === true
                     ? serialData.diagnosticPrice + serialData.cosmeticPrice
@@ -372,17 +372,22 @@ export default {
       const serials = this.getAllSerials;
       let amt = 0;
       if(this.orderType === 3){
-        serials.forEach((s) => 
-          amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)
-        );
+        serials.forEach((s) =>{
+          if(s.valid === false){
+            amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)}
+      });
       }
       if(this.orderType === 7){
-        serials.forEach((s) => amt=amt+(s.minorPrice == null ? 0: s.minorPrice));
+        serials.forEach((s) => {
+          if(s.valid === false){
+            amt=amt+(s.minorPrice == null ? 0: s.minorPrice);
+          }
+        });
       }
-      serials.forEach((s) => {
-        if(s.cosmetic === true){
+      serials.forEach((s) => {{
+        if(s.valid != false && s.cosmetic === true){
           amt = amt + s.cosmeticPrice;
-        }
+        }}
       })
       return amt;
     },
