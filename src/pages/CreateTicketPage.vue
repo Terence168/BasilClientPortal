@@ -512,7 +512,7 @@ export default {
 
       const trackingNumbers = [...this.getTrackingNums];
       const payload = { orderType: this.orderType, trackingNumbers, originalRMA: this.originalRMA, serials: sNsInsertionObjects};
-
+      
       const vm = this;
       this.$api
         .post(actionURL, payload, {
