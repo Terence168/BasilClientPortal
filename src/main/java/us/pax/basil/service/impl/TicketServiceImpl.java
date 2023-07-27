@@ -323,9 +323,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         for(Device d : getDevice){
             Map<String, Object> batchDeviceInfo = new HashMap<>();
-            if(d.getXmOID() != null){
-                d.setExistInAnotherTicket(true);
-            }
             String errorMsg = "";
             String curSN = d.getSerialNumber();
             batchDeviceInfo.put("serialNumber",curSN);
