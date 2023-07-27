@@ -12,7 +12,7 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain =  true)
 @ApiModel(value = "SerialNumbers Insertion Object", description = "")
-public class SNsInsertionObject implements Serializable {
+public class SNsInsertionObject{
     //insert rows into PREP_XREF_MATERIALS
     private String serialNumber;
 

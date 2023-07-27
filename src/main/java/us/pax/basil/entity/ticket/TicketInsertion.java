@@ -12,7 +12,7 @@ import java.util.List;
 @Accessors(chain =  true)
 public class TicketInsertion {
     private Integer orderType;
-    private List<SNsInsertionObject> sNsInsertionObjects;
+    private List<SNsInsertionObject> serials;
     private List<String>  trackingNumbers;
     private String originalRMA;  //optional, exits if re-repair
 }

@@ -6,7 +6,9 @@ import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
@@ -45,4 +47,5 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void insertPrep_Master_Order(TicketInsertionObject tio);
 
     void insertPrep_Xref_Materials(List<SNsInsertionObject> sNsInsertionObjectList);
+    void insertXref_Inbound_Tracking(@Param("trackingNumbers")List<String> trackingNumbers, @Param("mo_OID")Integer mo_OID);
 }

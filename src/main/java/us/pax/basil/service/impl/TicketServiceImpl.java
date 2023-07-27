@@ -311,15 +311,21 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("resultCode", -1);
             resultArray.add(batchDeviceInfo);
         }
+
         //if there is no us-based devices, return it the result array directly
         if(usBasedDevices.isEmpty()){
             return resultArray;
         }
+
         CustomUserDetails user = AuthUtil.getUser();
         String companyId = String.valueOf(user.getCompanyId());
         List<Device> getDevice = ticketMapper.getDeviceInfos(usBasedDevices,companyId);
+
         for(Device d : getDevice){
             Map<String, Object> batchDeviceInfo = new HashMap<>();
+            if(d.getXmOID() != null){
+                d.setExistInAnotherTicket(true);
+            }
             String errorMsg = "";
             String curSN = d.getSerialNumber();
             batchDeviceInfo.put("serialNumber",curSN);
@@ -338,7 +344,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("diagnosticPrice",d.getDiagnosticPrice());
             batchDeviceInfo.put("minorPrice",d.getMinorPrice());
             batchDeviceInfo.put("existInAnotherTicket",d.getExistInAnotherTicket());
-            if(d.getExistInAnotherTicket()==true)
+            if(d.getExistInAnotherTicket() || d.getXmOID() != null)
                 errorMsg = "This device has already existed in another active ticket.";
             batchDeviceInfo.put("errorMsg",errorMsg);
             resultArray.add(batchDeviceInfo);
@@ -374,18 +380,25 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public SubmitTicketDTO submitTicket(TicketInsertion ticketInsertion) {
-        List<SNsInsertionObject>  sNsInsertionObjectList = ticketInsertion.getSNsInsertionObjects();
-        Integer OrderType = ticketInsertion.getOrderType();
-        List<String> trackingNums = ticketInsertion.getTrackingNumbers();
+        List<SNsInsertionObject>  sNsInsertionObjectList = ticketInsertion.getSerials();
+        Integer orderType = ticketInsertion.getOrderType();
+        List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
         String originalRMA = ticketInsertion.getOriginalRMA();
 
         TicketInsertionObject tio = new TicketInsertionObject();
+        tio.setOrderType(orderType);
+        tio.setRmaNumber(originalRMA);
+
         int mo_OID = insertTicketToPMO(tio);
+
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
             snsObject.setMoOID(mo_OID);
         }
         try {
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
+            if (!trackingNumbers.isEmpty()) {
+                ticketMapper.insertXref_Inbound_Tracking(trackingNumbers, mo_OID);
+            }
             return new SubmitTicketDTO(mo_OID, 0, "");
         } catch (Exception e) {
             return new SubmitTicketDTO(null, -1, e.getMessage());

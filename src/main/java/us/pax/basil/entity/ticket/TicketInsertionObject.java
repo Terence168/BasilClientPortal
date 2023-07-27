@@ -3,6 +3,8 @@ package us.pax.basil.entity.ticket;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.util.Date;
@@ -20,7 +22,11 @@ public class TicketInsertionObject {
 
     private String orderStatus; // 12 is open
 
-    private Date orderDate; // todo: check if the format is right
+    private Date orderDate;
+
+    private Integer orderType;
+
+    private String rmaNumber;
 
     public void setOrderDateToCurrentDate(){
         this.orderDate = new Date();

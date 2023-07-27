@@ -253,7 +253,6 @@
         </foreach>
     </select>
 
-
     <select id="getDeviceInfos" parameterType="java.util.List" resultType="us.pax.basil.entity.ticket.Device">
         SELECT
             SERIAL_NUMBER as serialNumber,
@@ -327,10 +326,9 @@
 
     </select>
 
-<!--    TODO: ADD ORDER TYPE, RMA NUMBER (OPTIONAL)-->
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject" useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'))
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber})
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false" >
@@ -339,7 +337,14 @@
         <foreach item="item" collection="list" separator=",">
             (#{item.moOID}, #{item.xmOID}, #{item.msnOID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
         </foreach>
+    </insert>
 
+    <insert id="insertXref_Inbound_Tracking" useGeneratedKeys="true" keyColumn="XIT_OID">
+        INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
+        VALUES
+        <foreach item="item" collection="trackingNumbers" separator=",">
+            (#{item}, #{mo_OID})
+        </foreach>
     </insert>
 </mapper>
 
