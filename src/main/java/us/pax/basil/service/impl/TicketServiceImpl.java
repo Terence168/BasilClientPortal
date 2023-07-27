@@ -1,6 +1,7 @@
 package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
@@ -372,7 +373,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public SubmitTicketDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList) {
+    public SubmitTicketDTO submitTicket(TicketInsertion ticketInsertion) {
+        List<SNsInsertionObject>  sNsInsertionObjectList = ticketInsertion.getSNsInsertionObjects();
+        Integer OrderType = ticketInsertion.getOrderType();
+        List<String> trackingNums = ticketInsertion.getTrackingNumbers();
+        String originalRMA = ticketInsertion.getOriginalRMA();
+
         TicketInsertionObject tio = new TicketInsertionObject();
         int mo_OID = insertTicketToPMO(tio);
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {

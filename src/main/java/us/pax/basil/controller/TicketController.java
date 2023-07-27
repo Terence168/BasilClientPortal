@@ -24,8 +24,8 @@ import us.pax.basil.dto.output.SqlResultDTO;
 
 import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.SNsInsertionObject;
-import us.pax.basil.entity.ticket.SNsInsertionObjectList;
 import us.pax.basil.entity.ticket.SubmittingTicket;
+import us.pax.basil.entity.ticket.TicketInsertion;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
@@ -56,12 +56,10 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    @PostMapping(value = "/submitTicket")//BCP-25
+    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25
     //submit the ticket
-    public SubmitTicketDTO ticketSubmit(@RequestBody SNsInsertionObject [] sNsInsertionObjectArray){
-        // Convert array to a list manually
-        List<SNsInsertionObject>  sNsInsertionObjectList = Arrays.asList(sNsInsertionObjectArray);
-        return ticketService.submitTicket(sNsInsertionObjectList);
+    public SubmitTicketDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
+        return ticketService.submitTicket(ticketInsertion);
     }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
