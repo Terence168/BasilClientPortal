@@ -243,33 +243,23 @@
         LIMIT 1;
     </select>
 
-
-    <select id="findUSBasedDevices" parameterType="java.util.List" resultType="java.lang.String">
-        SELECT msn.SERIAL_NUMBER
-        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
-        WHERE msn.SERIAL_NUMBER IN
-        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
-            #{item, jdbcType=INTEGER}
-        </foreach>
-    </select>
-
     <select id="getDeviceInfos" parameterType="java.util.List" resultType="us.pax.basil.entity.ticket.Device">
         SELECT
-            SERIAL_NUMBER as serialNumber,
-            msnOID,
-            xmOID,
-            warrantyExpDate,
-            warrantyStatus,
-            model,
-            version,
-            cosmeticPrice,
-            diagnosticPrice,
-            minorPrice,
-            existInAnotherTicket
+        SERIAL_NUMBER as serialNumber,
+        msnOID,
+        xmOID,
+        warrantyExpDate,
+        warrantyStatus,
+        model,
+        version,
+        cosmeticPrice,
+        diagnosticPrice,
+        minorPrice,
+        existInAnotherTicket
         FROM(
         SELECT
         msn.SERIAL_NUMBER,
-        ppxm.MSN_OID as msnOID,
+        msn.MSN_OID as msnOID,
         CASE
         WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN msn.WARRANTY_VOIDED_DATE
         ELSE msn.WARRANTY_END_DATE
@@ -284,19 +274,19 @@
         rc.COSMETIC AS cosmeticPrice,
         rc.DIAGNOSTIC AS diagnosticPrice,
         rc.MINOR AS minorPrice,
-        ppxm.XM_OID as xmOID,
-        IF(ppxm.XM_OID IS NULL OR ppxm.STATUS = 113, FALSE, TRUE)  AS existInAnotherTicket,
-        ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(ppxm.XM_OID IS NULL OR ppxm.STATUS = 113, FALSE, TRUE) DESC) AS RN
+        xm.XM_OID as xmOID,
+        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE)  AS existInAnotherTicket,
+        ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE) DESC) AS RN
         FROM
         BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
         LEFT JOIN
         BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
         LEFT JOIN
-        BASIL_SEC_PRD.PREP_XREF_MATERIALS ppxm ON msn.MSN_OID = ppxm.MSN_OID
-\
+        BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+        LEFT JOIN
+        BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
         LEFT JOIN
         BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) = rc.PART_NUMBER_SHORT
-
         <where>
             msn.SERIAL_NUMBER IN
             <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
@@ -322,7 +312,16 @@
             (existInAnotherTicket = 1) OR
             (existInAnotherTicket = 0 AND RN = 1);
         </where>
+    </select>
 
+
+    <select id="findUSBasedDevices" parameterType="java.util.List" resultType="java.lang.String">
+        SELECT msn.SERIAL_NUMBER
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        WHERE msn.SERIAL_NUMBER IN
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item, jdbcType=INTEGER}
+        </foreach>
     </select>
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject" useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
