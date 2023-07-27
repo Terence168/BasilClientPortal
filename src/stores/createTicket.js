@@ -225,7 +225,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
       if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
         return;
       }
-      if (newSerial.existInAnotherTicket === true || newSerial.xm_OID != null) {
+      if (newSerial.existInAnotherTicket === true) {
         Notify.create({
           type: "negative",
           message: `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,
