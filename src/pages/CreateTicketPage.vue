@@ -42,10 +42,11 @@
         <div v-if="isReRepair" class="row items-center">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
-            <q-input style="min-width: 200px" dense />
+            <q-input style="min-width: 200px" dense v-model="originalRMA" />
           </div>
         </div>
 
+        <!-- Add ticket  -->
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Organization:&nbsp;</div>
           <div class="col-auto">
@@ -120,10 +121,12 @@
         </div>
 
         <div class="row items-start">
+          <!-- Add Serial Number -->
           <q-btn class="col-auto" color="primary" @click="showModal = true">
             Add Serial Number
           </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
+          <!-- Upload file -->
           <q-form class="col-auto" @submit="onFileSubmit">
             <div class="row items-start">
               <q-file
@@ -158,30 +161,51 @@
                   <q-spinner-facebook />
                 </template>
               </q-btn>
+
+              &nbsp;
+              <q-input
+                clearable
+                class="q-mr-sm"
+                label="Serial Number OR Model OR Reported Issue"
+                style="min-width: 380px"
+                v-model="inputValue"
+              />&nbsp;
             </div>
           </q-form>
         </div>
 
         <!-- add serials here -->
-        <TicketSerialsGrid />
+        <TicketSerialsGrid
+          @updateSerial="handleUpdateSerial"
+          :orderType="orderType"
+        />
+        <!-- Button for submit ticket -->
+        <div class="row justify-center">
+          <q-btn
+            class="col-auto"
+            color="primary"
+            @click="handleSubmitSerials"
+            style="min-width: 200px"
+            :loading="serialsSubmitting"
+          >
+            Submit
+          </q-btn>
+        </div>
       </div>
     </div>
 
+    <!-- Pop-up window: add or Update Device to Ticket Window -->
     <BaseModal
       v-model:show="showModal"
-      title="Add Device to Ticket"
+      v-bind:title="modalState.title"
       :width="500"
+      @update:show="resetModalState"
     >
-      <q-form
-        ref="modalForm"
-        @submit.prevent="
-          addSerial(serialNumber, customerReportedIssue, customerTerminalID)
-        "
-      >
+      <q-form ref="modalForm" @submit.prevent="handleSubmitSerialForm">
         <q-input
           class="col q-mb-sm"
           outlined
-          v-model="serialNumber"
+          v-model="modalState.serialData.serialNumber"
           label="Serial Number"
           lazy-rules
           dense
@@ -189,12 +213,11 @@
             (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
           ]"
         />
-
         <q-input
           class="col q-mt-sm q-mb-sm"
           outlined
           autogrow
-          v-model="customerReportedIssue"
+          v-model="modalState.serialData.customerReportedIssue"
           label="Customer Reported Issue"
           lazy-rules
           dense
@@ -204,36 +227,37 @@
               'Customer Reported Issue cannot be empty',
           ]"
         />
-
         <q-input
           class="col q-mt-sm q-mb-sm"
           outlined
-          v-model="customerTerminalID"
+          v-model="modalState.serialData.terminalID"
           label="Customer Terminal ID"
           dense
         />
-
         <div class="row justify-center q-mt-md">
           <div class="col-auto">
+            <!-- update/add device Button -->
             <q-btn
               class="q-mr-md"
               type="submit"
-              label="Add Device"
+              v-bind:label="modalState.btnLable"
               color="primary"
               style="min-width: 150px"
+              :loading="updateOrAddLoading"
             >
               <template v-slot:loading>
                 <q-spinner-facebook />
               </template>
             </q-btn>
           </div>
+          <!-- cancel Button -->
           <div class="col-auto">
             <q-btn
               label="Cancel"
               color="grey-4"
               text-color="grey-6"
               style="min-width: 150px"
-              @click="showModal = false"
+              @click="resetModalState"
             />
           </div>
         </div>
@@ -250,29 +274,52 @@ import { mapState } from "pinia";
 
 import BaseModal from "src/components/BaseModal.vue";
 import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
+import { mapGetters } from "pinia";
+import { Notify } from "quasar";
 
 const user = useUserStore();
 
 export default {
   components: { BaseModal, TicketSerialsGrid },
-
   data() {
     return {
       file: null,
       showModal: false,
       fileUploading: false,
-
-      serialNumber: null,
-      customerReportedIssue: null,
-      customerTerminalID: null,
+      updateOrAddLoading: false, //to control the update/add button's loading
+      serialsSubmitting: false,
+      modalMap: {
+        addModal: {
+          title: "Add Device to Ticket",
+          btnLable: "Add Device",
+          serialData: {},
+          serialNumber: null,
+        },
+        updateModal: {
+          title: "Update Device to Ticket",
+          btnLable: "Update Device",
+          serialData: {},
+          serialNumber: null,
+        },
+      },
+      modalState: null, //current state of Modal
+      isModalStateAdd: true, //true: addState, false: updateState
     };
   },
 
   computed: {
-    ...mapWritableState(useCreateTicketStore, ["orderType", "trackingNums"]),
-
-    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
-
+    ...mapWritableState(useCreateTicketStore, [
+      "orderType",
+      "trackingNums",
+      "inputValue",
+      "originalRMA",
+    ]),
+    ...mapState(useCreateTicketStore, [
+      "orderTypeOpt",
+      "getSerials",
+      "getAllSerials",
+      "getTrackingNums",
+    ]),
     isReRepair() {
       return this.orderType === 4;
     },
@@ -290,7 +337,9 @@ export default {
     },
   },
 
-  created() {},
+  created() {
+    this.modalState = this.modalMap.addModal;
+  },
 
   methods: {
     ...mapActions(useCreateTicketStore, [
@@ -299,8 +348,8 @@ export default {
       "resetTicket",
       "populateOrderTypeOpt",
       "addSerial",
+      "updateSerial",
     ]),
-
     onFileSubmit(e) {
       if (!this.file) {
         return;
@@ -323,6 +372,11 @@ export default {
             throw new Error(response.data.errorMessage);
           }
           vm.file = null;
+          let serials = [...response.data.data];
+          console.log(serials);
+          serials.forEach((s) => {
+            vm.addSerial(s);
+          });
         })
         .catch((e) => {
           this.$q.notify({
@@ -332,6 +386,165 @@ export default {
         })
         .finally(() => {
           this.fileUploading = false;
+        });
+    },
+    /*
+      Event listener for updateSerial(TicketSerialsGrid)
+      1. Set modal state to update
+      2. Populate data and index
+     */
+    handleUpdateSerial({ serialData, serialNumber }) {
+      this.modalState = this.modalMap.updateModal;
+      this.isModalStateAdd = false;
+      console.log("handle update", this.isModalStateAdd);
+      //deep copy to avoid input change cause serial data change
+      let serialDataDeepCopy = JSON.parse(JSON.stringify(serialData));
+      this.modalState.serialData = serialDataDeepCopy;
+
+      this.modalState.serialNumber = serialNumber;
+      this.showModal = true;
+    },
+
+    /*
+      1. Set Modal to addModal
+      2. Clear data inside
+      3. Remove Modal from screen
+     */
+    resetModalState() {
+      this.modalState = this.modalMap.addModal;
+      this.modalState.serialData = {};
+      this.isModalStateAdd = true;
+      this.showModal = false;
+    },
+
+    handleSubmitSerialForm() {
+      const { serialData } = this.modalState;
+      const { serialNumber: sn } = serialData;
+
+      const actionURL = `/ticketing/serialNumberUpdate?serialNumber=${sn}`;
+
+      const vm = this;
+      this.updateOrAddLoading = true;
+
+      this.$api
+        .get(actionURL)
+        .then(function (response) {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          const queryData = response.data.data[0];
+
+          if (vm.isModalStateAdd === true) {
+            vm.addSerial(queryData);
+          } else {
+            const oldSN = vm.modalState.serialNumber;
+            const updatedSerial = {
+              ...queryData,
+              customerReportedIssue: serialData.customerReportedIssue,
+              terminalID: serialData.terminalID,
+            };
+            vm.updateSerial(updatedSerial, oldSN);
+          }
+        })
+        .catch((e) => {
+          this.$q.notify({
+            type: "negative",
+            message: e.message,
+          });
+        })
+        .finally(() => {
+          this.updateOrAddLoading = false;
+          this.resetModalState();
+        });
+    },
+
+    handleSubmitSerials() {
+      const serials = this.getAllSerials;
+      if (serials === undefined || serials.length == 0) {
+        return;
+      }
+
+      this.serialsSubmitting = true;
+      const actionURL = "/ticketing/submitTicket";
+
+      const sNsInsertionObjects = serials.map((serial) => {
+        const {
+          serialNumber,
+          customerReportedIssue: customerReportedIssueExt,
+          terminalID: customerTerminalID,
+          xm_OID: xmOID,
+          msn_OID: msnOID,
+          customerID,
+          customerRMA,
+        } = serial;
+        const sNsInsertionObject = {
+          serialNumber,
+          customerID,
+          xmOID,
+          customerReportedIssueExt,
+          customerRMA,
+          customerTerminalID,
+          msnOID,
+        };
+        return sNsInsertionObject;
+      });
+
+      //If user didn't choose order type, don't allow user to submit the ticket
+      if (this.orderType === null) {
+        this.$q.notify({
+          type: "negative",
+          message: "Please Select Order Type before Submitting.",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
+
+      //if SN isn't found. Don't let customer submit ticket before Remove the record.
+      for (const serial of serials) {
+        if (serial.valid === false) {
+          this.$q.notify({
+            type: "negative",
+            message: "Please Delete Invalid SN before Submiting",
+          });
+          this.serialsSubmitting = false;
+          return;
+        }
+      }
+
+      const trackingNumbers = [...this.getTrackingNums];
+      const payload = {
+        orderType: this.orderType,
+        trackingNumbers,
+        originalRMA: this.originalRMA,
+        serials: sNsInsertionObjects,
+      };
+
+      const vm = this;
+      this.$api
+        .post(actionURL, payload, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        .then(function (response) {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          const mo_OID = response.data.mo_OID;
+          Notify.create({
+            type: "positive",
+            message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
+          });
+        })
+        .catch((e) => {
+          this.$q.notify({
+            type: "negative",
+            message: e.message,
+          });
+        })
+        .finally(() => {
+          this.serialsSubmitting = false;
+          vm.resetTicket();
         });
     },
   },
