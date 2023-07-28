@@ -66,7 +66,6 @@ public class TicketController {
 
 
     @GetMapping("/viewTicketDetails")//BCP-28
-    //search serial number and return device information and repair price.
     public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) String id){
         return ticketService.viewTicketDetails(id);
     }
