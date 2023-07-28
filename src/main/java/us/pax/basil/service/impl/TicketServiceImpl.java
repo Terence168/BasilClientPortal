@@ -151,7 +151,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 }
 
 
-
             }
             return new QueryResultArrayDTO(resultArray, ticketViewDetails.size(), 0, "");
 
