@@ -150,9 +150,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     resultArray.add(ticketingViewsDetailMap);
                 }
 
-            }
+                return new QueryResultArrayDTO(resultArray, 1, 0, "");
 
-            return new QueryResultArrayDTO(resultArray, 1, 0, "");
+            }
+            return new QueryResultArrayDTO(resultArray, 0, 0, "");
+
+
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
