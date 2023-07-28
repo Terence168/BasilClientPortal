@@ -1,13 +1,21 @@
 package us.pax.basil.mapper;
 
-import java.util.ArrayList;
+
+import java.util.Date;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
+import io.swagger.models.auth.In;
+import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
+    List<Department> queryDepartmentList();
+    List<OrderType> queryOrderTypeList();
+    List<Status> queryStatusList();
+    List<RepairType> queryRepairTypeList();
     Integer getTicketingTotal(String id,
                               String[] ticketId,
                               Integer department,
@@ -31,7 +39,13 @@ public interface TicketMapper extends BaseMapper<Integer> {
                                       String createdFromDate,
                                       String createdToDate
                                       );
-    List<Department> queryDepartmentList();
-    List<OrderType> queryOrderTypeList();
-    List<Status> queryStatusList();
+
+    List<String> findUSBasedDevices(List<String> serialNumbersInFile);
+    List<Device> getDeviceInfos(List<String> usBasedDevices, String companyId);
+
+//    @Options(useGeneratedKeys = true, keyProperty = "moOID", keyColumn = "moOID")
+    void insertPrep_Master_Order(TicketInsertionObject tio);
+
+    void insertPrep_Xref_Materials(List<SNsInsertionObject> sNsInsertionObjectList);
+    void insertXref_Inbound_Tracking(@Param("trackingNumbers")List<String> trackingNumbers, @Param("mo_OID")Integer mo_OID);
 }

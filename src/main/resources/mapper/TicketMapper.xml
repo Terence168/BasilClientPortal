@@ -161,4 +161,189 @@
         ORDER BY
             scav.SORT_ORDER ASC
     </select>
+
+    <select id = "queryRepairTypeList" resultType="us.pax.basil.entity.ticket.RepairType">
+        SELECT
+            scav.SCV_OID as id,
+            scav.VALUE as repairType
+        FROM
+            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        WHERE
+            scav.SC_OID = 1 AND scav.DEPARTMENT=100
+        ORDER BY
+            scav.SORT_ORDER ASC
+    </select>
+
+    <select id = "queryDevice" resultType = "us.pax.basil.entity.ticket.Device">
+        SELECT
+            msn.WARRANTY_END_DATE as warrantyExpDate,
+            msn.WARRANTY_VOIDED_DATE as voidDate,
+            msn.SERIAL_NUMBER as serialNumber
+        FROM
+            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+        </where>
+    </select>
+
+    <select id="queryDeviceDuplicate" resultType="us.pax.basil.entity.ticket.Device">
+        SELECT msn.SERIAL_NUMBER as serialNumber
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        JOIN BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+            AND pxm.STATUS != 113
+        </where>
+
+        UNION
+
+        SELECT msn.SERIAL_NUMBER as serialNumber
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        JOIN BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+            AND xm.STATUS != 113
+        </where>
+    </select>
+
+
+
+    <select id="queryDeviceInfo" resultType = "us.pax.basil.entity.ticket.Device">
+        SELECT
+            hpcf.SN as serialNumber,
+            hpcf.`Full_PN#` as model,
+            hpcf.`Version_#` as version,
+            msn.WARRANTY_END_DATE as warrantyExpDate,
+            rc.PART_NUMBER_SHORT,
+            rc.CUSTOMER AS COMPANY,
+            rc.COSMETIC as cosmeticPrice,
+            rc.DIAGNOSTIC as diagnosticPrice,
+            rc.MINOR as minorPrice
+        FROM
+            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+            JOIN BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = msn.SERIAL_NUMBER
+            JOIN BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(hpcf.`Full_PN#`, LOCATE('-', hpcf.`Full_PN#`) - 1) = rc.PART_NUMBER_SHORT
+        <where>
+            <if test="serialNumber != null">
+                msn.SERIAL_NUMBER = #{serialNumber}
+            </if>
+            <if test="companyId != null">
+                AND (rc.CUSTOMER = #{companyId} OR rc.CUSTOMER IS NULL)
+            </if>
+        </where>
+        <if test="companyId != null">
+            ORDER BY rc.CUSTOMER DESC
+        </if>
+        LIMIT 1;
+    </select>
+
+    <select id="getDeviceInfos" parameterType="java.util.List" resultType="us.pax.basil.entity.ticket.Device">
+        SELECT
+        SERIAL_NUMBER as serialNumber,
+        msnOID,
+        xmOID,
+        warrantyExpDate,
+        warrantyStatus,
+        model,
+        version,
+        cosmeticPrice,
+        diagnosticPrice,
+        minorPrice,
+        existInAnotherTicket
+        FROM(
+        SELECT
+        msn.SERIAL_NUMBER,
+        msn.MSN_OID as msnOID,
+        CASE
+        WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN msn.WARRANTY_VOIDED_DATE
+        ELSE msn.WARRANTY_END_DATE
+        END AS warrantyExpDate,
+        CASE
+        WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE (msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        ELSE 'Out Of Warranty'
+        END AS warrantyStatus,
+        mp.PART_NUMBER_LONG AS model,
+        mp.VERSION_NUMBER AS version,
+        rc.COSMETIC AS cosmeticPrice,
+        rc.DIAGNOSTIC AS diagnosticPrice,
+        rc.MINOR AS minorPrice,
+        xm.XM_OID as xmOID,
+        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE)  AS existInAnotherTicket,
+        ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE) DESC) AS RN
+        FROM
+        BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        LEFT JOIN
+        BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
+        LEFT JOIN
+        BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+        LEFT JOIN
+        BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
+        LEFT JOIN
+        BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) = rc.PART_NUMBER_SHORT
+        <where>
+            msn.SERIAL_NUMBER IN
+            <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
+                #{item, jdbcType=INTEGER}
+            </foreach>
+            AND (
+            rc.CUSTOMER = #{companyId} OR
+            (
+            rc.CUSTOMER IS NULL AND
+            NOT EXISTS (
+            SELECT 1
+            FROM BASIL_SBX_PRD.REPAIR_COST rc2
+            WHERE rc2.PART_NUMBER_SHORT = rc.PART_NUMBER_SHORT
+            <if test="companyId != null">
+                AND rc2.CUSTOMER = #{companyId}
+            </if>
+            )
+            )
+            )
+        </where>
+        ) AS CTE
+        <where>
+            (existInAnotherTicket = 1) OR
+            (existInAnotherTicket = 0 AND RN = 1);
+        </where>
+    </select>
+
+
+    <select id="findUSBasedDevices" parameterType="java.util.List" resultType="java.lang.String">
+        SELECT msn.SERIAL_NUMBER
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        WHERE msn.SERIAL_NUMBER IN
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item, jdbcType=INTEGER}
+        </foreach>
+    </select>
+
+    <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject" useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber})
+    </insert>
+
+    <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false" >
+        INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID, CUSTOMER_REPORTED_ISSUE_EXT)
+        VALUES
+        <foreach item="item" collection="list" separator=",">
+            (#{item.moOID}, #{item.xmOID}, #{item.msnOID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
+        </foreach>
+    </insert>
+
+    <insert id="insertXref_Inbound_Tracking" useGeneratedKeys="true" keyColumn="XIT_OID">
+        INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
+        VALUES
+        <foreach item="item" collection="trackingNumbers" separator=",">
+            (#{item}, #{mo_OID})
+        </foreach>
+    </insert>
 </mapper>
+
+

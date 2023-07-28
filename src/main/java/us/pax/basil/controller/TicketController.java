@@ -18,22 +18,49 @@ package us.pax.basil.controller;
 
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.SqlResultDTO;
+
+import us.pax.basil.dto.output.SubmitTicketDTO;
+import us.pax.basil.entity.ticket.SNsInsertionObject;
+import us.pax.basil.entity.ticket.SubmittingTicket;
+import us.pax.basil.entity.ticket.TicketInsertion;
 import us.pax.basil.service.TicketService;
+import org.springframework.web.multipart.MultipartFile;
+import javax.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 @Api(tags = "Basil API Interface")
 @RestController
 @RequestMapping("/ticketing")
+
+
 public class TicketController {
 
     @Autowired
     private TicketService ticketService;
-
+    private EntityManager entityManager;
+    @GetMapping("/serialNumberUpdate")//BCP-25
+    //search serial number and return device information and repair price.
+    public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber){
+        return ticketService.serialNumberQuery(serialNumber);
+    }
+    @PostMapping("/batchSerialNumberQuery")//BCP-25
+    //upload Excel file, process serial number by batch processing.
+    public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
+                                                       @RequestParam("fileName") String fileName
+                                                      ){
+        return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
+    }
+    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25
+    //submit the ticket
+    public SubmitTicketDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
+        return ticketService.submitTicket(ticketInsertion);
+    }
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -69,5 +96,9 @@ public class TicketController {
     @GetMapping("/dropdown/status")
     public QueryResultArrayDTO statusDropDown(){
         return ticketService.queryStatus();
+    }
+    @GetMapping("/dropdown/repair_type") //BCP-25
+    public QueryResultArrayDTO repairTypeDropDown(){
+        return ticketService.queryRepairType();
     }
 }

@@ -2,6 +2,16 @@ package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import org.springframework.web.multipart.MultipartFile;
+import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.dto.output.SubmitTicketDTO;
+import us.pax.basil.entity.ticket.SNsInsertionObject;
+import us.pax.basil.entity.ticket.SubmittingTicket;
+import us.pax.basil.entity.ticket.TicketInsertion;
+import us.pax.basil.entity.ticket.TicketInsertionObject;
+
+import javax.persistence.EntityManager;
+import java.util.List;
 
 /***
  * ============================================================================
@@ -33,4 +43,11 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();
+    QueryResultArrayDTO queryRepairType();
+    QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
+    QueryResultArrayDTO serialNumberQuery(String serialNumber);
+    int insertTicketToPMO(TicketInsertionObject tio);
+
+//    SqlResultDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList);
+    SubmitTicketDTO submitTicket(TicketInsertion ticketInsertion);
 }
