@@ -11,7 +11,7 @@ function selectMatchItem(lists, keyWord) {
   lists.filter((item) => {
     for (let i in item) {
       if (item[i] != null) {
-        if (item[i].toString().indexOf(keyWord) >= 0) {
+        if (item[i].toString().indexOf(keyWord) == 0) {
           resArr.push(item);
           break;
         }
