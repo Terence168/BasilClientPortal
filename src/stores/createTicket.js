@@ -7,17 +7,17 @@ import { Notify } from "quasar";
 **/
 function selectMatchItem(lists, keyWord) {
   let resArr = [];
-
   lists.filter((item) => {
     for (let i in item) {
       if (item[i] != null) {
-        if (item[i].toString().indexOf(keyWord) >= 0) {
-          resArr.push(item);
-          break;
+        if(item[i].toString().indexOf(keyWord) == 0) {
+           resArr.push(item);
+           break;
         }
       }
     }
-  });
+  }
+  );
 
   return resArr;
 }
