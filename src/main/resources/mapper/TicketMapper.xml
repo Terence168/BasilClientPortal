@@ -420,10 +420,6 @@
             </if>
             AND xm.STATUS != 113
         </where>
-<<<<<<< HEAD
-
-=======
->>>>>>> 2dac9a34d04a5e7efd80548f5eae31eeda2db971
     </select>
 
 

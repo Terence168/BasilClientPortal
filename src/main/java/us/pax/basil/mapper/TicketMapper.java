@@ -1,13 +1,7 @@
 package us.pax.basil.mapper;
 
-
-import java.util.Date;
 import java.util.List;
-
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-
-import io.swagger.models.auth.In;
-import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
