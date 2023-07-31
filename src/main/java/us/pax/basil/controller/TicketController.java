@@ -19,6 +19,7 @@ package us.pax.basil.controller;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 
 import us.pax.basil.dto.output.SubmitTicketDTO;
@@ -125,4 +126,5 @@ public class TicketController {
     public QueryResultArrayDTO repairTypeDropDown(){
         return ticketService.queryRepairType();
     }
+
 }
