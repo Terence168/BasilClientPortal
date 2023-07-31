@@ -8,8 +8,6 @@ import us.pax.basil.service.EmailService;
 
 import javax.mail.*;
 import javax.mail.internet.*;
-import java.io.IOException;
-import java.util.Date;
 import java.util.Properties;
 
 @Service
