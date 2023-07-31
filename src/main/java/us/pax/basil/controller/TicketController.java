@@ -37,8 +37,6 @@ import java.util.List;
 @Api(tags = "Basil API Interface")
 @RestController
 @RequestMapping("/ticketing")
-
-
 public class TicketController {
 
     @Autowired

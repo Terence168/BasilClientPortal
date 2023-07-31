@@ -5,12 +5,14 @@ import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
+import us.pax.basil.dto.output.ApiResultDTO;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.security.CustomUserDetails;
+import us.pax.basil.service.EmailService;
 import us.pax.basil.service.TicketService;
 import us.pax.basil.utils.AuthUtil;
 import lombok.AllArgsConstructor;
@@ -30,7 +32,8 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 @Service
 @AllArgsConstructor
 public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implements TicketService {
-
+    @Autowired
+    private EmailService emailService;
     private TicketMapper ticketMapper;
     @Override
     public QueryResultArrayDTO ticketQuery(Integer currentPage,
@@ -396,9 +399,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if (!trackingNumbers.isEmpty()) {
                 ticketMapper.insertXref_Inbound_Tracking(trackingNumbers, mo_OID);
             }
-            return new SubmitTicketDTO(mo_OID, 0, "");
+            //emailService.sendRmaConfirmationEmail(mo_OID, "xiaoxuan.liao@pax.us");
+            return new SubmitTicketDTO(mo_OID,0, "");
         } catch (Exception e) {
             return new SubmitTicketDTO(null, -1, e.getMessage());
         }
     }
+
 }
