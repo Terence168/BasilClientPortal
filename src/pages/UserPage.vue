@@ -265,7 +265,7 @@ export default {
       ],
 
       filterFields: [
-        { id: "name", label: "User Name" },
+        { id: "userName", label: "User Name" },
         { id: "email", label: "Email" },
         { id: "lastLogin", label: "Last Login", type: "dateRange" },
       ],
