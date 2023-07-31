@@ -58,19 +58,19 @@ import javax.servlet.http.HttpServletRequest;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    @Autowired
+    @Autowired(required=false)
     private UserMapper userMapper;
 
-    @Autowired
+    @Autowired(required=false)
     private PasswordMapper passwordMapper;
 
-    @Autowired
+    @Autowired(required=false)
     private PrivilegeMapper privilegeMapper;
 
-    @Autowired
+    @Autowired(required=false)
     private JavaMailSender mailSender;
     
-    @Autowired
+    @Autowired(required=false)
     private FrontEndProperties frontEndProperties;
 
     @Autowired
