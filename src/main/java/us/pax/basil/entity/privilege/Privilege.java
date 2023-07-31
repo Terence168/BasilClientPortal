@@ -1,5 +1,6 @@
 package us.pax.basil.entity.privilege;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,16 +13,15 @@ import java.util.*;
 @Accessors(chain=true)
 @AllArgsConstructor
 @ApiModel(value="Privilege Name", description="")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Privilege {
     private Integer id;
-    private Integer parentId;
-    private String name;
+    private String label;
     private Privilege[] children;
 
-    public Privilege(int id, int parent_id, String name, Privilege[] children) {
+    public Privilege(int id, String label, Privilege[] children) {
         this.id = id;
-        this.parentId = parent_id;
-        this.name = name;
+        this.label = label;
         this.children = children;
     }
 
@@ -41,8 +41,7 @@ public class Privilege {
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("id", id);
-        map.put("parent_id", parentId);
-        map.put("name", name);
+        map.put("label", label);
         map.put("children", children);
         return map;
     }

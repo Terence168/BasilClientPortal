@@ -17,6 +17,7 @@ package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import us.pax.basil.constant.ClientGroupConstant;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -376,7 +378,8 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             for (Integer i: user.getRoles()) {
                 privilegeMapper.addUserRole(user.getId(), i);
             }
-            
+
+            assert currentUser != null;
             if (currentUser.getUsername().compareTo(user.getName())!=0) {
             	AuthUtil.logoutUser(sessionRegistry, user.getName());
             } else {
@@ -414,38 +417,26 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         }
     }
 
+    // generate privilege list
     @Override
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public QueryResultArrayDTO queryPrivilege(HttpServletRequest request) {
         ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
         try {
             List<Map<String, Object>> privileges = privilegeMapper.queryPrivilege();
-            Privilege privilege_root = null;
+            Privilege privilege_root = new Privilege(0, "All Permissions", null);
             for (Map<String, Object> privilege : privileges) {
-//                Map<String, Object> privilegeMap = new HashMap<>();
-//                privilegeMap.put(PrivilegeConstant.NAME, privilege.get("NAME"));
-//                privilegeMap.put(PrivilegeConstant.ID, privilege.get("P_OID"));
-//                privilegeMap.put(PrivilegeConstant.PARENT_ID, privilege.get("PARENT_OID"));
-//
-//                returnArray.add(privilegeMap);
                 int id = (int) privilege.get("P_OID");
                 int parentId = (int) privilege.get("PARENT_OID");
                 String name = (String) privilege.get("NAME");
-                if (parentId == 0) {
-                    privilege_root = new Privilege(id, parentId, name, null);
-//                    returnArray.add(privilege_root.toMap());
-                } else {
-                    Privilege privilege_child = new Privilege(id, parentId, name, null);
-                    assert privilege_root != null;
-                    Privilege privilege_parent = privilege_root.findPrivilege(parentId);
-                    if (privilege_parent != null) {
-                        privilege_parent.addChild(privilege_child);
-                    }
-//                    returnArray.add(privilege_child.toMap());
+                Privilege privilege_child = new Privilege(id, name, null);
+                Privilege privilege_parent = privilege_root.findPrivilege(parentId);
+                if (privilege_parent != null) {
+                    privilege_parent.addChild(privilege_child);
                 }
             }
-            assert privilege_root != null;
             returnArray.add(privilege_root.toMap());
-            return new QueryResultArrayDTO(returnArray, returnArray.size(), 0, "");
+            return new QueryResultArrayDTO(returnArray, privileges.size(), 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
