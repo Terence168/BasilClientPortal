@@ -1,5 +1,5 @@
 package us.pax.basil.service.impl;
-/***
+/*
  * ============================================================================
  * = COPYRIGHT Basil
  *               PAX TECHNOLOGY, Inc. PROPRIETARY INFORMATION

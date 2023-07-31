@@ -61,10 +61,13 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
 
     @Autowired
     private SessionRegistry sessionRegistry;
-
+    @Autowired(required=false)
     private PrivilegeMapper privilegeMapper;
+    @Autowired(required=false)
     private UserMapper userMapper;
+    @Autowired(required=false)
     RoleTypeMapper roleTypeMapper;
+    @Autowired(required=false)
     RoleEntityMapper roleMapper;
 
     //
@@ -408,6 +411,43 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         } catch (Exception e) {
             log.info("PrivilegeServiceImpl::changePassword(): ***exception: {}", e.getCause().getMessage());
             return new SqlResultDTO(-1, e.getCause().getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryPrivilege(HttpServletRequest request) {
+        ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
+        try {
+            List<Map<String, Object>> privileges = privilegeMapper.queryPrivilege();
+            Privilege privilege_root = null;
+            for (Map<String, Object> privilege : privileges) {
+//                Map<String, Object> privilegeMap = new HashMap<>();
+//                privilegeMap.put(PrivilegeConstant.NAME, privilege.get("NAME"));
+//                privilegeMap.put(PrivilegeConstant.ID, privilege.get("P_OID"));
+//                privilegeMap.put(PrivilegeConstant.PARENT_ID, privilege.get("PARENT_OID"));
+//
+//                returnArray.add(privilegeMap);
+                int id = (int) privilege.get("P_OID");
+                int parentId = (int) privilege.get("PARENT_OID");
+                String name = (String) privilege.get("NAME");
+                if (parentId == 0) {
+                    privilege_root = new Privilege(id, parentId, name, null);
+//                    returnArray.add(privilege_root.toMap());
+                } else {
+                    Privilege privilege_child = new Privilege(id, parentId, name, null);
+                    assert privilege_root != null;
+                    Privilege privilege_parent = privilege_root.findPrivilege(parentId);
+                    if (privilege_parent != null) {
+                        privilege_parent.addChild(privilege_child);
+                    }
+//                    returnArray.add(privilege_child.toMap());
+                }
+            }
+            assert privilege_root != null;
+            returnArray.add(privilege_root.toMap());
+            return new QueryResultArrayDTO(returnArray, returnArray.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
 }

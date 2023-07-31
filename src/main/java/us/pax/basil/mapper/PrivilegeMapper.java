@@ -26,8 +26,9 @@ import us.pax.basil.entity.privilege.UserQuery;
 
 public interface PrivilegeMapper extends BaseMapper<RoleType> {
     void addRoleType(String name, String creator);
-    int updateRoleType(Integer id,  String name);
+    void updateRoleType(Integer id, String name);
     List<Map<String, Object>> queryRoleType();
+    List<Map<String, Object>> queryPrivilege();
 
     void addRole(Role role);
     void addRolePermission(Integer permission_id, Integer role_id);
@@ -43,7 +44,7 @@ public interface PrivilegeMapper extends BaseMapper<RoleType> {
     User getUser(Integer id);
 
     List<String> getPrivilegeListByUserId(Integer userId);
-    List<UserQuery>getUsers(); 
+    List<UserQuery> getUsers();
     void addUser(User user);
     void addUserRole(Integer user_id, Integer role_id);
     void deleteUserRoles(Integer user_id);

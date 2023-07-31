@@ -22,6 +22,7 @@ import us.pax.basil.utils.ColumnMapping;
 public class PrivilegeConstant {
     public final static String SQL_QUERY_ROLE_TYPE = "SELECT RT_OID as id, NAME as roleType FROM BASIL_SEC_PRD.ROLE_TYPES";
 
+    public final static String SQL_QUERY_PREVILEGE = "SELECT P_OID as id, NAME as privilege FROM BASIL_SEC_PRD.PRIVILEGES";
     public final static String BURDEN_RATE="burdenRate";
     public final static String DIVISION_STRING="division";
     public final static String EMPLOYEE_STATUS="employeeStatus";
@@ -39,6 +40,8 @@ public class PrivilegeConstant {
     public final static String ROLE_TYPE_NAME="roleTypeName";
     public final static String RT_ID="RT_ID";
     public final static String PRIVILEGE_ID="PRIVILEGE_ID";
+    public final static String PARENT_ID="parent_id";
+    public final static String PRIVILEGE = "privilege";
     public final static String PERMISSIONS="permissions";
     public final static String TITLE_STRING_UPPERCASE="TITLE";
     public final static String USERNAME="userName";

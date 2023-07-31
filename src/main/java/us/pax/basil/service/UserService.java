@@ -1,5 +1,5 @@
 package us.pax.basil.service;
-/***
+/*
  * ============================================================================
  * = COPYRIGHT Basil
  *               PAX TECHNOLOGY, Inc. PROPRIETARY INFORMATION
@@ -31,10 +31,10 @@ public interface UserService extends IService<User> {
 
     boolean checkPassword(String password, String passwordEncoder);
 
-    QueryResultArrayDTO getUserDetail(Authentication authentication);
-    QueryResultArrayDTO queryList(Integer currentPage,
-                                  Integer sizePerPage,
-                                  String sortColumns,
+     QueryResultArrayDTO getUserDetail(Authentication authentication);
+     QueryResultArrayDTO queryList(Integer currentPage,
+                                       Integer sizePerPage,
+                                   String sortColumns,
                                   String name, 
                                   Integer company, 
                                   String email, 

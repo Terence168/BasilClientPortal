@@ -1,5 +1,5 @@
 package us.pax.basil.mapper;
-/***
+/*
  * ============================================================================
  * = COPYRIGHT Basil
  *               PAX TECHNOLOGY, Inc. PROPRIETARY INFORMATION
