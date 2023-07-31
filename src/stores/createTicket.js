@@ -4,10 +4,10 @@ import { Notify } from "quasar";
 
 /**
   filter input words
+  match
 **/
 function selectMatchItem(lists, keyWord) {
   let resArr = [];
-
   lists.filter((item) => {
     for (let i in item) {
       if (item[i] != null) {
@@ -17,7 +17,8 @@ function selectMatchItem(lists, keyWord) {
         }
       }
     }
-  });
+  }
+  );
 
   return resArr;
 }
