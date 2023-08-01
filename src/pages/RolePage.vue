@@ -208,60 +208,60 @@ export default {
       },
 
       permissions: [
-        {
-          id: 0,
-          label: "All Permissions",
-          children: [
-            {
-              id: 1,
-              label: "User Control Access",
-              children: [
-                {
-                  id: 2,
-                  label: "Role Type List",
-                  children: [
-                    {
-                      id: 5,
-                      label: "Add - Role Type",
-                    },
-                    {
-                      id: 6,
-                      label: "Update - Role Type",
-                    },
-                  ],
-                },
-                {
-                  id: 3,
-                  label: "Role List",
-                  children: [
-                    {
-                      id: 7,
-                      label: "Add - Role",
-                    },
-                    {
-                      id: 8,
-                      label: "Update - Role",
-                    },
-                  ],
-                },
-                {
-                  id: 4,
-                  label: "User List",
-                  children: [
-                    {
-                      id: 9,
-                      label: "Add - User",
-                    },
-                    {
-                      id: 10,
-                      label: "Update - User",
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
+        // {
+        //   id: 0,
+        //   label: "All Permissions",
+        //   children: [
+        //     {
+        //       id: 1,
+        //       label: "User Control Access",
+        //       children: [
+        //         {
+        //           id: 2,
+        //           label: "Role Type List",
+        //           children: [
+        //             {
+        //               id: 5,
+        //               label: "Add - Role Type",
+        //             },
+        //             {
+        //               id: 6,
+        //               label: "Update - Role Type",
+        //             },
+        //           ],
+        //         },
+        //         {
+        //           id: 3,
+        //           label: "Role List",
+        //           children: [
+        //             {
+        //               id: 7,
+        //               label: "Add - Role",
+        //             },
+        //             {
+        //               id: 8,
+        //               label: "Update - Role",
+        //             },
+        //           ],
+        //         },
+        //         {
+        //           id: 4,
+        //           label: "User List",
+        //           children: [
+        //             {
+        //               id: 9,
+        //               label: "Add - User",
+        //             },
+        //             {
+        //               id: 10,
+        //               label: "Update - User",
+        //             },
+        //           ],
+        //         },
+        //       ],
+        //     },
+        //   ],
+        // },
       ],
 
       ticked: [],
@@ -276,6 +276,8 @@ export default {
     this.queryData();
 
     this.populateRoleTypeDropdown();
+
+    this.generatePrivilegeTree();
   },
 
   computed: {
@@ -293,6 +295,20 @@ export default {
         .get("/privilege/role/query")
         .then(function (response) {
           vm.roles = response.data.data;
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        });
+    },
+
+    generatePrivilegeTree() {
+      const vm = this;
+
+      this.$api
+        .get("/privilege/tree")
+        .then(function (response) {
+          vm.permissions = response.data.data;
         })
         .catch(function (error) {
           // handle error
