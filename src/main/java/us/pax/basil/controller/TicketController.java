@@ -61,7 +61,7 @@ public class TicketController {
 
     // bcp 26
     @GetMapping("/viewTickets")
-                public QueryResultArrayDTO viewTickets(@RequestParam(value = "page", required = false) Integer currentPage,
+    public QueryResultArrayDTO viewTickets(@RequestParam(value = "page", required = false) Integer currentPage,
                                                        @RequestParam(value = "per_page", required = false) Integer sizePerPage,
                                                        @RequestParam(value = "sort", required = false) String sortColumns,
                                                        @RequestParam(value = "ticketId", required = false) String ticketId,
