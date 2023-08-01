@@ -75,4 +75,17 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     void insertPrep_Xref_Materials(List<SNsInsertionObject> sNsInsertionObjectList);
     void insertXref_Inbound_Tracking(@Param("trackingNumbers")List<String> trackingNumbers, @Param("mo_OID")Integer mo_OID);
+
+
+    TicketInfo existingMasterOrder(String id);
+
+    TicketInfo existingPREPMasterOrder(String id);
+
+    List<String> getTrackingNumber(String id);
+
+    List<String> getSerialNumber(String id);
+
+    List<SNInfo> getOdsMaterials(String id);
+
+    List<SNInfo> getSecMaterials(String id);
 }

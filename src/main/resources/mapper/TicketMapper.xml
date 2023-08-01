@@ -180,6 +180,62 @@
         </where>
     </select>
 
+    <select id = "existingMasterOrder" resultType = "us.pax.basil.entity.ticket.TicketInfo">
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair,ADDRESS as address from BASIL_ODS_PRD.MASTER_ORDER as ma
+        <where>
+            <if test = "id !=null">
+                ma.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id = "existingPREPMasterOrder" resultType = "us.pax.basil.entity.ticket.TicketInfo">
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair,ADDRESS as address from BASIL_SEC_PRD.PREP_MASTER_ORDER as pref
+        <where>
+            <if test = "id !=null">
+                pref.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id = "getTrackingNumber" resultType = "Integer">
+        select tr.TRACKING_NUMBER as trackingNumbers from BASIL_SEC_PRD.XREF_INBOUND_TRACKING as tr
+        <where>
+            <if test = "id !=null">
+                tr.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id = "getSecMaterials" resultType = "us.pax.basil.entity.ticket.SNInfo">
+        select xma.MSN_OID as msnOID, xma.customerRMA as customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as customerReportedIssueExt, xma.XM_OID as xmOID,xma.
+        MO_OID as moOID  from BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
+        <where>
+            <if test = "id !=null">
+                tr.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id = "getOdsMaterials" resultType = "us.pax.basil.entity.ticket.SNInfo">
+        select xma.MSN_OID as msnOID, xma.customerRMA as customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as customerReportedIssueExt, xma.XM_OID as xmOID,xma.
+        MO_OID as moOID  from BASIL_ODS_PRD.XREF_MATERIALS as xma
+        <where>
+            <if test = "id !=null">
+                tr.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id = "getSerialNumber" resultType = "String">
+        select msn.SERIAL_NUMBER as serialNumber from BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
+        <where>
+            <if test = "id !=null">
+                msn.MSN_OID = #{id}
+            </if>
+        </where>
+    </select>
+
     <select id = "getTicketingViewsTotal" resultType = "Integer">
         SELECT
         count(*)

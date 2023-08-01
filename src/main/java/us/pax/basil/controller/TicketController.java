@@ -23,10 +23,12 @@ import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 
 import us.pax.basil.dto.output.SubmitTicketDTO;
+import us.pax.basil.entity.ticket.TicketEditObject;
 import us.pax.basil.entity.ticket.TicketInsertion;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
+import java.util.List;
 
 @Api(tags = "Basil API Interface")
 @RestController
@@ -48,10 +50,15 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25
+    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25viewEditTicket?id=189
     //submit the ticket
     public SubmitTicketDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
         return ticketService.submitTicket(ticketInsertion);
+    }
+
+    @GetMapping("/viewEditTicket")//BCP-28 Index
+    public QueryResultArrayDTO viewEditTicket(@RequestParam(value = "id", required = true) String id){
+        return ticketService.viewEditTicket(id);
     }
 
     @GetMapping("/viewTicketDetails")//BCP-28
