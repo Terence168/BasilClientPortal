@@ -1,8 +1,17 @@
 package us.pax.basil.entity.ticket;
 
+import io.swagger.annotations.ApiModel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
 import java.util.Date;
 import java.util.List;
 
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
+@ApiModel(value="View Ticketing", description="")
 public class TicketInfo {
     private Integer moOID; //ticket id
     private Boolean isFromMaster; //if it's from master_order, mark it as true, else false
