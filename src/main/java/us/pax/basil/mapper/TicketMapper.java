@@ -83,8 +83,6 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     List<String> getTrackingNumber(String id);
 
-    List<String> getSerialNumber(String id);
-
     List<SNInfo> getOdsMaterials(String id);
 
     List<SNInfo> getSecMaterials(String id);

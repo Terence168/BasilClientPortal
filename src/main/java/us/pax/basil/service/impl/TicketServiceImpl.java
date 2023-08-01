@@ -378,11 +378,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 }
             } else {
                 ticket.setIsFromMaster(true);
+                List<SNInfo> serials=ticketMapper.getOdsMaterials(id);
+
+                ticket.setSerials(serials);
             }
 
             List<String> trackingNumber=ticketMapper.getTrackingNumber(id);
             ticket.setTrackingNumbers(trackingNumber);
-            //ticket.setSerials();
 
             Map<String, Object> ticketingViewsMap = new HashMap<>();
             ticketingViewsMap.put("moOID", ticket.getMoOID());
