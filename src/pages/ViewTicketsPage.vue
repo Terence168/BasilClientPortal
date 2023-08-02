@@ -124,7 +124,7 @@ export default {
   methods: {
     queryData() {
       const vm = this;
-
+      console.log(window.location.search);
       this.$api
         .get("/ticketing/viewTickets" + window.location.search)
         .then(function (response) {

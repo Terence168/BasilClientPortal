@@ -271,7 +271,6 @@ import { useUserStore } from "stores/user";
 import { useCreateTicketStore } from "stores/createTicket";
 import { mapWritableState, mapActions } from "pinia";
 import { mapState } from "pinia";
-
 import BaseModal from "src/components/BaseModal.vue";
 import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
 import { mapGetters } from "pinia";
@@ -396,7 +395,6 @@ export default {
     handleUpdateSerial({ serialData, serialNumber }) {
       this.modalState = this.modalMap.updateModal;
       this.isModalStateAdd = false;
-      console.log("handle update", this.isModalStateAdd);
       //deep copy to avoid input change cause serial data change
       let serialDataDeepCopy = JSON.parse(JSON.stringify(serialData));
       this.modalState.serialData = serialDataDeepCopy;
@@ -404,7 +402,6 @@ export default {
       this.modalState.serialNumber = serialNumber;
       this.showModal = true;
     },
-
     /*
       1. Set Modal to addModal
       2. Clear data inside
@@ -416,7 +413,6 @@ export default {
       this.isModalStateAdd = true;
       this.showModal = false;
     },
-
     handleSubmitSerialForm() {
       const { serialData } = this.modalState;
       const { serialNumber: sn } = serialData;
@@ -457,7 +453,6 @@ export default {
           this.resetModalState();
         });
     },
-
     handleSubmitSerials() {
       const serials = this.getAllSerials;
       if (serials === undefined || serials.length == 0) {

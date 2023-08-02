@@ -17,8 +17,7 @@ function selectMatchItem(lists, keyWord) {
         }
       }
     }
-  }
-  );
+  });
 
   return resArr;
 }
@@ -102,9 +101,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     getAllSerials() {
       return this.serials;
     },
-    getTrackingNums(){
+    getTrackingNums() {
       return this.trackingNums;
-    }
+    },
   },
   reset() {
     this.$refs.state.inputText.value = "";
@@ -118,6 +117,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.trackingNums.splice(index, 1);
     },
     populateOrderTypeOpt(_, update) {
+      console.log("enter");
       if (this.orderType) {
         update();
         return;
@@ -130,11 +130,11 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .then((response) => {
           update(() => {
             this.orderTypeOpt = response.data.data;
+            console.log(this.orderTypeOpt);
           });
         })
         .catch(function (error) {
           // handle error
-          console.log(error);
           Notify.create({
             type: "negative",
             message: "Order Type Dropdown cannot be populated",
