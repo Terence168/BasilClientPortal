@@ -2,10 +2,9 @@
   <div class="q-mx-lg">
     <div class="generic-container">
       <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        Edit Ticket
+        Edit Ticket {{ticketId}}
       </div>
     </div>
-
     <div class="q-mt-lg generic-container">
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg text-body1">
         <div class="row q-mb-md text-weight-medium">
@@ -122,7 +121,8 @@
             title="Ticket Serial Numbers"
             :rows="serials"
             :columns="columns"
-            row-key="name"
+            row-key="serialNumber"
+            @row-click="handleRowClick"
           ></q-table>
         </div>
         <!-- Button for submit ticket -->
@@ -138,6 +138,25 @@
           </q-btn>
         </div>
       </div>
+    </div>
+    <!-- button group: delete and update-->
+    <div class="popup-button-group" v-show="withClient" :style="positionStyle">
+      <q-btn
+        class="remove-unit"
+        size="sm"
+        color="red"
+        icon="close"
+        round
+        @click.stop="handleRemoveSerial"
+      />
+      <q-btn
+        class="edit-unit"
+        size="sm"
+        color="primary"
+        icon="edit"
+        round
+        @click.stop="handleUpdateSerial"
+      />
     </div>
     <!-- Pop-up window: add or Update Device to Ticket Window -->
     <BaseModal
@@ -205,9 +224,7 @@
         </div>
       </q-form>
     </BaseModal>
-    <MessageBoard>
-    </MessageBoard>
-
+  <MessageBoard :ticketId="ticketId"/>
   </div>
 </template>
 
@@ -223,6 +240,7 @@ import { watchArray } from "@vueuse/core";
 import { api } from "src/boot/axios";
 
 
+
 export default {
   components: { BaseModal, MessageBoard },
   data: () => {
@@ -232,8 +250,11 @@ export default {
       submitterOrg: null,
       submitterName: null,
       submitterEmail: null,
-      serials: [],
-      comments:[],
+      serials: [{'serialNumber':'1111', 'customerReportedIssue':'111'}, 
+      {'serialNumber':'2222', 'customerReportedIssue':'111'},
+       {'serialNumber':'3333', 'customerReportedIssue':'111'},
+        {'serialNumber':'4444', 'customerReportedIssue':'111'}, ],
+      comments: [],
       trackingNums: [],
 
       columns: [
@@ -245,7 +266,7 @@ export default {
         { name: "Warranty Status", align: "center",label: "Warranty Status", field: "warrantyStatus", sortable: false},
         { name: "Warranty Exp. Date", align: "center",label: "Warranty Expire Date", field: "warrantyExpDate", sortable: false},],
       
-        modalState: {
+      modalState: {
         title: "Update Device to Ticket",
         btnLable: "Update Device",
         serialData: {},
@@ -254,33 +275,32 @@ export default {
       ticketSubmitting: false,
       showModal: false,
       pageLoading: false,
+      withClient:false,
       updateOrAddLoading: false, //to control the update/add button's loading
     };
   },
   mounted() {
-    // this.serials = [{serialNumber: 111}, {serialNumber: 222}, {serialNumber: 333}, 
-    //   {serialNumber: 444}, {serialNumber: 555}, {serialNumber: 666},
-    //   {serialNumber: 777}, {serialNumber: 888}, {serialNumber: 999},
-    // ];
-    const initPromises = [this.fetchComments(), this.fetchTicketInfo()];
-    Promise.all(initPromises).then((results)=> {
-      // const [comments, ticketInfo] =  results;
-      // this.address = ticketInfo.address;
-      // this.originalRMA = ticketInfo.originalRMA;
-      // this.submitterOrg = ticketInfo.submitterOrg;
-      // this.submitterName = ticketInfo.submitterName;
-      // this.submitterEmail=ticketInfo.submitterEmail;
-      // this.comments = comments;
-      // this.trackingNums = ticketInfo.trackingNumbers;
-      // this.serials = ticketInfo.serials;
-    })
+    // const initPromises = [this.fetchComments(), this.fetchTicketInfo()];
+    // Promise.all(initPromises).then((results)=> {
+    //   // const [comments, ticketInfo] =  results;
+    //   // this.address = ticketInfo.address;
+    //   // this.originalRMA = ticketInfo.originalRMA;
+    //   // this.submitterOrg = ticketInfo.submitterOrg;
+    //   // this.submitterName = ticketInfo.submitterName;
+    //   // this.submitterEmail=ticketInfo.submitterEmail;
+    //   // this.comments = comments;
+    //   // this.trackingNums = ticketInfo.trackingNumbers;
+    //   // this.serials = ticketInfo.serials;
+    // })
 
-    // watchArray(this.serials, (newList, oldList, added, removed) => {
-    //   console.log(newList); // [1, 2, 3, 4]
-    //   console.log(oldList); // [1, 2, 3]
-    //   console.log(added); // [4]
-    //   console.log(removed); // []
-    // });
+    watchArray(this.serials, (newList, oldList, added, removed) => {
+      console.log(newList); // [1, 2, 3, 4]
+      console.log(oldList); // [1, 2, 3]
+      console.log(added); // [4]
+      console.log(removed); // []
+    });
+
+    
   },
   computed: {
     ...mapWritableState(useCreateTicketStore, [
@@ -292,6 +312,9 @@ export default {
     isReRepair() {
       return this.orderType === 4;
     },
+    ticketId(){
+      return this.$route.params.ticketId;
+    }
   },
   methods: {
     ...mapActions(useCreateTicketStore, [
@@ -300,9 +323,12 @@ export default {
     handleDeleteTrackingNum() {},
     handleAddTrackingNum() {},
     handleEditTicket() {},
-    handleUpdateSerial() {},
+    handleUpdateSerial() {
+
+    },
     resetModalState() {
-      this.modalState = null;
+      this.modalState.serialData= {};
+      this.modalState.serialNumber= null;
       this.showModal = false;
     },
     fetchTicketInfo(){
@@ -332,7 +358,6 @@ export default {
         })
       )
     },
-  
     fetchComments(){
       const id = this.$route.params.ticketId;
       // const id = 1;
@@ -354,8 +379,34 @@ export default {
               message: error.message,
             });
         }));
-    }
+    },
+    handleRowClick(evt, row, index){
+      //deep copy to avoid input change cause serial data change
+      const sn = row.sn;
+      let serialDataDeepCopy = JSON.parse(JSON.stringify(row));
+      this.modalState.serialData = serialDataDeepCopy;
+      this.modalState.serialNumber = sn;
+      this.withClient = true;
+      // this.showModal = true;
+    },
   },
 };
 </script>
-<style></style>
+<style>
+.button-group {
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  .remove-unit {
+    position: relative;
+    z-index: 1200;
+  }
+  .edit-unit {
+    position: relative;
+    z-index: 1200;
+  }
+}
+</style>

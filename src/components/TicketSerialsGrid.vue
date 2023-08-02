@@ -120,6 +120,14 @@
         round
         @click.stop="handleUpdateSerial"
       />
+      <q-btn
+        class="view-unit"
+        size="sm"
+        color="yellow-5"
+        icon="view"
+        round
+        @click.stop="handleUpdateSerial"
+      />
     </div>
   </div>
 
