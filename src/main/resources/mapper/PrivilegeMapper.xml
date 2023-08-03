@@ -7,16 +7,20 @@
 	</insert>
 
     <select id="queryRoleType" resultType="java.util.HashMap">
-        select RT_ID as id, NAME as roleType FROM ROLE_TYPE
+        select RT_OID as id, NAME as roleType FROM BASIL_SEC_PRD.ROLE_TYPES
     </select>
 
     <select id="getRoleTypeIdsNames" resultType="java.util.HashMap">
-        select RT_ID, NAME FROM ROLE_TYPE;
+        select RT_OID, NAME FROM BASIL_SEC_PRD.ROLE_TYPES
     </select>
 
     <select id="getRoleIdsNames" resultType="java.util.HashMap">
-        select ROLE_ID, TITLE from USER_ROLES where RT_ID=#{roleTypeId,jdbcType=INTEGER}
+        select ROLE_ID, TITLE from BASIL_ODS_PRD.USER_ROLES where RT_ID=#{roleTypeId,jdbcType=INTEGER}
     </select>
+
+	<select id="queryPrivilege" resultType="java.util.HashMap">
+		SELECT P_OID, NAME, PARENT_OID FROM BASIL_SEC_PRD.PRIVILEGES
+	</select>
 
     <select id="getRoleIdAndTitle" resultType="java.util.HashMap">
         SELECT R_OID, NAME FROM BASIL_SEC_PRD.ROLES
@@ -89,7 +93,7 @@
 			EMP_STATUS,
 			BR_PER_HOUR
 		FROM
-			EMPLOYEE_MASTER
+			BASIL_ODS_PRD.EMPLOYEE_MASTER
 		WHERE EMP_OID=#{id,jdbcType=INTEGER};
 	</select>
 	
@@ -105,16 +109,19 @@
 			EMP_STATUS,
 			BR_PER_HOUR
 		FROM
-			EMPLOYEE_MASTER;
+			BASIL_ODS_PRD.EMPLOYEE_MASTER;
 	</select>
 
+
+
     <insert id="addUser" useGeneratedKeys="true" parameterType="us.pax.basil.entity.privilege.UserAddUpdate" keyProperty="id">
-    	INSERT INTO EMPLOYEE_MASTER (NAME, EMAIL, CREATOR, CREATE_DATE, PASSWORD, DIVISION, TITLE, EMP_STATUS, BR_PER_HOUR)
+
+    	INSERT INTO BASIL_ODS_PRD.EMPLOYEE_MASTER (NAME, EMAIL, CREATOR, CREATE_DATE, PASSWORD, DIVISION, TITLE, EMP_STATUS, BR_PER_HOUR)
     	VALUES (
-    		#{userName,jdbcType=VARCHAR}, 
+    		#{userName,jdbcType=VARCHAR},
     		#{email,jdbcType=VARCHAR},
-    	    #{creator,jdbcType=VARCHAR}, 
-    	    NOW(), 
+    	    #{creator,jdbcType=VARCHAR},
+    	    NOW(),
     	    "$2a$10$JGaVrcOlbiPG6xyciOWgM.2U/evmK7U6N8HRH0XV76Wc8ZnSl0yx.",
 			#{division,jdbcType=INTEGER},
 			#{title,jdbcType=INTEGER},
@@ -155,7 +162,7 @@
 	</delete>
 
     <update id="updateUser" parameterType="us.pax.basil.entity.privilege.UserAddUpdate">
-    	UPDATE EMPLOYEE_MASTER 
+    	UPDATE BASIL_ODS_PRD.EMPLOYEE_MASTER
     	SET 
     		NAME=#{userName,jdbcType=VARCHAR}, 
     		EMAIL=#{email,jdbcType=VARCHAR},
@@ -167,7 +174,7 @@
     </update>
 
     <update id="changePassword" >
-    	UPDATE EMPLOYEE_MASTER 
+    	UPDATE BASIL_ODS_PRD.EMPLOYEE_MASTER
     	SET 
     		PASSWORD=#{newPassword,jdbcType=VARCHAR} 
    		WHERE EMP_OID=#{id,jdbcType=INTEGER};
