@@ -33,7 +33,7 @@ public interface PrivilegeService extends IService<RoleType> {
     SqlResultDTO AddRoleType(RoleType roleType);
     SqlResultDTO UpdateRoleType(RoleType roleType);
     QueryResultArrayDTO queryRoleType(EntityManager entityManager, Map<String, ColumnMapping> columnMapping, HttpServletRequest request);
-    QueryResultArrayDTO queryPrivilege(HttpServletRequest request);
+    QueryResultArrayDTO queryAllPrivileges(HttpServletRequest request);
 
     // role
     SqlResultDTO AddRole(Role role);
@@ -47,4 +47,5 @@ public interface PrivilegeService extends IService<RoleType> {
     SqlResultDTO addUser(User user);
     SqlResultDTO updateUser(User user);
     SqlResultDTO changePassword(PasswordChange passwordChange);
+    QueryResultArrayDTO queryUserPrivileges(HttpServletRequest request);
 }

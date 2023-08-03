@@ -115,9 +115,15 @@ public class PrivilegeController {
     }
 
     @PreAuthorize("hasAuthority('privilege')")
-    @GetMapping("/privilege/query")
-    public QueryResultArrayDTO queryPrivilege(HttpServletRequest request) {
-        return privilegeService.queryPrivilege(request);
+    @GetMapping("/all-privileges/query")
+    public QueryResultArrayDTO queryAllPrivileges(HttpServletRequest request) {
+        return privilegeService.queryAllPrivileges(request);
+    }
+
+    @PreAuthorize("hasAuthority('privilege.user')")
+    @GetMapping("/user/privileges/query")
+    public QueryResultArrayDTO queryUserPrivileges(HttpServletRequest request) {
+    	return privilegeService.queryUserPrivileges(request);
     }
 
     /**
