@@ -18,7 +18,7 @@ public class Address {
     
     @Override
     public String toString() {
-        return "XrefAddress{" +
+        return "Address{" +
             "xaOid=" + xaOid +
             ", mcOid=" + mcOid +
             ", attentionTo='" + attentionTo + '\'' +

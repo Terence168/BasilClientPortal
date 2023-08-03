@@ -25,13 +25,13 @@ public class AddressController {
     }
     
     @PostMapping
-    public int insert(@RequestBody Address xrefAddress) {
-        return addressService.insert(xrefAddress);
+    public int insert(@RequestBody Address address) {
+        return addressService.insert(address);
     }
     
     @PutMapping
-    public int update(@RequestBody Address xrefAddress) {
-        return addressService.update(xrefAddress);
+    public int update(@RequestBody Address address) {
+        return addressService.update(address);
     }
     
     @DeleteMapping("/{xaOid}")
