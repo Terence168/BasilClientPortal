@@ -83,6 +83,9 @@
           </div>
         </div>
 
+        <div class="q-my-sm">Shipping Address:</div>
+        <AddressBlock :address="address" @click="showAddressGrid" />
+
         <div class="row q-my-sm items-center">
           <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
           <div class="col">
@@ -263,6 +266,15 @@
         </div>
       </q-form>
     </BaseModal>
+
+    <BaseModal
+      :show="showAddressModal"
+      title="Select Shipping Address"
+      :width="972"
+      @update:show="showAddressModal = false"
+    >
+      <AddressGrid @selectShippingAddress="selectShippingAddress" />
+    </BaseModal>
   </div>
 </template>
 
@@ -274,17 +286,19 @@ import { mapState } from "pinia";
 
 import BaseModal from "src/components/BaseModal.vue";
 import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
-import { mapGetters } from "pinia";
+import AddressBlock from "src/components/AddressBlock.vue";
+import AddressGrid from "src/components/AddressGrid.vue";
 import { Notify } from "quasar";
 
 const user = useUserStore();
 
 export default {
-  components: { BaseModal, TicketSerialsGrid },
+  components: { BaseModal, TicketSerialsGrid, AddressBlock, AddressGrid },
   data() {
     return {
       file: null,
       showModal: false,
+      showAddressModal: false,
       fileUploading: false,
       updateOrAddLoading: false, //to control the update/add button's loading
       serialsSubmitting: false,
@@ -313,6 +327,7 @@ export default {
       "trackingNums",
       "inputValue",
       "originalRMA",
+      "address",
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
@@ -415,6 +430,10 @@ export default {
       this.modalState.serialData = {};
       this.isModalStateAdd = true;
       this.showModal = false;
+    },
+
+    showAddressGrid() {
+      this.showAddressModal = true;
     },
 
     handleSubmitSerialForm() {
@@ -546,6 +565,11 @@ export default {
           this.serialsSubmitting = false;
           vm.resetTicket();
         });
+    },
+
+    selectShippingAddress(address) {
+      this.address = address;
+      this.showAddressModal = false;
     },
   },
 };

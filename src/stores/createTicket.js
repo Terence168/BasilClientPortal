@@ -17,8 +17,7 @@ function selectMatchItem(lists, keyWord) {
         }
       }
     }
-  }
-  );
+  });
 
   return resArr;
 }
@@ -27,6 +26,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
     orderType: null,
     orderTypeOpt: null,
+    address: null,
     trackingNums: [],
     serials: [],
     //pagination
@@ -102,9 +102,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     getAllSerials() {
       return this.serials;
     },
-    getTrackingNums(){
+    getTrackingNums() {
       return this.trackingNums;
-    }
+    },
   },
   reset() {
     this.$refs.state.inputText.value = "";
