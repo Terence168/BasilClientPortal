@@ -2,7 +2,7 @@
   <div class="q-mx-lg">
     <div class="generic-container">
       <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        Edit Ticket {{ticketId}}
+        Edit Ticket {{ ticketId }}
       </div>
     </div>
     <div class="q-mt-lg generic-container">
@@ -112,19 +112,12 @@
             @click="handleDeleteTrackingNum"
           />
         </div>
-<!-- 
-        <div class="q-py-md text-subtitle1 text-weight-bold">
-          Ticket Serial Numbers
-        </div> -->
-        <div class="q-pa-md">
-          <q-table
-            title="Ticket Serial Numbers"
-            :rows="serials"
-            :columns="columns"
-            row-key="serialNumber"
-            @row-click="handleRowClick"
-          ></q-table>
-        </div>
+        <!-- <TicketEditSerials :ticketId="ticketId"/> -->
+        <!-- <TicketEditSerialsGrid :ticketId="ticketId"></TicketEditSerialsGrid> -->
+        <TicketEditTable
+          :ticketId="ticketId"
+          :serials="serials"
+        ></TicketEditTable>
         <!-- Button for submit ticket -->
         <div class="row justify-center">
           <q-btn
@@ -139,92 +132,7 @@
         </div>
       </div>
     </div>
-    <!-- button group: delete and update-->
-    <div class="popup-button-group" v-show="withClient" :style="positionStyle">
-      <q-btn
-        class="remove-unit"
-        size="sm"
-        color="red"
-        icon="close"
-        round
-        @click.stop="handleRemoveSerial"
-      />
-      <q-btn
-        class="edit-unit"
-        size="sm"
-        color="primary"
-        icon="edit"
-        round
-        @click.stop="handleUpdateSerial"
-      />
-    </div>
-    <!-- Pop-up window: add or Update Device to Ticket Window -->
-    <BaseModal
-      v-model:show="showModal"
-      v-bind:title="modalState.title"
-      :width="500"
-      @update:show="resetModalState"
-    >
-      <q-form ref="modalForm" @submit.prevent="handleUpdateSerial">
-        <q-input
-          class="col q-mb-sm"
-          outlined
-          v-model="modalState.serialData.serialNumber"
-          label="Serial Number"
-          lazy-rules
-          dense
-          :rules="[
-            (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
-          ]"
-        />
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          autogrow
-          v-model="modalState.serialData.customerReportedIssue"
-          label="Customer Reported Issue"
-          lazy-rules
-          dense
-          :rules="[
-            (val) =>
-              (val && val.length > 0) ||
-              'Customer Reported Issue cannot be empty',
-          ]"
-        />
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          v-model="modalState.serialData.terminalID"
-          label="Customer Terminal ID"
-          dense
-        />
-        <div class="row justify-center q-mt-md">
-          <div class="col-auto">
-            <q-btn
-              class="q-mr-md"
-              type="submit"
-              v-bind:label="modalState.btnLable"
-              color="primary"
-              style="min-width: 150px"
-            >
-              <template v-slot:loading>
-                <q-spinner-facebook />
-              </template>
-            </q-btn>
-          </div>
-          <div class="col-auto">
-            <q-btn
-              label="Cancel"
-              color="grey-4"
-              text-color="grey-6"
-              style="min-width: 150px"
-              @click="resetModalState"
-            />
-          </div>
-        </div>
-      </q-form>
-    </BaseModal>
-  <MessageBoard :ticketId="ticketId"/>
+    <MessageBoard :ticketId="ticketId" />
   </div>
 </template>
 
@@ -232,17 +140,14 @@
 import { useCreateTicketStore } from "stores/createTicket";
 import { mapWritableState, mapActions } from "pinia";
 import { mapState } from "pinia";
-import BaseModal from "src/components/BaseModal.vue";
-import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
 import MessageBoard from "src/components/MessageBoard.vue";
-import { Notify } from "quasar";
-import { watchArray } from "@vueuse/core";
+import TicketEditTable from "src/components/TicketEditTable.vue";
+import { Notify, TouchSwipe } from "quasar";
 import { api } from "src/boot/axios";
-
-
+import { useEditTicketStore } from "src/stores/editTicket";
 
 export default {
-  components: { BaseModal, MessageBoard },
+  components: { MessageBoard, TicketEditTable },
   data: () => {
     return {
       address: null,
@@ -250,22 +155,13 @@ export default {
       submitterOrg: null,
       submitterName: null,
       submitterEmail: null,
-      serials: [{'serialNumber':'1111', 'customerReportedIssue':'111'}, 
-      {'serialNumber':'2222', 'customerReportedIssue':'111'},
-       {'serialNumber':'3333', 'customerReportedIssue':'111'},
-        {'serialNumber':'4444', 'customerReportedIssue':'111'}, ],
+      // serials: [{'serialNumber':'1111', 'customerReportedIssue':'111'},
+      // {'serialNumber':'2222', 'customerReportedIssue':'111'},
+      //  {'serialNumber':'3333', 'customerReportedIssue':'111'},
+      //   {'serialNumber':'4444', 'customerReportedIssue':'111'}, ],
       comments: [],
       trackingNums: [],
 
-      columns: [
-        {name: "SN",align: "center", label: "Serial Number", field: "serialNumber", sortable: true, sort:(a, b)=> a<=b?1:-1 },
-        { name: "Model", align: "center",label: "Model", field: "model", sortable: true, sort:(a, b)=> a<=b?1:-1},
-        { name: "Version", align: "center",label: "Version", field: "version", sortable:false},
-        { name: "Reported Issue", align: "center",label: "Reported Issue", field: "customerReportedIssue", sortable:false},
-        { name: "Customer ID", align: "center",label: "Customer ID", field: "terminalID", sortable:false},
-        { name: "Warranty Status", align: "center",label: "Warranty Status", field: "warrantyStatus", sortable: false},
-        { name: "Warranty Exp. Date", align: "center",label: "Warranty Expire Date", field: "warrantyExpDate", sortable: false},],
-      
       modalState: {
         title: "Update Device to Ticket",
         btnLable: "Update Device",
@@ -275,94 +171,46 @@ export default {
       ticketSubmitting: false,
       showModal: false,
       pageLoading: false,
-      withClient:false,
+      withClient: false,
       updateOrAddLoading: false, //to control the update/add button's loading
     };
   },
-  mounted() {
-    // const initPromises = [this.fetchComments(), this.fetchTicketInfo()];
-    // Promise.all(initPromises).then((results)=> {
-    //   // const [comments, ticketInfo] =  results;
-    //   // this.address = ticketInfo.address;
-    //   // this.originalRMA = ticketInfo.originalRMA;
-    //   // this.submitterOrg = ticketInfo.submitterOrg;
-    //   // this.submitterName = ticketInfo.submitterName;
-    //   // this.submitterEmail=ticketInfo.submitterEmail;
-    //   // this.comments = comments;
-    //   // this.trackingNums = ticketInfo.trackingNumbers;
-    //   // this.serials = ticketInfo.serials;
-    // })
-
-    watchArray(this.serials, (newList, oldList, added, removed) => {
-      console.log(newList); // [1, 2, 3, 4]
-      console.log(oldList); // [1, 2, 3]
-      console.log(added); // [4]
-      console.log(removed); // []
-    });
-
-    
+  async mounted() {
+    console.log("====== mounted=========");
+    const ticket = await this.fetchTicket(this.ticketId);
+    console.log(ticket);
+    console.log("====== mounted=========");
   },
   computed: {
-    ...mapWritableState(useCreateTicketStore, [
-      "orderType",
-    ]),
-    ...mapState(useCreateTicketStore, [
-      "orderTypeOpt",
-    ]),
+    ...mapWritableState(useCreateTicketStore, ["orderType"]),
+    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
+    ...mapState(useEditTicketStore, ["getTicket"]),
     isReRepair() {
       return this.orderType === 4;
     },
-    ticketId(){
+    ticketId() {
       return this.$route.params.ticketId;
-    }
+    },
+    // serials(){
+    //   const ticket = this.getTicket(this.ticketId);
+    //   return ticket.serials;
+    //   // // const serials = ticket.serials;
+    //   // // return serials;
+    //   // return [];
+    // }
   },
   methods: {
-    ...mapActions(useCreateTicketStore, [
-      "populateOrderTypeOpt",
-    ]),
+    ...mapActions(useCreateTicketStore, ["populateOrderTypeOpt"]),
+    ...mapActions(useEditTicketStore, ["fetchTicket"]),
     handleDeleteTrackingNum() {},
     handleAddTrackingNum() {},
     handleEditTicket() {},
-    handleUpdateSerial() {
-
-    },
-    resetModalState() {
-      this.modalState.serialData= {};
-      this.modalState.serialNumber= null;
-      this.showModal = false;
-    },
-    fetchTicketInfo(){
-      const id = this.$route.params.ticketId;
-      // const id = 1;
-      const actionURL = "/ticketing/viewEditTicket?id="+id;
-      const vm = this;
-    
-      return new Promise(() => this.$api
-        .get(actionURL,{
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then((response) => {
-          if (response.data.resultCode !== 0) {
-            throw new Error(response.data.errorMessage);
-          }
-          return response.data.data;
-        })
-        .catch((error) => {
-          console.log(error);
-          this.$q.notify({
-            type: "negative",
-            message: error.message,
-          });
-        })
-      )
-    },
-    fetchComments(){
+    handleUpdateSerial() {},
+    fetchComments() {
       const id = this.$route.params.ticketId;
       // const id = 1;
       const vm = this;
-      const link = "/ticketing/comments?id="+id;
+      const link = "/ticketing/comments?id=" + id;
       return new Promise(() =>
         api
           .get(link)
@@ -372,22 +220,14 @@ export default {
             }
             return response.data.data;
           })
-          .catch((error)=>{
+          .catch((error) => {
             console.log(error);
             Notify.create({
               type: "negative",
               message: error.message,
             });
-        }));
-    },
-    handleRowClick(evt, row, index){
-      //deep copy to avoid input change cause serial data change
-      const sn = row.sn;
-      let serialDataDeepCopy = JSON.parse(JSON.stringify(row));
-      this.modalState.serialData = serialDataDeepCopy;
-      this.modalState.serialNumber = sn;
-      this.withClient = true;
-      // this.showModal = true;
+          })
+      );
     },
   },
 };

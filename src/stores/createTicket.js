@@ -130,7 +130,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .then((response) => {
           update(() => {
             this.orderTypeOpt = response.data.data;
-            console.log(this.orderTypeOpt);
+            // console.log(this.orderTypeOpt);
           });
         })
         .catch(function (error) {

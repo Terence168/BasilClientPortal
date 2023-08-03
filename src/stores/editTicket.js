@@ -6,20 +6,61 @@ const capacity = 10;
 
 export const useEditTicketStore = defineStore("editTicket", {
   state: () => ({
-    ticketMap: [],
+    ticketMap: new Map(),
   }),
-  getters: {
-    async getTicket(ticketId) {
-      const index = this.ticketMap.findIndex((t) => t.mo_oid === ticketId);
-      if (index > 0) {
-        this.ticketMap[index].timeStamp = new Date();
-        return this.ticketMap[index];
+  getters: {},
+  reset() {},
+  actions: {
+    addTicket(ticketInfo) {
+      const key = ticketInfo.mo_oid;
+      if (this.ticketMap.has(key)) {
+        this.ticketMap.delete(key);
+      } else if (this.ticketMap.size >= capacity) {
+        const firstKey = this.ticketMap.keys().next().value;
+        this.ticketMap.delete(firstKey);
+      }
+      this.ticketMap.set(key, ticketInfo);
+    },
+    removeTicket(ticketId) {
+      if (this.ticketMap.has(ticketId)) {
+        this.ticketMap.delete(ticketId);
+      }
+    },
+    updateSN(tickId, serial) {
+      const sn = serial.serialNumber;
+      if (this.ticketMap.has(tickId)) {
+        const ticket = this.ticketMap.get(key);
+        const index = ticket.serials.findIndex(sn);
+        ticket.serials[index] = serial;
+      }
+    },
+    removeSN(ticketId, serial) {
+      const sn = serial.serialNumber;
+      if (this.ticketMap.has(ticketId)) {
+        const ticket = this.ticketMap.get(key);
+        const index = ticket.serials.findIndex(sn);
+        if (index > -1) {
+          serials.slice(index, 1);
+        }
+      }
+    },
+    addSN(ticketId, serial) {
+      if (this.ticketMap.has(ticketId)) {
+        const ticket = this.ticketMap.get(key);
+        ticket.serials.push(serial);
+      }
+    },
+    fetchTicket(ticketId) {
+      if (this.ticketMap.has(ticketId)) {
+        const value = this.ticketMap.get(ticketId);
+        this.ticketMap.delete(ticketId);
+        this.ticketMap.set(ticketId, value);
+        return value;
       } else {
         //request from the back end
         const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
         const vm = this;
-
-        this.$api
+        api
           .get(actionURL, {
             headers: {
               "Content-Type": "application/json",
@@ -30,38 +71,18 @@ export const useEditTicketStore = defineStore("editTicket", {
               throw new Error(response.data.errorMessage);
             }
             const ticketInfo = response.data.data;
-            ticketInfo.timeStamp = new Date();
+            this.ticketMap.set(ticketId, ticketInfo);
+            console.log(ticketInfo);
             return ticketInfo;
           })
           .catch((error) => {
             console.log(error);
-            this.$q.notify({
+            Notify.create({
               type: "negative",
               message: error.message,
             });
+            return null;
           });
-      }
-    },
-  },
-  reset() {},
-  actions: {
-    addTicket(ticketInfo) {
-      if (this.ticketMap.length == capacity) {
-        removeTicket();
-      }
-      ticketInfo.timeStamp = new Date();
-      this.ticketMap.push(ticketInfo);
-    },
-    removeTicket() {
-      this.ticketMap.sort(
-        (t1, t2) => new Date(t1).getTime() - new Date(t2).getTime()
-      );
-      this.ticketMap.pop();
-    },
-    removeTicket(ticketId) {
-      const index = this.ticketMap.findIndex((t) => t.mo_oid === ticketId);
-      if (index > 0) {
-        this.ticketMap.slice(index, 1);
       }
     },
   },
