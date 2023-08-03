@@ -13,7 +13,7 @@ import java.util.Date;
 @ApiModel(value = "SerialNumbers Information Object", description = "")
 public class SNInfo {
     //insert rows into PREP_XREF_MATERIALS
-    private String serialNumber;
+    private String serialNumber;//MSN_oid
 
     private Date orderDate;
 
@@ -27,7 +27,7 @@ public class SNInfo {
 
     private Integer xmOID; //If it's in master_order, fill in it
 
-    private Integer pxmOID; //if it's in prep_master order, fill in it
+    private Integer pxmOID; //if it's in prep_master_order, fill in it
 
     private Integer msnOID; //this is the master serial number which used to link to serial number
 
