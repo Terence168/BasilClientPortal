@@ -22,9 +22,13 @@ import org.springframework.web.bind.annotation.*;
 
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 
+import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.dto.output.SubmitResponseDTO;
 import us.pax.basil.dto.output.SubmitTicketDTO;
+import us.pax.basil.entity.ticket.SubmittingTicket;
 import us.pax.basil.entity.ticket.TicketEditObject;
 import us.pax.basil.entity.ticket.TicketInsertion;
+import us.pax.basil.entity.ticket.TicketResponse;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
@@ -56,12 +60,31 @@ public class TicketController {
         return ticketService.submitTicket(ticketInsertion);
     }
 
-    @GetMapping("/viewEditTicket")//BCP-28 Index
+
+    @PostMapping(value = "/handleTicket", consumes = "application/json", produces = "application/json")//BCP-28
+    //handle the ticket
+    public SubmittingTicket handleTicket(@RequestBody TicketEditObject ticketEditObject){
+        return ticketService.handleTicket(ticketEditObject);
+    }
+
+    @GetMapping("/viewEditTicket")//BCP-28 view
     public QueryResultArrayDTO viewEditTicket(@RequestParam(value = "id", required = true) String id){
         return ticketService.viewEditTicket(id);
     }
 
-    @GetMapping("/viewTicketDetails")//BCP-28
+
+    @PostMapping(value = "/submitResponse", consumes = "application/json", produces = "application/json")//BCP-28
+    //save the response
+    public SubmitResponseDTO submitResponse(@RequestBody TicketResponse ticketResponse){
+        return ticketService.insertResponse(ticketResponse);
+    }
+
+    @GetMapping("/getResponse")//BCP-28 get response
+    public QueryResultArrayDTO getResponse(@RequestParam(value = "id", required = true) String id){
+        return ticketService.getResponse(id);
+    }
+
+    @GetMapping("/viewTicketDetails")//BCP-28 view details
     public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) String id){
         return ticketService.viewTicketDetails(id);
     }

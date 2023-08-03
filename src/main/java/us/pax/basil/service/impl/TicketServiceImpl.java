@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.SqlResultDTO;
+import us.pax.basil.dto.output.SubmitResponseDTO;
 import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
@@ -403,6 +405,50 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
+    @Override
+    public SubmitResponseDTO insertResponse(TicketResponse ticketResponse) {
+        CustomUserDetails user = AuthUtil.getUser();
+
+
+        try {
+            if(user!=null){
+                ticketResponse.setResponse(user.getUserId().toString());
+            }
+
+            ticketMapper.insertResponse(ticketResponse);
+
+            return new SubmitResponseDTO(ticketResponse.getRsp_oid(),0, "");
+        } catch (Exception e) {
+            return new SubmitResponseDTO(null,-1, "");
+        }
+
+    }
+
+    @Override
+    public QueryResultArrayDTO getResponse(String id) {
+       try{
+           ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+
+           List<TicketResponse> responsesList=ticketMapper.getResponse(id);
+
+           if (!responsesList.isEmpty()) {
+               for (TicketResponse ticketingResponse : responsesList) {
+
+                   Map<String, Object> responsesMap = new HashMap<>();
+                   responsesMap.put("mo_oid", ticketingResponse.getMoId());
+                   responsesMap.put("response_date", ticketingResponse.getResponseDate());
+                   responsesMap.put("content", ticketingResponse.getContent());
+                   responsesMap.put("response", ticketingResponse.getResponse());
+
+                   resultArray.add(responsesMap);
+               }
+           }
+           return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
     private String[] transformInputQuery(String query) {
         String[] output = null;
 
@@ -575,6 +621,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         } catch (Exception e) {
             return new SubmitTicketDTO(null, -1, e.getMessage());
         }
+    }
+
+    @Override
+    public SubmittingTicket handleTicket(TicketEditObject ticketEditObject) {
+        return null;
     }
 
 }

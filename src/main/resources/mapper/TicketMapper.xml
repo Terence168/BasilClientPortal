@@ -229,6 +229,24 @@
         </where>
     </select>
 
+    <select id = "getResponse" resultType = "us.pax.basil.entity.ticket.TicketResponse">
+        select res.MO_OID as moId ,res.RESPONSE_DATE as responseDate,res.CONTENT as content ,users.NAME as response from BASIL_SEC_PRD.XREF_RESPONSE as res
+        left join BASIL_SEC_PRD.USERS as users  on users.U_OID=res.RESPONSE_BY
+        <where>
+            <if test = "id !=null">
+                res.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertResponse" parameterType="us.pax.basil.entity.ticket.TicketResponse"  useGeneratedKeys="true">
+        INSERT INTO BASIL_SEC_PRD.XREF_RESPONSE(MO_OID, RESPONSE_DATE,RESPONSE_BY,CONTENT)
+        VALUES (#{moId}, now(),#{response},#{content});
+        <selectKey keyColumn="RSP_OID" resultType="Integer" keyProperty="rsp_oid" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
     <select id = "getTicketingViewsTotal" resultType = "Integer">
         SELECT
         count(*)
