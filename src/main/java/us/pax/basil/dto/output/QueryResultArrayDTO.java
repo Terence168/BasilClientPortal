@@ -23,7 +23,7 @@ import us.pax.basil.utils.SqlResults;
 public class QueryResultArrayDTO extends SqlResults{
     private ArrayList<Map<String, Object>> data;
     private int total;
-    
+
     public QueryResultArrayDTO(ArrayList<Map<String, Object>> data, int total, int resultCode, String errorMessage) {
         this.data = data;
         this.total = total;
@@ -31,15 +31,10 @@ public class QueryResultArrayDTO extends SqlResults{
         this.errorMessage = errorMessage;
     }
 
-    public ArrayList<Map<String, Object>> getData() {
-        return data;
-    }
     public void setData(ArrayList<Map<String, Object>> data) {
         this.data = data;
     }
-    public int getTotal() {
-        return total;
-    }
+
     public void setTotal(int total) {
         this.total = total;
     }

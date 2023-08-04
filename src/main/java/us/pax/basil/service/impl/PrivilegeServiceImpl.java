@@ -448,21 +448,28 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         try {
             List<Map<String, Object>> privileges = privilegeMapper.queryAllPrivileges();
             CustomUserDetails user = AuthUtil.getUser();
+            Privilege privilege_root = new Privilege(0, "All Permissions", null);
+            int cnt = 1;
             for (Map<String, Object> privilege : privileges) {
-                int privilegeId = (int) privilege.get("P_OID");
+                int id = (int) privilege.get("P_OID");
                 int parentId = (int) privilege.get("PARENT_OID");
                 String name = (String) privilege.get("NAME");
-                int accessControl = (int) privilege.get("ACCESS_CONTROL");
-                assert user != null;
-                Map<String, Object> p = new HashMap<>();
-                p.put("privilege_name", name);
-                if ((accessControl & 1) != 0 && user.isClientUser()) {
-                    returnArray.add(p);
-                } else if ((accessControl & 2) != 0 && !user.isClientUser()) {
-                    returnArray.add(p);
+                int access_control = (int) privilege.get("ACCESS_CONTROL");
+                Privilege privilege_child = new Privilege(id, name, null);
+                Privilege privilege_parent = privilege_root.findPrivilege(parentId);
+                if (privilege_parent != null) {
+                    assert user != null;
+                    if ((access_control & 1) != 0 && user.isClientUser()) {
+                        privilege_parent.addChild(privilege_child);
+                        ++cnt;
+                    } else if ((access_control & 2) != 0 && !user.isClientUser()) {
+                        privilege_parent.addChild(privilege_child);
+                        ++cnt;
+                    }
                 }
             }
-            return new QueryResultArrayDTO(returnArray, returnArray.size(), 0, "");
+            returnArray.add(privilege_root.toMap());
+            return new QueryResultArrayDTO(returnArray, cnt, 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
