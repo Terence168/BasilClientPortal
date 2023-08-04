@@ -417,7 +417,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         }
     }
 
-    // generate privilege list
+    // generate all privileges list
     @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public QueryResultArrayDTO queryAllPrivileges(HttpServletRequest request) {
@@ -442,6 +442,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         }
     }
 
+    // generate user's privileges list
     @Override
     public QueryResultArrayDTO queryUserPrivileges(HttpServletRequest request) {
         ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
