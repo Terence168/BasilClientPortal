@@ -208,33 +208,45 @@
     </select>
 
     <select id = "getSecMaterials" resultType = "us.pax.basil.entity.ticket.SNInfo">
-        select xma.MSN_OID as msnOID, xma.customerRMA as customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as customerReportedIssueExt, xma.XM_OID as xmOID,xma.
+        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as customerReportedIssueExt, xma.XM_OID as xmOID,xma.
         MO_OID as moOID  from BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
+        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID=xma.MSN_OID
         <where>
             <if test = "id !=null">
-                tr.MO_OID = #{id}
+                xma.MO_OID = #{id}
             </if>
         </where>
     </select>
 
     <select id = "getOdsMaterials" resultType = "us.pax.basil.entity.ticket.SNInfo">
-        select xma.MSN_OID as msnOID, xma.customerRMA as customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as customerReportedIssueExt, xma.XM_OID as xmOID,xma.
+        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as customerReportedIssueExt, xma.XM_OID as pxmOID,xma.
         MO_OID as moOID  from BASIL_ODS_PRD.XREF_MATERIALS as xma
+        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID=xma.MSN_OID
         <where>
             <if test = "id !=null">
-                tr.MO_OID = #{id}
+                xma.MO_OID = #{id}
             </if>
         </where>
     </select>
 
-    <select id = "getSerialNumber" resultType = "String">
-        select msn.SERIAL_NUMBER as serialNumber from BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
+    <select id = "getResponse" resultType = "us.pax.basil.entity.ticket.TicketResponse">
+        select res.MO_OID as moOID ,res.RESPONSE_DATE as responseDate,res.CONTENT as content, users.NAME as responseBy
+        from BASIL_SEC_PRD.XREF_RESPONSE as res
+        left join BASIL_SEC_PRD.USERS as users on users.U_OID=res.RESPONSE_BY
         <where>
             <if test = "id !=null">
-                msn.MSN_OID = #{id}
+                res.MO_OID = #{id}
             </if>
         </where>
     </select>
+
+    <insert id="insertResponse" parameterType="us.pax.basil.entity.ticket.TicketResponse"  useGeneratedKeys="true">
+        INSERT INTO BASIL_SEC_PRD.XREF_RESPONSE(MO_OID, RESPONSE_DATE,RESPONSE_BY,CONTENT)
+        VALUES (#{moOID}, now(), #{responseBy}, #{content});
+        <selectKey keyColumn="RSP_OID" resultType="Integer" keyProperty="rsp_oid" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
 
     <select id = "getTicketingViewsTotal" resultType = "Integer">
         SELECT

@@ -20,11 +20,9 @@ import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.*;
 
-import us.pax.basil.dto.output.SubmitTicketDTO;
-import us.pax.basil.entity.ticket.TicketEditObject;
-import us.pax.basil.entity.ticket.TicketInsertion;
+import us.pax.basil.entity.ticket.*;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
@@ -56,12 +54,19 @@ public class TicketController {
         return ticketService.submitTicket(ticketInsertion);
     }
 
-    @GetMapping("/viewEditTicket")//BCP-28 Index
-    public QueryResultArrayDTO viewEditTicket(@RequestParam(value = "id", required = true) String id){
+    @PostMapping(value = "/handleTicket", consumes = "application/json", produces = "application/json")//BCP-28
+    //handle the ticket
+    public SubmittingTicket handleTicket(@RequestBody TicketEditObject ticketEditObject){
+        return ticketService.handleTicket(ticketEditObject);
+    }
+
+    @GetMapping("/viewEditTicket")//BCP-28 view
+    public QueryResultDTO viewEditTicket(@RequestParam(value = "id", required = true) String id){
         return ticketService.viewEditTicket(id);
     }
 
-    @GetMapping("/viewTicketDetails")//BCP-28
+
+    @GetMapping("/viewTicketDetails")//BCP-28 view details
     public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) String id){
         return ticketService.viewTicketDetails(id);
     }
@@ -115,6 +120,16 @@ public class TicketController {
         }
 
         return ticketService.ticketQuery(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate, serialNumber, customerId);
+    }
+
+    @GetMapping("/{ticketId}/response")
+    public QueryResultArrayDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId) {
+        return ticketService.getResponse(String.valueOf(ticketId));
+    }
+
+    @PostMapping("/{ticketId}/response")
+    public QueryResultDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId, @RequestBody TicketResponse response) {
+        return ticketService.insertResponse(response);
     }
 
     @GetMapping("/dropdown/department")

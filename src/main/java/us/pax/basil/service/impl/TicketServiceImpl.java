@@ -4,8 +4,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
-import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.SubmitTicketDTO;
+import us.pax.basil.dto.output.*;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -159,8 +158,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             }
             return new QueryResultArrayDTO(resultArray, ticketViewDetails.size(), 0, "");
-
-
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
@@ -363,26 +360,25 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
 
-    public QueryResultArrayDTO viewEditTicket(String id) {
+    public QueryResultDTO viewEditTicket(String id) {
         try {
-            ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-
             TicketInfo ticket = ticketMapper.existingMasterOrder(id); //existing check BASIL_ODS_PRD.XREF_MATERIALS
             if (ticket == null) {
                 ticket = ticketMapper.existingPREPMasterOrder(id); //existing check BASIL_SEC_PRD.PREP_XREF_MATERIALS
-                if(ticket!=null) {
+                if(ticket != null) {
                     ticket.setIsFromMaster(false);
-                    List<SNInfo> serials=ticketMapper.getSecMaterials(id);
+                    List<SNInfo> serials = ticketMapper.getSecMaterials(id);
                     ticket.setSerials(serials);
-
                 }
             } else {
                 ticket.setIsFromMaster(true);
+                List<SNInfo> serials=ticketMapper.getOdsMaterials(id);
+
+                ticket.setSerials(serials);
             }
 
             List<String> trackingNumber=ticketMapper.getTrackingNumber(id);
             ticket.setTrackingNumbers(trackingNumber);
-            //ticket.setSerials();
 
             Map<String, Object> ticketingViewsMap = new HashMap<>();
             ticketingViewsMap.put("moOID", ticket.getMoOID());
@@ -392,10 +388,51 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             ticketingViewsMap.put("address", ticket.getAddress());
             ticketingViewsMap.put("trackingNumbers", ticket.getTrackingNumbers());
             ticketingViewsMap.put("serials", ticket.getSerials());
+            return new QueryResultDTO(ticketingViewsMap, 0, "");
+        } catch (Exception e) {
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
 
-            resultArray.add(ticketingViewsMap);
+    @Override
+    public QueryResultDTO insertResponse(TicketResponse ticketResponse) {
+        CustomUserDetails user = AuthUtil.getUser();
 
-            return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        try {
+            if(user!=null) {
+                ticketResponse.setResponseBy(user.getUserId().toString());
+            }
+            ticketMapper.insertResponse(ticketResponse);
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("response", ticketResponse);
+            return new QueryResultDTO(resultMap,0, "");
+        } catch (Exception e) {
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+
+    }
+
+
+    @Override
+    public QueryResultArrayDTO getResponse(String id) {
+       try{
+           ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+
+           List<TicketResponse> responsesList=ticketMapper.getResponse(id);
+
+           if (!responsesList.isEmpty()) {
+               for (TicketResponse ticketingResponse : responsesList) {
+
+                   Map<String, Object> responsesMap = new HashMap<>();
+                   responsesMap.put("mo_oid", ticketingResponse.getMoOID());
+                   responsesMap.put("response_date", ticketingResponse.getResponseDate());
+                   responsesMap.put("content", ticketingResponse.getContent());
+                   responsesMap.put("responseBy", ticketingResponse.getResponseBy());
+
+                   resultArray.add(responsesMap);
+               }
+           }
+           return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
@@ -573,6 +610,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         } catch (Exception e) {
             return new SubmitTicketDTO(null, -1, e.getMessage());
         }
+    }
+
+    @Override
+    public SubmittingTicket handleTicket(TicketEditObject ticketEditObject) {
+        return null;
     }
 
 }

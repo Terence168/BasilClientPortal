@@ -3,6 +3,7 @@ package us.pax.basil.mapper;
 import java.util.List;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
+import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
@@ -83,9 +84,12 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     List<String> getTrackingNumber(String id);
 
-    List<String> getSerialNumber(String id);
-
     List<SNInfo> getOdsMaterials(String id);
 
     List<SNInfo> getSecMaterials(String id);
+
+    Integer insertResponse(TicketResponse ticketResponse);
+
+    List<TicketResponse> getResponse(String id);
+
 }
