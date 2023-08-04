@@ -112,12 +112,10 @@ export const useCreateTicketStore = defineStore("createTicket", {
     addTrackingNum() {
       this.trackingNums.push("");
     },
-
     deleteTrackingNum(index) {
       this.trackingNums.splice(index, 1);
     },
     populateOrderTypeOpt(_, update) {
-      console.log("enter");
       if (this.orderType) {
         update();
         return;

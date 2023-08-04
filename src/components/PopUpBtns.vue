@@ -6,7 +6,7 @@
         color="red"
         icon="close"
         round
-        v-show="showRemoveUnit"
+        v-show="showBtns.showRemoveUnit"
         @click.prevent="this.$emit('popup-remove-sn')"
       />
       <q-btn
@@ -15,7 +15,7 @@
         color="primary"
         icon="edit"
         round
-        v-show="showUpdateUnit"
+        v-show="showBtns.showUpdateUnit"
         @click.prevent="this.$emit('popup-update-sn')"
       />
       <q-btn
@@ -24,15 +24,15 @@
         color="yellow-5"
         icon="visibility"
         round
-        v-show="showViewUnit"
+        v-show="showBtns.showViewUnit"
         @click.prevent="this.$emit('popup-view-sn')"
       />
     </div>
 </template>
 <script>
 export default{
-    props:["showRemoveUnit", "showViewUnit", "showUpdateUnit"],
-    created(){},
+    props:["showBtns"],
+    emits:['popup-view-sn', 'popup-update-sn', 'popup-remove-sn'],
     updated() {
         if (this.withClient === true && this.removeUnitWidth == null) {
             const btn = document.querySelector(".remove-unit");
@@ -67,7 +67,6 @@ export default{
                 this.withClient = true;
             }
             this.setPosition(event);
-            // this.serialIndex = index;
 
             //set 3000 timeout for popup buttons
             if (this.timeOutId != null) {

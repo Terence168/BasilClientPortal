@@ -79,11 +79,8 @@
             </div>
         </q-form>
         </BaseModal>
-
         <PopUpBtns ref="popupBtns" 
-        :showRemoveUnit="true" 
-        :showViewUnit="true" 
-        :showUpdateUnit="true"
+        :showBtns="showBtns"
         @popup-remove-sn="handleClickRemoveUnit"
         @popup-update-sn="handleClickUpdateUnit"
         @popup-view-sn="handleClickViewUnit"
@@ -99,7 +96,7 @@ import BaseModal from "./BaseModal.vue";
 
 
 export default {
-  props: ["ticketId", "serials"],
+  props: ["ticketId", "serials", "isFromMaster"],
   components: { BaseModal, PopUpBtns},
   emits: ["clickOnSerial"],
   data() {
@@ -166,7 +163,24 @@ export default {
           oldSerialData: null,
           serialNumber: null,
       }, 
+      showBtns:{
+        showRemoveUnit:true,
+        showViewUnit:true,
+        showUpdateUnit:true,
+      }
     };
+  },
+  mounted(){
+    if(this.isFromMaster === true){
+        this.showBtns.showRemoveUnit = false;
+        this.showBtns.showUpdateUnit = false;
+        this.showBtns.showViewUnit = true;
+    }
+    else{
+        this.showBtns.showRemoveUnit = true;
+        this.showBtns.showUpdateUnit = true;
+        this.showBtns.showViewUnit = false;
+    }
   },
   computed(){ 
   },

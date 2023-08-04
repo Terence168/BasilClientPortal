@@ -10,9 +10,9 @@
         <div class="row q-mb-md text-weight-medium">
           <!-- todo:get from ticket info -->
           <div class="col">Ticket Status: Open</div>
-          <!-- <div class="col-auto" @click="resetTicket">
+          <div class="col-auto" @click="resetTicket">
             <q-btn color="red">Clear Data</q-btn>
-          </div> -->
+          </div>
         </div>
 
         <div class="row items-center">
@@ -21,7 +21,7 @@
             <q-select
               style="min-width: 200px"
               label="Please select"
-              v-model="orderType"
+              v-model="ticketInfo.typeOfRepair"
               :options="orderTypeOpt"
               @filter="populateOrderTypeOpt"
               dense
@@ -49,7 +49,7 @@
           <div class="col-auto q-mr-sm">Ticket Submitter:&nbsp;</div>
           <div class="col-auto">
             <q-input
-              :model-value="submitterName"
+              :model-value="ticketInfo.submitterName"
               disable
               style="min-width: 200px"
               dense
@@ -60,7 +60,7 @@
           <div class="col-auto q-mr-sm">Submitter Organization:&nbsp;</div>
           <div class="col-auto">
             <q-input
-              :model-value="submitterOrg"
+              :model-value="ticketInfo.submitterOrg"
               disable
               style="min-width: 200px"
               dense
@@ -72,7 +72,7 @@
           <div class="col-auto q-mr-sm">Submitter Email:&nbsp;</div>
           <div class="col-auto">
             <q-input
-              :model-value="submitterEmail"
+              :model-value="ticketInfo.submitterEmail"
               disable
               style="min-width: 200px"
               dense
@@ -93,13 +93,13 @@
           </div>
         </div>
         <div
-          v-for="(trackingNum, index) in trackingNums"
+          v-for="(trackingNum, index) in ticketInfo.trackingNumbers"
           :key="index"
           class="row q-mb-sm items-center"
         >
           <q-input
             class="q-mr-sm"
-            v-model="trackingNums[index]"
+            v-model="ticketInfo.trackingNumbers[index]"
             style="min-width: 300px"
             dense
             outlined
@@ -112,12 +112,12 @@
             @click="handleDeleteTrackingNum"
           />
         </div>
-        <!-- <TicketEditSerials :ticketId="ticketId"/> -->
-        <!-- <TicketEditSerialsGrid :ticketId="ticketId"></TicketEditSerialsGrid> -->
+        <!-- ticket serials -->
         <TicketEditTable
           :ticketId="ticketId"
-          :serials="serials"
-        ></TicketEditTable>
+          :serials="ticketInfo.serials"
+          :isFromMaster="ticketInfo.isFromMaster"
+        />
         <!-- Button for submit ticket -->
         <div class="row justify-center">
           <q-btn
@@ -132,7 +132,12 @@
         </div>
       </div>
     </div>
-    <MessageBoard :ticketId="ticketId" />
+    <MessageBoard
+      :ticketId="ticketId"
+      :comments="comments"
+      @add-comment="addComment"
+      ref="messageBoard"
+    />
   </div>
 </template>
 
@@ -145,108 +150,133 @@ import TicketEditTable from "src/components/TicketEditTable.vue";
 import { Notify, TouchSwipe } from "quasar";
 import { api } from "src/boot/axios";
 import { useEditTicketStore } from "src/stores/editTicket";
+import { useUserStore } from "stores/user";
 
 export default {
   components: { MessageBoard, TicketEditTable },
   data: () => {
     return {
-      address: null,
-      originalRMA: null,
-      submitterOrg: null,
-      submitterName: null,
-      submitterEmail: null,
-      // serials: [{'serialNumber':'1111', 'customerReportedIssue':'111'},
-      // {'serialNumber':'2222', 'customerReportedIssue':'111'},
-      //  {'serialNumber':'3333', 'customerReportedIssue':'111'},
-      //   {'serialNumber':'4444', 'customerReportedIssue':'111'}, ],
-      comments: [],
-      trackingNums: [],
+      ticketInfo: {
+        address: null,
+        originalRMA: null,
+        isFromMaster: false,
+        orderStatus: null,
+        typeOfRepair: null,
+        //not sure about submitter info
+        submitterOrg: null,
+        submitterName: null,
+        submitterEmail: null,
 
-      modalState: {
-        title: "Update Device to Ticket",
-        btnLable: "Update Device",
-        serialData: {},
-        serialNumber: null,
+        serials: [],
+        trackingNumbers: [],
       },
+      comments: [],
       ticketSubmitting: false,
       showModal: false,
-      pageLoading: false,
+      isLoading: false,
       withClient: false,
       updateOrAddLoading: false, //to control the update/add button's loading
     };
   },
-  async mounted() {
-    console.log("====== mounted=========");
-    const ticket = await this.fetchTicket(this.ticketId);
-    console.log(ticket);
-    console.log("====== mounted=========");
+  created() {
+    // watch the params of the route to fetch the data again
+    this.$watch(
+      () => this.$route.params,
+      () => {
+        this.isLoading = true;
+
+        const ticket = this.getTicket(this.ticketId);
+        console.log(ticket);
+        // if (ticket.isFromMaster === true) {
+        //   //the order has been received, can't be changed
+        // }
+        // console.log(ticket);
+        this.ticketInfo = ticket;
+        this.fetchComments(this.ticketId);
+
+        this.isLoading = false;
+      },
+      // fetch the data when the view is created and the data is
+      // already being observed
+      { immediate: true }
+    );
   },
   computed: {
     ...mapWritableState(useCreateTicketStore, ["orderType"]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
-    ...mapState(useEditTicketStore, ["getTicket"]),
     isReRepair() {
-      return this.orderType === 4;
+      return this.ticketInfo.typeOfRepair === 4;
     },
     ticketId() {
       return this.$route.params.ticketId;
     },
-    // serials(){
-    //   const ticket = this.getTicket(this.ticketId);
-    //   return ticket.serials;
-    //   // // const serials = ticket.serials;
-    //   // // return serials;
-    //   // return [];
-    // }
   },
   methods: {
     ...mapActions(useCreateTicketStore, ["populateOrderTypeOpt"]),
-    ...mapActions(useEditTicketStore, ["fetchTicket"]),
-    handleDeleteTrackingNum() {},
-    handleAddTrackingNum() {},
+    ...mapActions(useEditTicketStore, ["fetchTicket", "getTicket"]),
     handleEditTicket() {},
     handleUpdateSerial() {},
-    fetchComments() {
-      const id = this.$route.params.ticketId;
-      // const id = 1;
+    resetTicket() {
+      this.isLoading = true;
+      this.fetchTicket(this.ticketId)
+        .then((ticket) => {
+          this.ticketInfo = ticket;
+        })
+        .finally(() => {
+          this.isLoading = false;
+        });
+    },
+    handleAddTrackingNum() {
+      this.ticketInfo.trackingNumbers.push("");
+    },
+    handleDeleteTrackingNum(index) {
+      this.ticketInfo.trackingNumbers.splice(index, 1);
+    },
+    fetchComments(ticketId) {
       const vm = this;
-      const link = "/ticketing/comments?id=" + id;
-      return new Promise(() =>
-        api
-          .get(link)
-          .then((response) => {
-            if (response.data.resultCode !== 0) {
-              throw new Error(response.data.errorMessage);
-            }
-            return response.data.data;
-          })
-          .catch((error) => {
-            console.log(error);
-            Notify.create({
-              type: "negative",
-              message: error.message,
-            });
-          })
-      );
+      const link = "/ticketing/" + ticketId + "/response";
+      api
+        .get(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          this.comments = response.data.data;
+          return response.data.data;
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    addComment(comment) {
+      const user = useUserStore();
+      const { username } = user;
+      //call backend api to update it
+      const link = `/ticketing/${this.ticketId}/response`;
+      api
+        .post(link, comment)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          const newComment = response.data.data.response;
+          newComment.responseBy = username;
+          this.comments.push(newComment);
+          this.$refs.messageBoard.scrollToBottom();
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
     },
   },
 };
 </script>
-<style>
-.button-group {
-  position: absolute;
-  top: 50%;
-  right: 50%;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-evenly;
-  .remove-unit {
-    position: relative;
-    z-index: 1200;
-  }
-  .edit-unit {
-    position: relative;
-    z-index: 1200;
-  }
-}
-</style>
+<style></style>
