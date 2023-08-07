@@ -1,6 +1,7 @@
 package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import io.swagger.models.auth.In;
 import org.springframework.web.bind.annotation.RequestParam;
 import us.pax.basil.dto.output.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,8 +51,8 @@ public interface TicketService extends IService<Integer>{
                                     String serialNumber,
                                     String customerOrganization,String customerId);
 
-    QueryResultArrayDTO viewTicketDetails(String id);
 
+    QueryResultArrayDTO viewTicketDetails(Integer id);
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();

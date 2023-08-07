@@ -1,6 +1,7 @@
 package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
@@ -36,6 +37,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     private EmailService emailService;
     private TicketMapper ticketMapper;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
     @Override
     public QueryResultArrayDTO ticketQuery(Integer currentPage,
                                            Integer sizePerPage,
@@ -104,64 +106,62 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
-    @Override
-    public QueryResultArrayDTO viewTicketDetails(String id) {
-        try {
-            List<TicketViewDetail> ticketViewDetails = ticketMapper.getTicketingViewsDetail(id);
-            ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-
-            if (!ticketViewDetails.isEmpty()) {
-                for (TicketViewDetail ticketingViewsDetail : ticketViewDetails) {
-                    Map<String, Object> ticketingViewsDetailMap = new HashMap<>();
-                    ticketingViewsDetailMap.put("xm_oid", ticketingViewsDetail.getXm_oid());
-                    ticketingViewsDetailMap.put("inventory", ticketingViewsDetail.getInventory());
-                    ticketingViewsDetailMap.put("outForRepair", ticketingViewsDetail.getOutForRepair());
-                    ticketingViewsDetailMap.put("quarantine", ticketingViewsDetail.getQuarantine());
-                    ticketingViewsDetailMap.put("awaitingQaCa", ticketingViewsDetail.getAwaitingQaCa());
-                    ticketingViewsDetailMap.put("readyToShip", ticketingViewsDetail.getReadyToShip());
-                    ticketingViewsDetailMap.put("rmaNumber", ticketingViewsDetail.getRmaNumber());
-
-
-                    ticketingViewsDetailMap.put("dateReceived", ticketingViewsDetail.getDateReceived());
-                    ticketingViewsDetailMap.put("quarantineDate", ticketingViewsDetail.getQuarantineDate());
-                    ticketingViewsDetailMap.put("partNumber", ticketingViewsDetail.getPartNumber());
-                    ticketingViewsDetailMap.put("serialNumber", ticketingViewsDetail.getSerialNumber());
-                    ticketingViewsDetailMap.put("versionNumber", ticketingViewsDetail.getVersionNumber());
-                    ticketingViewsDetailMap.put("partNumber2", ticketingViewsDetail.getPartNumber2());
-                    ticketingViewsDetailMap.put("serialNumber2", ticketingViewsDetail.getSerialNumber2());
-                    ticketingViewsDetailMap.put("versionNumber2", ticketingViewsDetail.getVersionNumber2());
-                    ticketingViewsDetailMap.put("completedDate", ticketingViewsDetail.getCompletedDate());
-
-                    ticketingViewsDetailMap.put("reportedIssue", ticketingViewsDetail.getReportedIssue());
-                    ticketingViewsDetailMap.put("esdKit", ticketingViewsDetail.getEsdKit());
-                    ticketingViewsDetailMap.put("physicalDamagePresent", ticketingViewsDetail.getPhysicalDamagePresent());
-                    ticketingViewsDetailMap.put("customerIssueReproduced", ticketingViewsDetail.getCustomerIssueReproduced());
-                    ticketingViewsDetailMap.put("reportedIssueExt", ticketingViewsDetail.getReportedIssueExt());
-                    ticketingViewsDetailMap.put("tamperLog", ticketingViewsDetail.getTamperLog());
-                    ticketingViewsDetailMap.put("errorMessage", ticketingViewsDetail.getErrorMessage());
-                    ticketingViewsDetailMap.put("batteryVoltage", ticketingViewsDetail.getBatteryVoltage());
-                    ticketingViewsDetailMap.put("repairDate", ticketingViewsDetail.getRepairDate());
-
-                    ticketingViewsDetailMap.put("department", ticketingViewsDetail.getDepartment());
-                    ticketingViewsDetailMap.put("trackingNumber", ticketingViewsDetail.getTrackingNumber());
-                    ticketingViewsDetailMap.put("customerName", ticketingViewsDetail.getCustomerName());
-                    ticketingViewsDetailMap.put("assighness", ticketingViewsDetail.getAssighness());
-                    ticketingViewsDetailMap.put("techNotes", ticketingViewsDetail.getTechNotes());
-                    ticketingViewsDetailMap.put("warrantyEndDate", ticketingViewsDetail.getWarrantyEndDate());
-                    ticketingViewsDetailMap.put("warrantyVoidedDate", ticketingViewsDetail.getWarrantyVoidedDate());
-                    ticketingViewsDetailMap.put("order_date", ticketingViewsDetail.getOrder_date());
-                    ticketingViewsDetailMap.put("shipDate", ticketingViewsDetail.getShipDate());
-
-                    resultArray.add(ticketingViewsDetailMap);
-                }
-
-
-            }
-            return new QueryResultArrayDTO(resultArray, ticketViewDetails.size(), 0, "");
-        } catch (Exception e) {
-            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
-        }
-    }
+//    @Override
+//    public QueryResultArrayDTO viewTicketDetails(String id) {
+//        try {
+//            List<TicketViewDetail> ticketViewDetails = ticketMapper.getTicketingViewsDetail(id);
+//            ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+//
+//            if (!ticketViewDetails.isEmpty()) {
+//                for (TicketViewDetail ticketingViewsDetail : ticketViewDetails) {
+//                    Map<String, Object> ticketingViewsDetailMap = new HashMap<>();
+//                    ticketingViewsDetailMap.put("xm_oid", ticketingViewsDetail.getXm_oid());
+//                    ticketingViewsDetailMap.put("inventory", ticketingViewsDetail.getInventory());
+//                    ticketingViewsDetailMap.put("outForRepair", ticketingViewsDetail.getOutForRepair());
+//                    ticketingViewsDetailMap.put("quarantine", ticketingViewsDetail.getQuarantine());
+//                    ticketingViewsDetailMap.put("awaitingQaCa", ticketingViewsDetail.getAwaitingQaCa());
+//                    ticketingViewsDetailMap.put("readyToShip", ticketingViewsDetail.getReadyToShip());
+//                    ticketingViewsDetailMap.put("rmaNumber", ticketingViewsDetail.getRmaNumber());
+//
+//
+//                    ticketingViewsDetailMap.put("dateReceived", ticketingViewsDetail.getDateReceived());
+//                    ticketingViewsDetailMap.put("quarantineDate", ticketingViewsDetail.getQuarantineDate());
+//                    ticketingViewsDetailMap.put("partNumber", ticketingViewsDetail.getPartNumber());
+//                    ticketingViewsDetailMap.put("serialNumber", ticketingViewsDetail.getSerialNumber());
+//                    ticketingViewsDetailMap.put("versionNumber", ticketingViewsDetail.getVersionNumber());
+//                    ticketingViewsDetailMap.put("partNumber2", ticketingViewsDetail.getPartNumber2());
+//                    ticketingViewsDetailMap.put("serialNumber2", ticketingViewsDetail.getSerialNumber2());
+//                    ticketingViewsDetailMap.put("versionNumber2", ticketingViewsDetail.getVersionNumber2());
+//                    ticketingViewsDetailMap.put("completedDate", ticketingViewsDetail.getCompletedDate());
+//
+//                    ticketingViewsDetailMap.put("reportedIssue", ticketingViewsDetail.getReportedIssue());
+//                    ticketingViewsDetailMap.put("esdKit", ticketingViewsDetail.getEsdKit());
+//                    ticketingViewsDetailMap.put("physicalDamagePresent", ticketingViewsDetail.getPhysicalDamagePresent());
+//                    ticketingViewsDetailMap.put("customerIssueReproduced", ticketingViewsDetail.getCustomerIssueReproduced());
+//                    ticketingViewsDetailMap.put("reportedIssueExt", ticketingViewsDetail.getReportedIssueExt());
+//                    ticketingViewsDetailMap.put("tamperLog", ticketingViewsDetail.getTamperLog());
+//                    ticketingViewsDetailMap.put("errorMessage", ticketingViewsDetail.getErrorMessage());
+//                    ticketingViewsDetailMap.put("batteryVoltage", ticketingViewsDetail.getBatteryVoltage());
+//                    ticketingViewsDetailMap.put("repairDate", ticketingViewsDetail.getRepairDate());
+//
+//                    ticketingViewsDetailMap.put("department", ticketingViewsDetail.getDepartment());
+//                    ticketingViewsDetailMap.put("trackingNumber", ticketingViewsDetail.getTrackingNumber());
+//                    ticketingViewsDetailMap.put("customerName", ticketingViewsDetail.getCustomerName());
+//                    ticketingViewsDetailMap.put("assighness", ticketingViewsDetail.getAssighness());
+//                    ticketingViewsDetailMap.put("techNotes", ticketingViewsDetail.getTechNotes());
+//                    ticketingViewsDetailMap.put("warrantyEndDate", ticketingViewsDetail.getWarrantyEndDate());
+//                    ticketingViewsDetailMap.put("warrantyVoidedDate", ticketingViewsDetail.getWarrantyVoidedDate());
+//                    ticketingViewsDetailMap.put("order_date", ticketingViewsDetail.getOrder_date());
+//                    ticketingViewsDetailMap.put("shipDate", ticketingViewsDetail.getShipDate());
+//
+//                    resultArray.add(ticketingViewsDetailMap);
+//                }
+//            }
+//            return new QueryResultArrayDTO(resultArray, ticketViewDetails.size(), 0, "");
+//        } catch (Exception e) {
+//            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+//        }
+//    }
 
     @Override
     public QueryResultArrayDTO ticketQueryViews(Integer currentPage, Integer sizePerPage, String sortColumns, String ticketId, Integer department, String responder, Integer status, Integer type, String createdDate, String lastResponse, String serialNumber, String customerOrganization, String customerId) {
@@ -224,6 +224,24 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
             return new QueryResultArrayDTO(resultArray, total, 0, "");
         } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO viewTicketDetails(Integer id) {
+        try{
+            ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+            List<RepairRecord> repairRecords = ticketMapper.getTicketingViewsDetail(id);
+
+            for(RepairRecord repairRecord : repairRecords){
+                repairRecord.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(repairRecord.getWarrantyEndDate(), repairRecord.getWarrantyVoidedDate(), repairRecord.getOrderDate()));
+                Map<String, Object> objectMap = objectMapper.convertValue(repairRecord, Map.class);
+                resultArray.add(objectMap);
+            }
+
+            return new QueryResultArrayDTO(resultArray, 0, 0, null);
+        }catch(Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }

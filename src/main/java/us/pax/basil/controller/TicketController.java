@@ -17,6 +17,7 @@ package us.pax.basil.controller;
  */
 
 import io.swagger.annotations.Api;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,7 @@ import us.pax.basil.entity.ticket.*;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Api(tags = "Basil API Interface")
@@ -65,11 +67,11 @@ public class TicketController {
         return ticketService.viewEditTicket(id);
     }
 
-
-    @GetMapping("/viewTicketDetails")//BCP-28 view details
-    public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) String id){
+    @GetMapping("/viewDetails")//BCP-28 view details, id is xm_oid
+    public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) Integer id){
         return ticketService.viewTicketDetails(id);
     }
+
 
     // bcp 26
     @GetMapping("/viewTickets")

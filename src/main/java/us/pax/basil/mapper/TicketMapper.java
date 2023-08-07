@@ -2,6 +2,7 @@ package us.pax.basil.mapper;
 
 import java.util.List;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.*;
@@ -60,8 +61,8 @@ public interface TicketMapper extends BaseMapper<Integer> {
                       String createdToDate, String lastResponse,String customerOrganization, String customerId
     );
 
-    List<TicketViewDetail> getTicketingViewsDetail(String id);
 
+    List<RepairRecord> getTicketingViewsDetail(Integer id);
     /*
     queryDeviceBase is used to query if this device is U.S. based. If not, alert the front-end, otherwise, check if within warranty or another ticket.
      */
