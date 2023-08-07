@@ -15,11 +15,14 @@ package us.pax.basil.dto.output;
  * 2021/05/10               rb
  * ============================================================================
  */
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import java.util.ArrayList;
 import java.util.Map;
 
 import us.pax.basil.utils.SqlResults;
-
+@EqualsAndHashCode(callSuper = true)
+@Data
 public class QueryResultArrayDTO extends SqlResults{
     private ArrayList<Map<String, Object>> data;
     private int total;
