@@ -125,67 +125,15 @@
         LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
     </select>
 
-    <!--    <select id="getTicketingViewsDetail" resultType="us.pax.basil.entity.ticket.TicketViewDetail">-->
-    <!--        SELECT-->
-    <!--            xm.XM_OID AS xm_oid,-->
-    <!--            IF(xm.STATUS = 107, 1, 0) AS inventory,-->
-    <!--            IF(xm.STATUS = 110, 1, 0) AS outForRepair,-->
-    <!--            IF(xm.STATUS = 108, 1, 0) AS quarantine,-->
-    <!--            IF(xm.STATUS = 111, 1, 0) AS awaitingQaCa,-->
-    <!--            IF(xm.STATUS = 112, 1, 0) AS readyToShip,-->
-    <!--            mo.MO_OID AS rmaNumber,-->
-    <!--            xm.RECEIVED_DATE as dateReceived,-->
-    <!--            xm.QUARANTINE_DATE as quarantineDate,-->
-    <!--            part.PART_NUMBER_LONG  as partNumber,-->
-    <!--            msn.SERIAL_NUMBER as serialNumber,-->
-    <!--            part.VERSION_NUMBER as versionNumber,-->
-    <!--            part2.PART_NUMBER_LONG as partNumber2,-->
-    <!--            msn2.SERIAL_NUMBER as serialNumber2 ,-->
-    <!--            part2.VERSION_NUMBER as versionNumber2,-->
-    <!--            xm.REPAIR_DATE as completedDate,-->
-    <!--            (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.CUSTOMER_REPORTED_ISSUE)  as reportedIssue,-->
-    <!--            (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.ESD_KIT) as esdKit,-->
-    <!--            (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.PHYSICAL_DAMAGE_PRESENT) as physicalDamagePresent,-->
-    <!--            (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.CUSTOMER_ISSUE_REPRODUCED) as customerIssueReproduced,-->
-    <!--            xm.CUSTOMER_REPORTED_ISSUE_EXT as reportedIssueExt,-->
-    <!--            xm.TAMPER_LOG_INTERPRETATION as tamperLog,-->
-    <!--            (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.ERROR_MESSAGE)  as errorMessage,-->
-    <!--            (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.BATTERY_VOLTAGE) as batteryVoltage,-->
-    <!--            xm.REPAIR_DATE as repairDate,-->
-    <!--            (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.DEPARTMENT) as department,-->
-    <!--            (SELECT TRACKING_NUMBER FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID = xm.BOX_OID) as trackingNumber,-->
-    <!--            (SELECT CUSTOMER_ORGANIZATION FROM BASIL_ODS_PRD.MASTER_CUSTOMER mc WHERE mc.MC_OID = mo.MC_OID) as customerName,-->
-    <!--            emp.NAME as assighness,-->
-    <!--            xm.TECH_NOTES as techNotes,-->
-    <!--            msn.WARRANTY_END_DATE as warrantyEndDate,-->
-    <!--            msn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,-->
-    <!--            DATE(mo.ORDER_DATE) as order_date,-->
-    <!--            (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID = xm.BOX_OID) as shipDate-->
-    <!--        FROM-->
-    <!--            BASIL_ODS_PRD.MASTER_ORDER mo-->
-    <!--            INNER JOIN BASIL_ODS_PRD.XREF_MATERIALS xm ON xm.MO_OID = mo.MO_OID-->
-    <!--            INNER JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn ON msn.MSN_OID = xm.MSN_OID-->
-    <!--            INNER JOIN BASIL_ODS_PRD.MASTER_PART part ON part.PART_OID = msn.PART_OID-->
-    <!--            LEFT JOIN  BASIL_ODS_PRD.XREF_TECHNICIAN xt ON xt.XT_OID = xm.TECHNICIAN-->
-    <!--            LEFT JOIN  BASIL_ODS_PRD.EMPLOYEE_MASTER emp ON emp.EMP_OID = xt.EMP_OID-->
-    <!--            LEFT JOIN  BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn2 ON msn2.MSN_OID = xm.MSN_OID2-->
-    <!--            LEFT JOIN  BASIL_ODS_PRD.MASTER_PART part2 ON part2.PART_OID = msn2.PART_OID-->
-    <!--            LEFT JOIN  BASIL_SEC_PRD.PREP_XREF_MATERIALS xrefxm ON xrefxm.MO_OID = xm.MO_OID-->
-    <!--        <where>-->
-    <!--            <if test = "id !=null">-->
-    <!--                AND xm.XM_OID = #{id}-->
-    <!--            </if>-->
-
-    <!--            AND xm.STATUS IN (107, 110, 108, 111, 112)-->
-    <!--        </where>-->
-    <!--    </select>-->
-
     <select id="getTicketingViewsDetail" resultType="us.pax.basil.entity.ticket.RepairRecord">
         SELECT xm.XM_OID AS id,
         mo.MO_OID AS rmaNumber,
-        xm.RECEIVED_DATE as receivedDate,
-        xm.QUARANTINE_DATE as quarantineDate,
 
+        (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.status) as status,
+
+        xm.RECEIVED_DATE as receivedDate,
+        (SELECT MAX(QA_QC_DATE) from BASIL_ODS_PRD.XREF_QA xq where xq.XM_OID = xm.XM_OID) as quarantineDate,
+        xm.SCHEDULED_DATE as scheduledDate,
         part.PART_NUMBER_LONG as partNumber,
         msn.SERIAL_NUMBER as serialNumber,
         part.VERSION_NUMBER as versionNumber,
