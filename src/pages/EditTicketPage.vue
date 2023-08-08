@@ -153,7 +153,7 @@ import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
 
 export default {
-  components: { MessageBoard, TicketEditTable },
+  components: { MessageBoard, TicketEditTable},
   data: () => {
     return {
       ticketInfo: {
@@ -175,6 +175,7 @@ export default {
       showModal: false,
       isLoading: false,
       withClient: false,
+      showModalView:true,
       updateOrAddLoading: false, //to control the update/add button's loading
     };
   },

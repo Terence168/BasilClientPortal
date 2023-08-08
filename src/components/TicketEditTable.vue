@@ -86,13 +86,77 @@
       @popup-update-sn="handleClickUpdateUnit"
       @popup-view-sn="handleClickViewUnit"
     />
-
     <!-- View Serial Details -->
     <BaseModal
       v-model:show="showDetailModal"
       title="View repair details"
       :width="800"
     >
+    <div class="q-mb-lg">
+      <div class="row justify-center">
+        <div class="col-auto">
+          <q-card flat bordered style="width: 700px">
+            <q-card-section>
+              <div class="text-body2 text-weight-medium q-mb-sm">
+                Unit Summary
+              </div>
+              <q-separator />
+              <div
+                class="row justify-center items-center"
+                style="height: 130px"
+              >
+                <div class="col text-center">
+                  <div class="text-h4 text-weight-medium text-primary">
+                    {{details.status}}
+                  </div>
+                  <div class="text-body2 text-grey-6">United Status</div>
+                </div>
+
+                <div class="col text-center">
+                  <div class="text-h4 text-weight-medium text-primary">
+                    {{parseDate(details.scheduledDate)}}
+                  </div>
+                  <div class="text-body2 text-grey-6">Scheduled Date</div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div> 
+      <div class="q-mt-sm text-body1 text-weight-medium">Timeline</div>
+      <ul class="timeline row justify-center">
+        <li
+          class="col relative-position text-center"
+          v-for="(title, index) in statusTitles"
+          :key="index"
+        >
+          <div class="text-subtitle1 text-weight-medium">
+            {{ title }}
+          </div>
+          <div v-if="details.statusItems[index].completed" class="text-caption text-grey-6">
+            {{ parseDateTime(details.statusItems[index].completeTime)}}
+          </div>
+
+          <div
+            class="timeline-dot row justify-center items-center"
+            :class="details.statusItems[index].completed? 'bg-primary' : 'bg-grey-6'"
+          >
+            <div class="col-auto">
+              <q-icon
+              class="text-white"
+              :name="details.statusItems[index] ? 'done' : 'access_time'"
+              size="md"
+              ></q-icon>
+            </div>
+          </div>
+
+          <div
+            class="connector"
+            :class="details.statusItems[index]? 'bg-primary' : 'bg-grey-6'"
+          ></div>
+        </li>
+      </ul>
+    </div>
       <div class="row q-col-gutter-x-md text-body1">
         <div class="col-6 q-gutter-y-md">
           <div class="row">
@@ -144,7 +208,7 @@
 
           <div class="row">
             <div class="text-grey-6">Date Received:&nbsp;</div>
-            <div>{{ details.receivedDate }}</div>
+            <div>{{ parseDateTime(details.receivedDate) }}</div>
           </div>
 
           <div class="row">
@@ -190,17 +254,17 @@
 
           <div class="row">
             <div class="text-grey-6">Quarantine Date:&nbsp;</div>
-            <div>{{ details.quarantineDate }}</div>
+            <div>{{ parseDateTime(details.quarantineDate) }}</div>
           </div>
 
           <div class="row">
             <div class="text-grey-6">Repair Date:&nbsp;</div>
-            <div>{{ details.repairDate }}</div>
+            <div>{{ parseDateTime(details.repairDate) }}</div>
           </div>
 
           <div class="row">
             <div class="text-grey-6">Date Shipped:&nbsp;</div>
-            <div>{{ details.shipDate }}</div>
+            <div>{{ parseDateTime(details.shipDate) }}</div>
           </div>
 
           <div class="row">
@@ -208,8 +272,8 @@
             <div>{{ details.trackingNumber }}</div>
           </div>
         </div>
-      </div>
-
+    
+    </div>
       <div class="row q-mt-lg text-body1">
         <div class="text-grey-6">Customer Reported Issue Reproduced:&nbsp;</div>
         <div>{{ details.customerIssueReproduced }}</div>
@@ -249,11 +313,12 @@ import { mapActions } from "pinia";
 import { useEditTicketStore } from "src/stores/editTicket";
 import PopUpBtns from "./PopUpBtns.vue";
 import BaseModal from "./BaseModal.vue";
+import { DateTime } from "luxon";
 import { Notify } from "quasar";
 
 export default {
   props: ["ticketId", "serials", "isFromMaster"],
-  components: { BaseModal, PopUpBtns },
+  components: { BaseModal, PopUpBtns},
   emits: ["clickOnSerial"],
   data() {
     return {
@@ -327,6 +392,7 @@ export default {
         showUpdateUnit: true,
       },
       details: {},
+      statusTitles: ["Unit Received", "Out for Repair", "Repair Completed",  "QA/CA", "Unit Shipped"],
     };
   },
   mounted() {
@@ -340,7 +406,7 @@ export default {
       this.showBtns.showViewUnit = false;
     }
   },
-  computed() {},
+  computed:{},
   methods: {
     ...mapActions(useEditTicketStore, [
       "removeTicket",
@@ -384,8 +450,12 @@ export default {
             throw new Error(response.data.errorMessage);
           }
           this.details = response.data.data[0];
+          console.log(this.details);
+
+          this.computeStatusItem();
           this.showDetailModal = true;
-          console.log(this.showDetailModal);
+
+          console.log(this.details);
         })
         .catch(function (error) {
           // handle error
@@ -400,6 +470,62 @@ export default {
     handleUpdateSerial() {
       console.log("update serial");
     },
+    computeStatusItem(){
+      const now = DateTime.now();
+      const timeFormat = 'yyyy-LL-dd tt';
+
+      const receive = DateTime.fromISO(this.details.receivedDate);
+      const repair =  DateTime.fromISO(this.details.repairDate);
+      const complete = DateTime.fromISO(this.details.completedDate);
+      const qa = DateTime.fromISO(this.details.quarantineDate);
+      const ship = DateTime.fromISO(this.details.shipDate);
+      // const schedule = DateTime.fromISO(this.details.scheduledDate);
+
+      // this.details.receivedDate = receive.toFormat(timeFormat)
+      // this.details.repairDate = repair.toFormat(timeFormat)
+      // this.details.completedDate = complete.toFormat(timeFormat);
+      // this.details.quarantineDate = qa.toFormat(timeFormat);
+      // this.details.shipDate = ship.toFormat(timeFormat);
+      // this.details.scheduledDate = schedule.toFormat(timeFormat);
+
+      const statusItems = [];
+      statusItems.push({
+        completed: receive < now,
+        completeTime: this.details.receivedDate});
+      
+      statusItems.push({
+        completed: repair < now,
+        completeTime: this.details.repairDate});
+      
+      statusItems.push(statusItems[1]={
+        completed: complete < now,
+        completeTime: this.details.completedDate});
+      statusItems.push({
+        completed: qa < now,
+        completeTime: this.details.quarantineDate});
+      
+      statusItems.push({
+        completed: ship < now,
+        completeTime: this.details.shipDate});
+
+      this.details.statusItems = statusItems;
+    },
+    parseDate(timeStr){
+      if(timeStr === null || timeStr === ""){
+        return "N/A"
+      }
+      const timeFormat = 'yyyy-LL-dd';
+      const time = DateTime.fromISO(timeStr);
+      return time.toFormat(timeFormat);
+    },
+    parseDateTime(timeStr){
+      if(timeStr === null || timeStr === ""){
+        return "N/A"
+      }
+      const timeFormat = 'yyyy-LL-dd tt';
+      const time = DateTime.fromISO(timeStr);
+      return time.toFormat(timeFormat);
+    }
   },
 };
 </script>
@@ -423,4 +549,40 @@ export default {
     z-index: 1200;
   }
 }
+
+ul {
+  padding: 0;
+  width: 100%;
+  list-style: none;
+}
+
+ul > li {
+  padding-top: 50px;
+}
+
+.timeline-dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+
+  z-index: 1;
+
+  border-radius: 100%;
+  transform: translateX(-50%);
+  border: 3px solid white;
+}
+
+
+.connector {
+  position: absolute;
+  top: 23px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+
+  transform: translateY(-50%);
+}
+
 </style>
