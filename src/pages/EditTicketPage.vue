@@ -11,7 +11,7 @@
           <!-- todo:get from ticket info -->
           <div class="col">Ticket Status: Open</div>
           <div class="col-auto" @click="resetTicket">
-            <q-btn color="red">Clear Data</q-btn>
+            <q-btn color="red">Refresh Data</q-btn>
           </div>
         </div>
 
@@ -88,18 +88,18 @@
               outline
               rounded
               color="primary"
-              @click="handleAddTrackingNum"
+              @click="addTrackingNum(ticketId)"
             />
           </div>
         </div>
         <div
-          v-for="(trackingNum, index) in ticketInfo.trackingNumbers"
+          v-for="(trackingNum, index) in getTrackingNumsByTicketId(ticketId)"
           :key="index"
           class="row q-mb-sm items-center"
         >
           <q-input
             class="q-mr-sm"
-            v-model="ticketInfo.trackingNumbers[index]"
+            v-model="trackingNum.num"
             style="min-width: 300px"
             dense
             outlined
@@ -109,13 +109,12 @@
             outline
             rounded
             color="primary"
-            @click="handleDeleteTrackingNum"
+            @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
         <!-- ticket serials -->
         <TicketEditTable
           :ticketId="ticketId"
-          :serials="ticketInfo.serials"
           :isFromMaster="ticketInfo.isFromMaster"
         />
         <!-- Button for submit ticket -->
@@ -144,13 +143,14 @@
 <script>
 import { useCreateTicketStore } from "stores/createTicket";
 import { mapWritableState, mapActions } from "pinia";
-import { mapState } from "pinia";
+import { mapState, mapStores } from "pinia";
 import MessageBoard from "src/components/MessageBoard.vue";
 import TicketEditTable from "src/components/TicketEditTable.vue";
 import { Notify, TouchSwipe } from "quasar";
 import { api } from "src/boot/axios";
 import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
+import { watchArray } from "@vueuse/core";
 
 export default {
   components: { MessageBoard, TicketEditTable},
@@ -166,11 +166,16 @@ export default {
         submitterOrg: null,
         submitterName: null,
         submitterEmail: null,
-
         serials: [],
         trackingNumbers: [],
       },
       comments: [],
+      editInfo:{
+        updateTrackingNums:[],
+        removeTrackingNums:[],
+        removeSerials:[],
+        updateSerials:[],
+      },
       ticketSubmitting: false,
       showModal: false,
       isLoading: false,
@@ -186,25 +191,43 @@ export default {
       () => {
         this.isLoading = true;
 
-        const ticket = this.getTicket(this.ticketId);
-        console.log(ticket);
-        // if (ticket.isFromMaster === true) {
-        //   //the order has been received, can't be changed
-        // }
-        // console.log(ticket);
-        this.ticketInfo = ticket;
-        this.fetchComments(this.ticketId);
-
-        this.isLoading = false;
+        Promise.all([this.getTicket(this.ticketId), this.fetchComments(this.ticketId)]).then((values) =>{
+          const ticketInfo = values[0];
+          const comments = values[1];
+          if(ticketInfo != null){
+            this.ticketInfo = ticketInfo;
+          }
+          if(this.comments != null){
+            this.comments = comments;
+          }
+        })
+        .finally(() => {
+          this.isLoading = false;
+        })
       },
       // fetch the data when the view is created and the data is
       // already being observed
       { immediate: true }
     );
   },
+  mounted(){
+    // watchArray(this.getTrackingNumsByTicketId(this.ticketId), (newList, oldList, added, removed) => {
+    //   if(removed.length > 0){
+    //     this.editInfo.removeTrackingNums.push(removed);
+    //   }
+    //   this.editInfo.updateTrackingNums = newList;
+    // });
+    // watchArray(this.getSerialsByTicketId(this.ticketId), (newList, oldList, added, removed) => {
+    //   if(removed.length > 0){
+    //     this.editInfo.removeSerials.push(removed);
+    //   }
+    //   this.editInfo.updateSerials = newList;
+    // });
+  },
   computed: {
-    ...mapWritableState(useCreateTicketStore, ["orderType"]),
+    // ...mapWritableState(useCreateTicketStore, ["orderType"]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
+    ...mapWritableState(useEditTicketStore, ["getTrackingNumsByTicketId", "getSerialsByTicketId"]),
     isReRepair() {
       return this.ticketInfo.typeOfRepair === 4;
     },
@@ -214,8 +237,17 @@ export default {
   },
   methods: {
     ...mapActions(useCreateTicketStore, ["populateOrderTypeOpt"]),
-    ...mapActions(useEditTicketStore, ["fetchTicket", "getTicket"]),
-    handleEditTicket() {},
+    ...mapActions(useEditTicketStore, ["fetchTicket", 
+    "getTicket", 
+    "addTrackingNum",
+    "deleteTrackingNum", 
+    "getEditInfo",
+    "findEditTrackingNums"]),
+    handleEditTicket() {
+      console.log("=========edit=================");
+      this.findEditTrackingNums(this.ticketId);
+      console.log(this.getEditInfo(this.ticketId))
+    },
     handleUpdateSerial() {},
     resetTicket() {
       this.isLoading = true;
@@ -227,22 +259,16 @@ export default {
           this.isLoading = false;
         });
     },
-    handleAddTrackingNum() {
-      this.ticketInfo.trackingNumbers.push("");
-    },
-    handleDeleteTrackingNum(index) {
-      this.ticketInfo.trackingNumbers.splice(index, 1);
-    },
+
     fetchComments(ticketId) {
       const vm = this;
       const link = "/ticketing/" + ticketId + "/response";
-      api
+      return api
         .get(link)
         .then((response) => {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          this.comments = response.data.data;
           return response.data.data;
         })
         .catch((error) => {

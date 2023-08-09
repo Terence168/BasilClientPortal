@@ -120,14 +120,6 @@
         round
         @click.stop="handleUpdateSerial"
       />
-      <q-btn
-        class="view-unit"
-        size="sm"
-        color="yellow-5"
-        icon="view"
-        round
-        @click.stop="handleUpdateSerial"
-      />
     </div>
   </div>
 
@@ -185,6 +177,11 @@ export default {
   emits: ["updateSerial"],
   data() {
     return {
+      showBtns:{
+        showRemoveUnit: true,
+        showViewUnit: false,
+        showUpdateUnit: true,
+      },
       withClient: false,
       serialIndex: null,
       mouseX: 0,
@@ -380,6 +377,7 @@ export default {
       const serials = this.getAllSerials;
       let amt = 0;
       if(this.orderType === 3){
+        //repair
         serials.forEach((s) =>{
           if(s.valid === false){
             amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)}
@@ -388,11 +386,12 @@ export default {
       if(this.orderType === 7){
         serials.forEach((s) => {
           if(s.valid === false){
-            amt=amt+(s.minorPrice == null ? 0: s.minorPrice);
+            amt=amt+(s.diagnosticPrice == null ? 0: s.diagnosticPrice);
           }
         });
       }
       serials.forEach((s) => {{
+          //cosmetic
         if(s.valid != false && s.cosmetic === true){
           amt = amt + s.cosmeticPrice;
         }}

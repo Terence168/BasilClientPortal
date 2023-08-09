@@ -69,6 +69,8 @@ export default {
       editor: null,
     };
   },
+  computed:{
+  },
   mounted() {
     this.scrollToBottom();
   },

@@ -3,14 +3,13 @@
     <div class="q-pa-md">
       <q-table
         title="Ticket Serial Numbers"
-        :rows="serials"
+        :rows="getSerialsByTicketId(ticketId)"
         :columns="columns"
         row-key="serialNumber"
         @row-click="handleRowClick"
       ></q-table>
-
-      <!-- Pop-up window: add or Update Device to Ticket Window -->
     </div>
+    <!-- Pop-up window: add or Update Device to Ticket Window -->
     <BaseModal
       v-model:show="showModal"
       v-bind:title="modalState.title"
@@ -309,7 +308,7 @@
 </template>
 
 <script>
-import { mapActions } from "pinia";
+import { mapActions,  mapState } from "pinia";
 import { useEditTicketStore } from "src/stores/editTicket";
 import PopUpBtns from "./PopUpBtns.vue";
 import BaseModal from "./BaseModal.vue";
@@ -317,7 +316,7 @@ import { DateTime } from "luxon";
 import { Notify } from "quasar";
 
 export default {
-  props: ["ticketId", "serials", "isFromMaster"],
+  props: ["ticketId",  "isFromMaster"],
   components: { BaseModal, PopUpBtns},
   emits: ["clickOnSerial"],
   data() {
@@ -393,6 +392,9 @@ export default {
       },
       details: {},
       statusTitles: ["Unit Received", "Out for Repair", "Repair Completed",  "QA/CA", "Unit Shipped"],
+      editTicket:{
+        removeSN:[],
+      }
     };
   },
   mounted() {
@@ -406,7 +408,11 @@ export default {
       this.showBtns.showViewUnit = false;
     }
   },
-  computed:{},
+  computed:{
+    ...mapState(useEditTicketStore, [
+      "getSerialsByTicketId",
+    ]),
+  },
   methods: {
     ...mapActions(useEditTicketStore, [
       "removeTicket",
@@ -435,8 +441,12 @@ export default {
       this.showModal = true;
     },
     handleClickRemoveUnit() {
-      const sn = this.modalState.serialNumber;
+      const sn = this.modalState.serialData.serialNumber;
+      const xmOID = this.modalState.serialData.xmOID;
+      this.editTicket.removeSN.push(xmOID);
+      //then remove it from front-end
       this.removeSN(this.ticketId, sn);
+      // console.log(this.modalState);
       // console.log("remove");
     },
     handleClickViewUnit() {
@@ -472,21 +482,12 @@ export default {
     },
     computeStatusItem(){
       const now = DateTime.now();
-      const timeFormat = 'yyyy-LL-dd tt';
 
       const receive = DateTime.fromISO(this.details.receivedDate);
       const repair =  DateTime.fromISO(this.details.repairDate);
       const complete = DateTime.fromISO(this.details.completedDate);
       const qa = DateTime.fromISO(this.details.quarantineDate);
       const ship = DateTime.fromISO(this.details.shipDate);
-      // const schedule = DateTime.fromISO(this.details.scheduledDate);
-
-      // this.details.receivedDate = receive.toFormat(timeFormat)
-      // this.details.repairDate = repair.toFormat(timeFormat)
-      // this.details.completedDate = complete.toFormat(timeFormat);
-      // this.details.quarantineDate = qa.toFormat(timeFormat);
-      // this.details.shipDate = ship.toFormat(timeFormat);
-      // this.details.scheduledDate = schedule.toFormat(timeFormat);
 
       const statusItems = [];
       statusItems.push({
