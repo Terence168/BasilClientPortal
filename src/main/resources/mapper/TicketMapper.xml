@@ -186,8 +186,8 @@
     </select>
 
     <select id="existingMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
-        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair,ADDRESS as address from
-        BASIL_ODS_PRD.MASTER_ORDER as ma
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, ADDRESS as address, SUBMITTER_ID as submitterID
+        from BASIL_ODS_PRD.MASTER_ORDER as ma
         <where>
             <if test="id !=null">
                 ma.MO_OID = #{id}
@@ -196,8 +196,8 @@
     </select>
 
     <select id="existingPREPMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
-        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair,ADDRESS as address from
-        BASIL_SEC_PRD.PREP_MASTER_ORDER as pref
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair,ADDRESS as address, SUBMITTER_ID as submitterID
+        from BASIL_SEC_PRD.PREP_MASTER_ORDER as pref
         <where>
             <if test="id !=null">
                 pref.MO_OID = #{id}
@@ -205,8 +205,9 @@
         </where>
     </select>
 
-    <select id="getTrackingNumber" resultType="Integer">
-        select tr.TRACKING_NUMBER as trackingNumbers from BASIL_SEC_PRD.XREF_INBOUND_TRACKING as tr
+    <select id="getTrackingNumber" resultType="us.pax.basil.entity.ticket.TrackingNum">
+        select tr.TRACKING_NUMBER as num, tr.XIT_OID as xitOID
+        from BASIL_SEC_PRD.XREF_INBOUND_TRACKING as tr
         <where>
             <if test="id !=null">
                 tr.MO_OID = #{id}
@@ -621,8 +622,8 @@
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
             useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber})
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER, SUBMITTER_ID)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID})
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false">

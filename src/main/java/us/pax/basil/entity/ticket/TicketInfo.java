@@ -18,10 +18,11 @@ public class TicketInfo {
     private String orderStatus;//from (prep_)master_order ORDER_STATUS
     private Date createDate;//from (prep_)master_order Order_Date
     private String organization;//submitters' org, not sure where to get it
+    private Integer submitterID; //submitter'id
     private String submitterEmail;//submitters' email, not sure
     private String submitterName;//submitters' name, not sure
     private Integer typeOfRepair; //use mo_oid to query from BASIL_ODS_PRD.MASTER_ORDER and BASIL_SEC_PRD.PREP_MASTER_ORDER
     private String address; //use mo_oid to query from BASIL_ODS_PRD.MASTER_ORDER and BASIL_SEC_PRD.PREP_MASTER_ORDER
-    private List<String> trackingNumbers; //use mo_oid to query from BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+    private List<TrackingNum> trackingNumbers; //use mo_oid to query from BASIL_SEC_PRD.XREF_INBOUND_TRACKING
     private List<SNInfo> serials; //use mo_oid to query from BASIL_SEC_PRD.PREP_XREF_MATERIALS and BASIL_ODS_PRD.XREF_MATERIALS
 }

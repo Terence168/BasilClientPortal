@@ -27,7 +27,7 @@ public class TicketInsertionObject {
     private Integer orderType;
 
     private String rmaNumber;
-
+    private Integer submitterID;
     public void setOrderDateToCurrentDate(){
         this.orderDate = new Date();
     }

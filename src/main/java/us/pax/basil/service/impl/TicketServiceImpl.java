@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.*;
+import us.pax.basil.entity.User;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
+import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.EmailService;
 import us.pax.basil.service.TicketService;
@@ -36,6 +38,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     @Autowired
     private EmailService emailService;
     private TicketMapper ticketMapper;
+    private UserMapper userMapper;
 
     private ObjectMapper objectMapper = new ObjectMapper();
     @Override
@@ -88,7 +91,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             );
 
             for (TicketingQueue ticketingQueue : ticketingQueueList) {
-
                 Map<String, Object> ticketingQueueMap = new HashMap<>();
                 ticketingQueueMap.put("ticketId", ticketingQueue.getTicketId());
                 ticketingQueueMap.put("status", ticketingQueue.getStatus());
@@ -97,7 +99,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 ticketingQueueMap.put("createdDate", ticketingQueue.getCreatedDate());
                 ticketingQueueMap.put("responder", ticketingQueue.getResponder());
                 ticketingQueueMap.put("customer", ticketingQueue.getCustomerOrganization());
-
                 resultArray.add(ticketingQueueMap);
             }
             return new QueryResultArrayDTO(resultArray, total, 0, "");
@@ -114,6 +115,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 //
 //            if (!ticketViewDetails.isEmpty()) {
 //                for (TicketViewDetail ticketingViewsDetail : ticketViewDetails) {
+//                    Map<String, Object> ticketingViewsDetailMap = objectMapper.convertValue(ticketingViewsDetail, Map.class);
 //                    Map<String, Object> ticketingViewsDetailMap = new HashMap<>();
 //                    ticketingViewsDetailMap.put("xm_oid", ticketingViewsDetail.getXm_oid());
 //                    ticketingViewsDetailMap.put("inventory", ticketingViewsDetail.getInventory());
@@ -395,17 +397,17 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 ticket.setSerials(serials);
             }
 
-            List<String> trackingNumber=ticketMapper.getTrackingNumber(id);
+            if(ticket.getSubmitterID() != null){
+                User user = userMapper.getUserById(ticket.getSubmitterID());
+                ticket.setSubmitterEmail(user.getEmail());
+                ticket.setSubmitterName(user.getName());
+            }
+
+            List<TrackingNum> trackingNumber=ticketMapper.getTrackingNumber(id);
             ticket.setTrackingNumbers(trackingNumber);
 
-            Map<String, Object> ticketingViewsMap = new HashMap<>();
-            ticketingViewsMap.put("moOID", ticket.getMoOID());
-            ticketingViewsMap.put("orderStatus", ticket.getOrderStatus());
-            ticketingViewsMap.put("isFromMaster", ticket.getIsFromMaster());
-            ticketingViewsMap.put("typeOfRepair", ticket.getTypeOfRepair());
-            ticketingViewsMap.put("address", ticket.getAddress());
-            ticketingViewsMap.put("trackingNumbers", ticket.getTrackingNumbers());
-            ticketingViewsMap.put("serials", ticket.getSerials());
+            Map<String, Object> ticketingViewsMap = objectMapper.convertValue(ticket, Map.class);
+
             return new QueryResultDTO(ticketingViewsMap, 0, "");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
@@ -595,6 +597,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     public int insertTicketToPMO(TicketInsertionObject tio) { // PMO is prep_master_order
         CustomUserDetails user = AuthUtil.getUser();
         Integer companyId = user.getCompanyId();
+        tio.setSubmitterID(user.getUserId());
         tio.setMcOID(companyId);
         tio.setOrderStatus("12");
         tio.setOrderDateToCurrentDate();
@@ -604,6 +607,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public SubmitTicketDTO submitTicket(TicketInsertion ticketInsertion) {
+        CustomUserDetails submitter = AuthUtil.getUser();
+
         List<SNsInsertionObject> sNsInsertionObjectList = ticketInsertion.getSerials();
         Integer orderType = ticketInsertion.getOrderType();
         List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
