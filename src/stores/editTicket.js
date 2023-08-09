@@ -2,12 +2,11 @@ import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
 
-
 const capacity = 10;
 
 export const useEditTicketStore = defineStore("editTicket", {
   state: () => ({
-    tickets : [],
+    tickets: [],
   }),
   getters: {},
   reset() {},
@@ -15,10 +14,10 @@ export const useEditTicketStore = defineStore("editTicket", {
     addTicket(ticketInfo) {
       const key = ticketInfo.mo_oid;
       const index = this.tickets.findIndex((t) => t.mo_oid === key);
-      if(index === -1){
-        if(this.tickets.length === capacity){
+      if (index === -1) {
+        if (this.tickets.length === capacity) {
           //remove the least recently used
-          this.tickets.sort((t1, t2)=> t1.timeStamp < t2.timeStamp);
+          this.tickets.sort((t1, t2) => t1.timeStamp < t2.timeStamp);
           this.tickets.pop();
         }
         ticketInfo.timeStamp = new Date();
@@ -26,8 +25,10 @@ export const useEditTicketStore = defineStore("editTicket", {
       }
     },
     removeTicket(ticketId) {
-      const index = this.tickets.findIndex((t) => parseInt(t.moOID) === parseInt(ticketId));
-      if(index != -1){
+      const index = this.tickets.findIndex(
+        (t) => parseInt(t.moOID) === parseInt(ticketId)
+      );
+      if (index != -1) {
         this.tickets.splice(index, 1);
       }
     },
@@ -38,68 +39,70 @@ export const useEditTicketStore = defineStore("editTicket", {
       }
     },
     fetchTicket(ticketId) {
-        //fetch it from the backend
+      //fetch it from the backend
+      const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
+      const vm = this;
+      return api
+        .get(actionURL, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          const ticketInfo = response.data.data;
+          ticketInfo.timeStamp = new Date();
+          this.removeTicket(ticketId);
+          this.tickets.push(ticketInfo);
+          return ticketInfo;
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+          return null;
+        });
+    },
+    async getTicket(ticketId) {
+      const index = this.tickets.findIndex((t) => {
+        return parseInt(t.moOID) === parseInt(ticketId);
+      });
+      if (index != -1) {
+        return this.tickets.find(
+          (t) => parseInt(t.moOID) === parseInt(ticketId)
+        );
+      } else {
         const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
-        const vm = this;
-        return api.get(actionURL, {
+
+        try {
+          const response = await api.get(actionURL, {
             headers: {
               "Content-Type": "application/json",
             },
-          })
-          .then((response) => {
-            if (response.data.resultCode !== 0) {
-              throw new Error(response.data.errorMessage);
-            }
-            const ticketInfo = response.data.data;
-            ticketInfo.timeStamp = new Date();
-            this.removeTicket(ticketId);
-            this.tickets.push(ticketInfo);
-            return ticketInfo;
-          })
-          .catch((error) => {
-            console.log(error);
-            Notify.create({
-              type: "negative",
-              message: error.message,
-            });
-            return null;
-          })
-    },
-    getTicket(ticketId){
-        const index = this.tickets.findIndex((t) => {
-          return parseInt(t.moOID) === parseInt(ticketId);
-        });
-        if(index != -1){
-          return this.tickets.find((t) => parseInt(t.moOID) === parseInt(ticketId));
-        }
-        else{
-          const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
-          const vm = this;
-          api.get(actionURL, {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            })
-            .then((response) => {
-              if (response.data.resultCode !== 0) {
-                throw new Error(response.data.errorMessage);
-              }
-              const ticketInfo = response.data.data;
-              ticketInfo.timeStamp = new Date();
-              this.tickets.push(ticketInfo);
-      
-              return ticketInfo;
-            })
-            .catch((error) => {
-              console.log(error);
-              Notify.create({
-                type: "negative",
-                message: error.message,
-              });
+          });
 
-              return null;
-            })
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          const ticketInfo = response.data.data;
+          ticketInfo.timeStamp = new Date();
+          this.tickets.push(ticketInfo);
+
+          return ticketInfo;
+        } catch (error) {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+
+          return null;
         }
+      }
     },
     updateSN(tickId, serial) {
       const sn = serial.serialNumber;

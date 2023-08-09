@@ -185,16 +185,18 @@ export default {
       () => {
         this.isLoading = true;
 
-        const ticket = this.getTicket(this.ticketId);
-        console.log(ticket);
+        this.getTicket(this.ticketId).then((ticket) => {
+          this.ticketInfo = ticket;
+          this.fetchComments(this.ticketId);
+
+          this.isLoading = false;
+          console.log(ticket);
+        });
+
         // if (ticket.isFromMaster === true) {
         //   //the order has been received, can't be changed
         // }
         // console.log(ticket);
-        this.ticketInfo = ticket;
-        this.fetchComments(this.ticketId);
-
-        this.isLoading = false;
       },
       // fetch the data when the view is created and the data is
       // already being observed
