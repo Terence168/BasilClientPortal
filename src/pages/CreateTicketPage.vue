@@ -275,6 +275,7 @@ import BaseModal from "src/components/BaseModal.vue";
 import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
 import { mapGetters } from "pinia";
 import { Notify } from "quasar";
+import {batchSerialNumberQuery} from "../utils/ticketUtils.js"
 
 const user = useUserStore();
 
@@ -354,38 +355,47 @@ export default {
         return;
       }
       this.fileUploading = true;
-      const actionURL = "/ticketing/batchSerialNumberQuery";
 
       const formData = new FormData(e.target);
       formData.append("fileName", this.file ? this.file.name : "");
-
-      const vm = this;
-      this.$api
-        .post(actionURL, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then(function (response) {
-          if (response.data.resultCode !== 0) {
-            throw new Error(response.data.errorMessage);
-          }
-          vm.file = null;
-          let serials = [...response.data.data];
-          console.log(serials);
+      
+      batchSerialNumberQuery(formData)
+        .then((serials) => {
+          this.file = null;
           serials.forEach((s) => {
-            vm.addSerial(s);
-          });
-        })
-        .catch((e) => {
-          this.$q.notify({
-            type: "negative",
-            message: e.message,
+            this.addSerial(s);
           });
         })
         .finally(() => {
           this.fileUploading = false;
         });
+
+      // const vm = this;
+      // this.$api
+      //   .post(actionURL, formData, {
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //     },
+      //   })
+      //   .then(function (response) {
+      //     if (response.data.resultCode !== 0) {
+      //       throw new Error(response.data.errorMessage);
+      //     }
+      //     vm.file = null;
+      //     let serials = [...response.data.data];
+      //     serials.forEach((s) => {
+      //       vm.addSerial(s);
+      //     });
+      //   })
+      //   .catch((e) => {
+      //     this.$q.notify({
+      //       type: "negative",
+      //       message: e.message,
+      //     });
+      //   })
+      //   .finally(() => {
+      //     this.fileUploading = false;
+      //   });
     },
     /*
       Event listener for updateSerial(TicketSerialsGrid)

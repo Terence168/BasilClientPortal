@@ -112,6 +112,7 @@
             @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
+        
         <!-- ticket serials -->
         <TicketEditTable
           :ticketId="ticketId"
@@ -151,6 +152,7 @@ import { api } from "src/boot/axios";
 import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
 import { watchArray } from "@vueuse/core";
+import {batchSerialNumberQuery} from "../utils/ticketUtils.js"
 
 export default {
   components: { MessageBoard, TicketEditTable},
@@ -210,20 +212,7 @@ export default {
       { immediate: true }
     );
   },
-  mounted(){
-    // watchArray(this.getTrackingNumsByTicketId(this.ticketId), (newList, oldList, added, removed) => {
-    //   if(removed.length > 0){
-    //     this.editInfo.removeTrackingNums.push(removed);
-    //   }
-    //   this.editInfo.updateTrackingNums = newList;
-    // });
-    // watchArray(this.getSerialsByTicketId(this.ticketId), (newList, oldList, added, removed) => {
-    //   if(removed.length > 0){
-    //     this.editInfo.removeSerials.push(removed);
-    //   }
-    //   this.editInfo.updateSerials = newList;
-    // });
-  },
+  mounted(){},
   computed: {
     // ...mapWritableState(useCreateTicketStore, ["orderType"]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
@@ -238,15 +227,19 @@ export default {
   methods: {
     ...mapActions(useCreateTicketStore, ["populateOrderTypeOpt"]),
     ...mapActions(useEditTicketStore, ["fetchTicket", 
-    "getTicket", 
-    "addTrackingNum",
-    "deleteTrackingNum", 
-    "getEditInfo",
-    "findEditTrackingNums"]),
+      "getTicket", 
+      "addTrackingNum",
+      "deleteTrackingNum", 
+      "getEditInfo",
+      "findEditTrackingNums",
+      "findEditSN",
+      "addSN",
+    ]),
     handleEditTicket() {
       console.log("=========edit=================");
-      this.findEditTrackingNums(this.ticketId);
-      console.log(this.getEditInfo(this.ticketId))
+      const editTracking = this.findEditTrackingNums(this.ticketId);
+      const editSerial = this.findEditSN(this.ticketId);
+      console.log(editTracking, editSerial);
     },
     handleUpdateSerial() {},
     resetTicket() {
@@ -303,6 +296,7 @@ export default {
           });
         });
     },
+    
   },
 };
 </script>

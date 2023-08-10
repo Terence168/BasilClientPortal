@@ -1,5 +1,61 @@
 <template>
-  <div class="q-mx-lg">
+  <div>
+    <div class="q-py-md text-subtitle1 text-weight-bold">
+          Ticket Serial Numbers
+        </div>
+        <div class="row items-start">
+          <!-- Add Serial Number -->
+          <q-btn class="col-auto" color="primary" @click="handleClickAddUnit">
+            Add Serial Number
+          </q-btn>
+          <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
+          <!-- Upload file -->
+          <q-form class="col-auto" @submit="onFileSubmit">
+            <div class="row items-start">
+              <q-file
+                style="min-width: 250px"
+                name="file"
+                class="col q-mr-sm"
+                clearable
+                bottom-slots
+                outlined
+                v-model="file"
+                label="Upload Excel File"
+                dense
+                counter
+                :disable="fileUploading"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="attach_file" />
+                </template>
+
+                <template v-slot:hint> Allowed file format: .xlsx </template>
+              </q-file>
+
+              <q-btn
+                class="col"
+                type="submit"
+                label="Upload"
+                color="primary"
+                style="min-width: 150px"
+                :loading="fileUploading"
+              >
+                <template v-slot:loading>
+                  <q-spinner-facebook />
+                </template>
+              </q-btn>
+
+              &nbsp;
+              <q-input
+                clearable
+                class="q-mr-sm"
+                label="Serial Number OR Model OR Reported Issue"
+                style="min-width: 380px"
+                v-model="inputValue"
+              />&nbsp;
+            </div>
+          </q-form>
+        </div>
     <div class="q-pa-md">
       <q-table
         title="Ticket Serial Numbers"
@@ -9,75 +65,6 @@
         @row-click="handleRowClick"
       ></q-table>
     </div>
-    <!-- Pop-up window: add or Update Device to Ticket Window -->
-    <BaseModal
-      v-model:show="showModal"
-      v-bind:title="modalState.title"
-      :width="500"
-      @update:show="resetModalState"
-    >
-      <q-form ref="modalForm" @submit.prevent="handleUpdateSerial">
-        <q-input
-          class="col q-mb-sm"
-          outlined
-          v-model="modalState.serialData.serialNumber"
-          label="Serial Number"
-          lazy-rules
-          dense
-          :rules="[
-            (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
-          ]"
-        />
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          autogrow
-          v-model="modalState.serialData.customerReportedIssue"
-          label="Customer Reported Issue"
-          lazy-rules
-          dense
-          :rules="[
-            (val) =>
-              (val && val.length > 0) ||
-              'Customer Reported Issue cannot be empty',
-          ]"
-        />
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          v-model="modalState.serialData.terminalID"
-          label="Customer Terminal ID"
-          dense
-        />
-        <div class="row justify-center q-mt-md">
-          <div class="col-auto">
-            <!-- update/add device Button -->
-            <q-btn
-              class="q-mr-md"
-              type="submit"
-              v-bind:label="modalState.btnLable"
-              color="primary"
-              style="min-width: 150px"
-              :loading="updateLoading"
-            >
-              <template v-slot:loading>
-                <q-spinner-facebook />
-              </template>
-            </q-btn>
-          </div>
-          <!-- cancel Button -->
-          <div class="col-auto">
-            <q-btn
-              label="Cancel"
-              color="grey-4"
-              text-color="grey-6"
-              style="min-width: 150px"
-              @click="resetModalState"
-            />
-          </div>
-        </div>
-      </q-form>
-    </BaseModal>
     <PopUpBtns
       ref="popupBtns"
       :showBtns="showBtns"
@@ -113,7 +100,7 @@
 
                 <div class="col text-center">
                   <div class="text-h4 text-weight-medium text-primary">
-                    {{parseDate(details.scheduledDate)}}
+                    {{getParseDate(details.scheduledDate)}}
                   </div>
                   <div class="text-body2 text-grey-6">Scheduled Date</div>
                 </div>
@@ -133,7 +120,7 @@
             {{ title }}
           </div>
           <div v-if="details.statusItems[index].completed" class="text-caption text-grey-6">
-            {{ parseDateTime(details.statusItems[index].completeTime)}}
+            {{ getParseDateTime(details.statusItems[index].completeTime)}}
           </div>
 
           <div
@@ -207,7 +194,7 @@
 
           <div class="row">
             <div class="text-grey-6">Date Received:&nbsp;</div>
-            <div>{{ parseDateTime(details.receivedDate) }}</div>
+            <div>{{ getParseDateTime(details.receivedDate) }}</div>
           </div>
 
           <div class="row">
@@ -253,17 +240,17 @@
 
           <div class="row">
             <div class="text-grey-6">Quarantine Date:&nbsp;</div>
-            <div>{{ parseDateTime(details.quarantineDate) }}</div>
+            <div>{{ getParseDateTime(details.quarantineDate) }}</div>
           </div>
 
           <div class="row">
             <div class="text-grey-6">Repair Date:&nbsp;</div>
-            <div>{{ parseDateTime(details.repairDate) }}</div>
+            <div>{{ getParseDateTime(details.repairDate) }}</div>
           </div>
 
           <div class="row">
             <div class="text-grey-6">Date Shipped:&nbsp;</div>
-            <div>{{ parseDateTime(details.shipDate) }}</div>
+            <div>{{ getParseDateTime(details.shipDate) }}</div>
           </div>
 
           <div class="row">
@@ -304,20 +291,33 @@
         </div>
       </div>
     </BaseModal>
+    <!-- Pop-up window: add or Update Device to Ticket Window -->
+    <EditModal 
+      ref="editModal"
+      :serial="modalState.serialData" 
+      :title="modalState.title" 
+      :btnLable="modalState.btnLable"
+      :action="modalState.submitAction"
+      @add-serial="handleAddSerial"
+      @update-serial = "handleUpdateSerial"
+    />
   </div>
 </template>
 
 <script>
-import { mapActions,  mapState } from "pinia";
+import { mapActions,  mapState, mapWritableState } from "pinia";
 import { useEditTicketStore } from "src/stores/editTicket";
 import PopUpBtns from "./PopUpBtns.vue";
 import BaseModal from "./BaseModal.vue";
+import EditModal from "./EditModal.vue";
 import { DateTime } from "luxon";
 import { Notify } from "quasar";
+import {parseDateTime, parseDate} from "../utils/timeUtils.js"
+import { batchSerialNumberQuery, serialNumberUpdateQuery } from "src/utils/ticketUtils";
 
 export default {
   props: ["ticketId",  "isFromMaster"],
-  components: { BaseModal, PopUpBtns},
+  components: { BaseModal, PopUpBtns, EditModal},
   emits: ["clickOnSerial"],
   data() {
     return {
@@ -379,11 +379,15 @@ export default {
       showDetailModal: false,
       //current state of Modal
       modalState: {
-        title: "Update Device to Ticket",
-        btnLable: "Update Device",
-        serialData: null,
-        oldSerialData: null,
-        serialNumber: null,
+        title: "Add Device to Ticket",
+        btnLable: "Add Device",
+        serialData: {
+          oldSerialNumber:null,
+          serialNumber:null,
+          terminalID:null,
+          customerReportedIssue:null,
+        },
+        submitAction:"add",
       },
       showBtns: {
         showRemoveUnit: true,
@@ -394,22 +398,24 @@ export default {
       statusTitles: ["Unit Received", "Out for Repair", "Repair Completed",  "QA/CA", "Unit Shipped"],
       editTicket:{
         removeSN:[],
-      }
+      },
+      file: null,
+      fileUploading: false,
     };
   },
   mounted() {
-    if (this.isFromMaster === true) {
-      this.showBtns.showRemoveUnit = false;
-      this.showBtns.showUpdateUnit = false;
-      this.showBtns.showViewUnit = true;
-    } else {
-      this.showBtns.showRemoveUnit = true;
-      this.showBtns.showUpdateUnit = true;
-      this.showBtns.showViewUnit = false;
-    }
+    // if (this.isFromMaster === true) {
+    //   this.showBtns.showRemoveUnit = false;
+    //   this.showBtns.showUpdateUnit = false;
+    //   this.showBtns.showViewUnit = true;
+    // } else {
+    //   this.showBtns.showRemoveUnit = true;
+    //   this.showBtns.showUpdateUnit = true;
+    //   this.showBtns.showViewUnit = false;
+    // }
   },
   computed:{
-    ...mapState(useEditTicketStore, [
+    ...mapWritableState(useEditTicketStore, [
       "getSerialsByTicketId",
     ]),
   },
@@ -421,33 +427,32 @@ export default {
       "removeSN",
       "addSN",
     ]),
-    resetModalState() {
-      this.modalState.serialData = null;
-      this.modalState.oldSerialData = null;
-      this.serialNumber = null;
-      this.showModal = false;
-    },
     handleRowClick(evt, row, index) {
       //display popup buttons
       this.$refs.popupBtns.addPopupBtns(evt);
       this.modalState.serialData = row;
     },
+    handleClickAddUnit(){
+      this.modalState.title = "Add Device to Ticket";
+      this.modalState.btnLable = "Add Device"
+      this.modalState.submitAction = "add"
+      this.modalState.serialData = {
+          serialNumber:null,
+          terminalID:null,
+          customerReportedIssue:null,
+      };
+      this.$refs.editModal.displayEditModal();
+    },
     handleClickUpdateUnit() {
-      let serialDataDeepCopy = JSON.parse(
-        JSON.stringify(this.modalState.serialData)
-      );
-      this.modalState.serialData = serialDataDeepCopy;
-      this.modalState.oldSerialData = this.modalState.serialData;
-      this.showModal = true;
+      this.modalState.title = "Update Device to Ticket";
+      this.modalState.btnLable = "Update Device"
+      this.modalState.submitAction = "update"
+      this.modalState.oldSerialNumber = this.modalState.serialData.serialNumber
+      this.$refs.editModal.displayEditModal();
     },
     handleClickRemoveUnit() {
       const sn = this.modalState.serialData.serialNumber;
-      const xmOID = this.modalState.serialData.xmOID;
-      this.editTicket.removeSN.push(xmOID);
-      //then remove it from front-end
       this.removeSN(this.ticketId, sn);
-      // console.log(this.modalState);
-      // console.log("remove");
     },
     handleClickViewUnit() {
       const { xmOID } = this.modalState.serialData;
@@ -477,12 +482,42 @@ export default {
           });
         });
     },
-    handleUpdateSerial() {
-      console.log("update serial");
+    /**
+     * Handler for child component: EditModal
+     */
+    handleAddSerial(serial){
+      //todo: go to backend api to valid it
+      this.addSN(this.ticketId, serial);
+      this.$refs.editModal.hideEditModal();
+    },
+    handleUpdateSerial(serial) {
+      const oldSN = this.modalState.serialData.serialNumber;
+      this.updateSN(this.ticketId, oldSN, serial);
+      //todo: go to backend api to valid it
+      this.$refs.editModal.hideEditModal();
+    },
+    onFileSubmit(e) {
+      if (!this.file) {
+        return;
+      }
+      this.fileUploading = true;
+      const formData = new FormData(e.target);
+      formData.append("fileName", this.file ? this.file.name : "");
+      
+      batchSerialNumberQuery(formData)
+        .then((serials) => {
+          this.file = null;
+          serials.forEach((s) => {
+            ///needs to valid in addSN
+            this.addSN(this.ticketId, s)
+          });
+        })
+        .finally(() => {
+          this.fileUploading = false;
+        });
     },
     computeStatusItem(){
       const now = DateTime.now();
-
       const receive = DateTime.fromISO(this.details.receivedDate);
       const repair =  DateTime.fromISO(this.details.repairDate);
       const complete = DateTime.fromISO(this.details.completedDate);
@@ -511,23 +546,14 @@ export default {
 
       this.details.statusItems = statusItems;
     },
-    parseDate(timeStr){
-      if(timeStr === null || timeStr === ""){
-        return "N/A"
-      }
-      const timeFormat = 'yyyy-LL-dd';
-      const time = DateTime.fromISO(timeStr);
-      return time.toFormat(timeFormat);
+    getParseDate(timeStr){
+      return parseDate(timeStr);
     },
-    parseDateTime(timeStr){
-      if(timeStr === null || timeStr === ""){
-        return "N/A"
-      }
-      const timeFormat = 'yyyy-LL-dd tt';
-      const time = DateTime.fromISO(timeStr);
-      return time.toFormat(timeFormat);
-    }
+    getParseDateTime(timeStr){
+      return parseDateTime(timeStr);
+    },
   },
+
 };
 </script>
 

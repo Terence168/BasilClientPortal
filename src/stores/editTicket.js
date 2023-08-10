@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
+import {serialNumberUpdateQuery} from "../utils/ticketUtils.js"
 
 const capacity = 10;
 
@@ -60,12 +61,6 @@ export const useEditTicketStore = defineStore("editTicket", {
         this.tickets.splice(index, 1);
       }
     },
-    addSN(ticketId, serial) {
-      if (this.ticketMap.has(ticketId)) {
-        const ticket = this.ticketMap.get(key);
-        ticket.serials.push(serial);
-      }
-    },
     async fetchTicket(ticketId) {
       //fetch it from the backend
       const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
@@ -81,7 +76,18 @@ export const useEditTicketStore = defineStore("editTicket", {
             throw new Error(response.data.errorMessage);
           }
           const ticketInfo = response.data.data;
+
           ticketInfo.timeStamp = new Date();
+            ticketInfo.trackingNumbers.forEach((t) => {
+              const deepcopy = JSON.parse(JSON.stringify(t.num));
+              t.oldValue = deepcopy;
+            });
+
+            ticketInfo.edit = {
+              deleteTracking: [],
+              deleteSerial: [],
+            };
+
           this.removeTicket(ticketId);
           this.tickets.push(ticketInfo);
           return ticketInfo;
@@ -121,19 +127,13 @@ export const useEditTicketStore = defineStore("editTicket", {
             const ticketInfo = response.data.data;
             ticketInfo.timeStamp = new Date();
             ticketInfo.trackingNumbers.forEach((t) => {
-              const deepcopy = JSON.parse(
-                JSON.stringify(t.num)
-              );
+              const deepcopy = JSON.parse(JSON.stringify(t.num));
               t.oldValue = deepcopy;
-            })
+            });
 
             ticketInfo.edit = {
               deleteTracking: [],
-              updateTracking: [],
-              addTrackingNum: [],
-
-              deleteSerails: [],
-              updateSerails: [],
+              deleteSerial: [],
             };
             this.tickets.push(ticketInfo);
 
@@ -149,12 +149,26 @@ export const useEditTicketStore = defineStore("editTicket", {
           });
       }
     },
-    updateSN(tickId, serial) {
-      const sn = serial.serialNumber;
-      if (this.ticketMap.has(tickId)) {
-        const ticket = this.ticketMap.get(key);
-        const index = ticket.serials.findIndex(sn);
-        ticket.serials[index] = serial;
+    /**
+     * For serials
+     */
+    updateSN(ticketId, oldSN, serial) {
+      const index = this.tickets.findIndex(
+        (t) => parseInt(t.moOID) === parseInt(ticketId)
+      );
+      if (index != -1) {
+        const ticket = this.tickets.find(
+          (t) => parseInt(t.moOID) === parseInt(ticketId)
+        );
+        serialNumberUpdateQuery(oldSN, serial).then((wrappedSerial) => {
+          const oldSerial = ticket.serials.find((s) => s.serialNumber === oldSN);
+          if (wrappedSerial != null) {
+            oldSerial.serialNumber = serial.serialNumber;
+            oldSerial.customerReportedIssue = serial.customerReportedIssue;
+            oldSerial.terminalID = serial.terminalID;
+            oldSerial.isUpdate = true;
+          }
+        })
       }
     },
     removeSN(ticketId, sn) {
@@ -167,21 +181,17 @@ export const useEditTicketStore = defineStore("editTicket", {
         );
         const serials = ticket.serials;
         const sIndex = serials.findIndex((s) => s.serialNumber === sn);
+        const serial = serials[sIndex];
+        const xmOID = serial.xmOID;
         if (sIndex != -1) {
           serials.splice(sIndex, 1);
         }
-        //touch the ticket
-        this.tickets[index].timeStamp = new Date();
+        //todo: touch the ticket
+        ticket.edit.deleteSerial.push(xmOID);
       }
     },
     addSN(ticketId, serial) {
-      if (this.ticketMap.has(ticketId)) {
-        const ticket = this.ticketMap.get(key);
-        ticket.serials.push(serial);
-      }
-    },
-
-    getEditInfo(ticketId) {
+      console.log("in add sn");
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
@@ -189,7 +199,47 @@ export const useEditTicketStore = defineStore("editTicket", {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
-        return ticket.edit;
+        serialNumberUpdateQuery(serial.serialNumber, serial)
+          .then((wrappedSerial) => {
+              if(wrappedSerial != null){
+                ticket.serials.unshift(serial);
+              }
+        })
+      }
+    },
+    findEditSN(ticketId, sn){
+      const index = this.tickets.findIndex(
+        (t) => parseInt(t.moOID) === parseInt(ticketId)
+      );
+      const result = {
+        addSerial: [],
+        updateSerial: [],
+        deleteSerial: [],
+      };
+      if (index != -1) {
+        const ticket = this.tickets.find(
+          (t) => parseInt(t.moOID) === parseInt(ticketId)
+        );
+        result.deleteSerial = ticket.edit.deleteSerial;
+        ticket.serials.forEach((s) => {
+          if(s.isUpdate === true){
+            result.updateSerial.push({
+              xmOID: s.xmOID,
+              serialNumber: s.serialNumber,
+              customerReportedIssue: s.customerReportedIssue,
+              terminalID:s.terminalID
+            })
+          }
+          if(s.xmOID === null){
+            //added serial
+            result.addSerial.push({
+              serialNumber: s.serialNumber,
+              customerReportedIssue: s.customerReportedIssue,
+              terminalID:s.terminalID
+            })
+          }
+        })
+        return result;
       }
     },
     /**
@@ -203,7 +253,7 @@ export const useEditTicketStore = defineStore("editTicket", {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
-        ticket.trackingNumbers.push({num: "", xitOID: null});
+        ticket.trackingNumbers.push({ num: "", xitOID: null });
       }
     },
     deleteTrackingNum(ticketId, tIndex) {
@@ -215,31 +265,45 @@ export const useEditTicketStore = defineStore("editTicket", {
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
         const { xitOID } = ticket.trackingNumbers[tIndex];
-        console.log(ticket.trackingNumbers[tIndex], xitOID);
         ticket.trackingNumbers.splice(tIndex, 1);
-        if(xitOID != null){
+        if (xitOID != null) {
           ticket.edit.deleteTracking.push(xitOID);
         }
       }
     },
-    findEditTrackingNums(ticketId){
+    findEditTrackingNums(ticketId) {
+      const result = {
+        addTracking: [],
+        updateTracking: [],
+        deleteTracking: [],
+      };
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
-      if (index != -1){
+      if (index != -1) {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
-        ticket.trackingNumbers.forEach(element => {
-          if(element.xitOID === null && element.num != null){
-            ticket.edit.addTrackingNum.push(element.num);
+        console.log(ticket.trackingNumbers);
+        ticket.trackingNumbers.forEach((element) => {
+          if (element.xitOID === null && element.num != null) {
+            //find added tracking numbers
+            result.addTracking.push(element.num);
+          } else if (
+            element.xitOID != null &&
+            element.num != element.oldValue
+          ) {
+            //find updated tracking numbers
+            result.updateTracking.push({
+              xitOID: element.xitOID,
+              newValue: element.num,
+            });
           }
-          else if(element.xitOID != null && element.num != element.oldValue){
-            //update 
-            ticket.edit.updateTracking.push({xitOID:element.xitOID, newValue:element.num});
-      }});
-      };
+          result.deleteTracking = ticket.edit.deleteTracking;
+        });
       }
+      return result;
+    },
   },
   persist: true,
 });
