@@ -643,6 +643,82 @@
             (#{item}, #{mo_OID})
         </foreach>
     </insert>
+
+<!--    Edit Ticket -->
+    <update id="updateXref_Inbound_Tracking" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            <foreach collection="list" item="item" separator=";">
+                UPDATE BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                <set>
+                    <if test="item.num != null">
+                        TRACKING_NUMBER = #{item.num}
+                    </if>
+                </set>
+                WHERE XIT_OID = #{item.xitOID}
+            </foreach>
+        </if>
+    </update>
+
+    <delete id="deleteXref_Inbound_Tracking" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            DELETE FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+            WHERE XIT_OID IN
+            <foreach collection="list" item="item" open="(" separator="," close=")" >
+                #{item}
+            </foreach>
+        </if>
+    </delete>
+
+    <insert id="batchInsertXref_Inbound_Tracking" parameterType="java.util.List">
+        INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
+        <foreach collection="list" item="item" open="(" separator="union" close=")" >
+            SELECT #{item.num} AS TRACKING_NUMBER, #{item.moOID} AS MO_OID
+            FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+            WHERE NOT EXISTS (
+                SELECT 1 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                WHERE TRACKING_NUMBER = #{item.num} AND MO_OID = #{item.moOID}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deletePrep_Xref_Materials" parameterType="java.util.List">
+        DELETE FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS
+        WHERE XM_OID IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteXref_Materials" parameterType="java.util.List">
+        DELETE FROM BASIL_ODS_PRD.XREF_MATERIALS
+        WHERE XM_OID IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+<!--    (MO_OID, XM_OID,
+MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,-->
+<!--    CUSTOMER_REPORTED_ISSUE_EXT)-->
+    <update id="updatePrep_Xref_Materials" parameterType="java.util.List">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE BASIL_SEC_PRD.PREP_XREF_MATERIALS
+            SET CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
+            CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
+            MSN_OID = #{item.msnOID}
+            WHERE XM_OID = #{item.xmOID}
+        </foreach>
+    </update>
+
+    <update id="updateXref_Materials" parameterType="java.util.List">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE BASIL_ODS_PRD.XREF_MATERIALS
+            SET CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
+            CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
+            MSN_OID = #{item.msnOID}
+            WHERE XM_OID = #{item.xmOID}
+        </foreach>
+    </update>
 </mapper>
 
 

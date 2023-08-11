@@ -69,4 +69,6 @@ public interface TicketService extends IService<Integer>{
     QueryResultDTO insertResponse(TicketResponse ticketResponse);
 
     QueryResultArrayDTO getResponse(String id);
+
+    QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO);
 }

@@ -72,6 +72,10 @@ public class TicketController {
         return ticketService.viewTicketDetails(id);
     }
 
+    @PostMapping("/editTicket/{ticketId}")
+    public QueryResultArrayDTO updateTicketDetails(@PathVariable("ticketId") String id, @RequestBody TicketEditDTO ticketEditDTO){
+        return ticketService.editTicket(id, ticketEditDTO);
+    }
 
     // bcp 26
     @GetMapping("/viewTickets")

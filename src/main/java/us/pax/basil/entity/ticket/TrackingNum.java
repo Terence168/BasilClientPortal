@@ -13,4 +13,5 @@ import lombok.experimental.Accessors;
 public class TrackingNum {
     private String num;
     private Integer xitOID;
+    private String moOID;
 }

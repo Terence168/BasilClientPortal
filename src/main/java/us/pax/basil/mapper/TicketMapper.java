@@ -93,4 +93,14 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     List<TicketResponse> getResponse(String id);
 
+    void updateXref_Inbound_Tracking(List<TrackingNum> updateTracking);
+    void deleteXref_Inbound_Tracking(List<String> deleteTracking);
+
+    void batchInsertXref_Inbound_Tracking(List<TrackingNum> addTracking);
+
+    void deletePrep_Xref_Materials(List<String> deleteTracking);
+    void deleteXref_Materials(List<String> deleteTracking);
+
+    void updateXref_Materials(List<SNsInsertionObject> updateSerials);
+    void updatePrep_Xref_Materials(List<SNsInsertionObject> updateSerials);
 }
