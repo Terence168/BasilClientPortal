@@ -8,6 +8,7 @@ const capacity = 10;
 export const useEditTicketStore = defineStore("editTicket", {
   state: () => ({
     tickets: [],
+    tickets: [],
   }),
   getters: {
     getSerialsByTicketId: (state) => {
@@ -46,7 +47,10 @@ export const useEditTicketStore = defineStore("editTicket", {
       const index = this.tickets.findIndex((t) => t.mo_oid === key);
       if (index === -1) {
         if (this.tickets.length === capacity) {
+      if (index === -1) {
+        if (this.tickets.length === capacity) {
           //remove the least recently used
+          this.tickets.sort((t1, t2) => t1.timeStamp < t2.timeStamp);
           this.tickets.sort((t1, t2) => t1.timeStamp < t2.timeStamp);
           this.tickets.pop();
         }
@@ -55,6 +59,10 @@ export const useEditTicketStore = defineStore("editTicket", {
       }
     },
     removeTicket(ticketId) {
+      const index = this.tickets.findIndex(
+        (t) => parseInt(t.moOID) === parseInt(ticketId)
+      );
+      if (index != -1) {
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
