@@ -112,7 +112,7 @@
             @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
-        
+
         <!-- ticket serials -->
         <TicketEditTable
           :ticketId="ticketId"
@@ -151,19 +151,20 @@ import { Notify, TouchSwipe } from "quasar";
 import { api } from "src/boot/axios";
 import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
+
 import { watchArray } from "@vueuse/core";
-import {batchSerialNumberQuery} from "../utils/ticketUtils.js"
+import { batchSerialNumberQuery } from "../utils/ticketUtils.js";
 
 export default {
-  components: { MessageBoard, TicketEditTable},
+  components: { MessageBoard, TicketEditTable },
   data: () => {
     return {
       ticketInfo: {
         address: null,
+        typeOfRepair: null,
         originalRMA: null,
         isFromMaster: false,
         orderStatus: null,
-        typeOfRepair: null,
         //not sure about submitter info
         submitterOrg: null,
         submitterName: null,
@@ -172,17 +173,17 @@ export default {
         trackingNumbers: [],
       },
       comments: [],
-      editInfo:{
-        updateTrackingNums:[],
-        removeTrackingNums:[],
-        removeSerials:[],
-        updateSerials:[],
+      editInfo: {
+        updateTrackingNums: [],
+        removeTrackingNums: [],
+        removeSerials: [],
+        updateSerials: [],
       },
       ticketSubmitting: false,
       showModal: false,
       isLoading: false,
       withClient: false,
-      showModalView:true,
+      showModalView: true,
       updateOrAddLoading: false, //to control the update/add button's loading
     };
   },
@@ -193,30 +194,37 @@ export default {
       () => {
         this.isLoading = true;
 
-        Promise.all([this.getTicket(this.ticketId), this.fetchComments(this.ticketId)]).then((values) =>{
-          const ticketInfo = values[0];
-          const comments = values[1];
-          if(ticketInfo != null){
-            this.ticketInfo = ticketInfo;
-          }
-          if(this.comments != null){
-            this.comments = comments;
-          }
-        })
-        .finally(() => {
-          this.isLoading = false;
-        })
+        Promise.all([
+          this.getTicket(this.ticketId),
+          this.fetchComments(this.ticketId),
+        ])
+          .then((values) => {
+            const ticketInfo = values[0];
+            const comments = values[1];
+            if (ticketInfo != null) {
+              this.ticketInfo = ticketInfo;
+            }
+            if (this.comments != null) {
+              this.comments = comments;
+            }
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
       },
       // fetch the data when the view is created and the data is
       // already being observed
       { immediate: true }
     );
   },
-  mounted(){},
+  mounted() {},
   computed: {
     // ...mapWritableState(useCreateTicketStore, ["orderType"]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
-    ...mapWritableState(useEditTicketStore, ["getTrackingNumsByTicketId", "getSerialsByTicketId"]),
+    ...mapWritableState(useEditTicketStore, [
+      "getTrackingNumsByTicketId",
+      "getSerialsByTicketId",
+    ]),
     isReRepair() {
       return this.ticketInfo.typeOfRepair === 4;
     },
@@ -226,22 +234,59 @@ export default {
   },
   methods: {
     ...mapActions(useCreateTicketStore, ["populateOrderTypeOpt"]),
-    ...mapActions(useEditTicketStore, ["fetchTicket", 
-      "getTicket", 
+    ...mapActions(useEditTicketStore, [
+      "fetchTicket",
+      "getTicket",
       "addTrackingNum",
-      "deleteTrackingNum", 
+      "deleteTrackingNum",
       "getEditInfo",
       "findEditTrackingNums",
       "findEditSN",
       "addSN",
     ]),
     handleEditTicket() {
-      console.log("=========edit=================");
+      //valid serials and update it 
+
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
-      console.log(editTracking, editSerial);
+    
+      
+      const payload = { ...editTracking, ...editSerial, 
+        isFromMaster: this.ticketInfo.isFromMaster, 
+        orderType: this.ticketInfo.orderType, 
+        address: this.ticketInfo.address,
+        typeOfRepair: this.ticketInfo.typeOfRepair,
+        originalRMA: this.ticketInfo.originalRMA,
+        };
+      
+      const actionURL = "/ticketing/editTicket/" + this.ticketId;
+      console.log(payload);
+
+      api
+        .post(actionURL, payload, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        .then(function (response) {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          Notify.create({
+            type:"positive",
+            message:"Update Ticket Successfully"
+          })
+        })
+        .catch((e) => {
+          Notify.create({
+            type: "negative",
+            message: e.message,
+          });
+        })
+        .finally(()=> {
+          this.resetTicket();
+        })
     },
-    handleUpdateSerial() {},
     resetTicket() {
       this.isLoading = true;
       this.fetchTicket(this.ticketId)
@@ -252,7 +297,6 @@ export default {
           this.isLoading = false;
         });
     },
-
     fetchComments(ticketId) {
       const vm = this;
       const link = "/ticketing/" + ticketId + "/response";
@@ -296,7 +340,6 @@ export default {
           });
         });
     },
-    
   },
 };
 </script>

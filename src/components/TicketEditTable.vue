@@ -57,14 +57,39 @@
           </q-form>
         </div>
     <div class="q-pa-md">
-      <q-table
-        title="Ticket Serial Numbers"
+      <q-table 
+        title="Ticket Serial Numbers" 
+        row-key="name" 
+        :columns="columns" 
         :rows="getSerialsByTicketId(ticketId)"
-        :columns="columns"
-        row-key="serialNumber"
-        @row-click="handleRowClick"
-      ></q-table>
-    </div>
+      >
+        <template v-slot:body="props" >
+          <q-tr :prop="props" :class="props.row.bgColor" @click="handleRowClick($event, props.row)">
+            <q-td key="sn" :props="props">
+              {{props.row.serialNumber}}
+            </q-td>
+            <q-td key="model" :props="props">
+              {{props.row.model}}
+            </q-td>
+            <q-td key="version" :props="props">
+              {{props.row.versionNumber}}
+            </q-td>
+            <q-td key="customerReportedIssue" :props="props">
+              {{props.row.customerReportedIssueExt}}
+            </q-td>
+            <q-td key="terminalID" :props="props" >
+              {{props.row.customerTerminalID}}
+            </q-td>
+            <q-td key="warrantyStatus">
+              {{props.row.warrantyStatus}}
+            </q-td>
+            <q-td key="warrantyExpDate">
+              {{getParseDate(props.row.warrantyEndDate)}}
+            </q-td>
+            </q-tr>
+      </template>
+      </q-table>
+    </div>  
     <PopUpBtns
       ref="popupBtns"
       :showBtns="showBtns"
@@ -291,6 +316,7 @@
         </div>
       </div>
     </BaseModal>
+
     <!-- Pop-up window: add or Update Device to Ticket Window -->
     <EditModal 
       ref="editModal"
@@ -317,13 +343,13 @@ import { batchSerialNumberQuery, serialNumberUpdateQuery } from "src/utils/ticke
 
 export default {
   props: ["ticketId",  "isFromMaster"],
-  components: { BaseModal, PopUpBtns, EditModal},
+  components: { PopUpBtns, BaseModal, EditModal},
   emits: ["clickOnSerial"],
   data() {
     return {
       columns: [
         {
-          name: "SN",
+          name: "sn",
           align: "center",
           label: "Serial Number",
           field: "serialNumber",
@@ -331,7 +357,7 @@ export default {
           sort: (a, b) => (a <= b ? 1 : -1),
         },
         {
-          name: "Model",
+          name: "model",
           align: "center",
           label: "Model",
           field: "model",
@@ -339,35 +365,35 @@ export default {
           sort: (a, b) => (a <= b ? 1 : -1),
         },
         {
-          name: "Version",
+          name: "version",
           align: "center",
           label: "Version",
           field: "version",
           sortable: false,
         },
         {
-          name: "Reported Issue",
+          name: "customerReportedIssue",
           align: "center",
           label: "Reported Issue",
           field: "customerReportedIssue",
           sortable: false,
         },
         {
-          name: "Customer ID",
+          name: "terminalID",
           align: "center",
           label: "Customer ID",
           field: "terminalID",
           sortable: false,
         },
         {
-          name: "Warranty Status",
+          name: "warrantyStatus",
           align: "center",
           label: "Warranty Status",
           field: "warrantyStatus",
           sortable: false,
         },
         {
-          name: "Warranty Exp. Date",
+          name: "warrantyExpDate",
           align: "center",
           label: "Warranty Expire Date",
           field: "warrantyExpDate",
@@ -389,11 +415,6 @@ export default {
         },
         submitAction:"add",
       },
-      showBtns: {
-        showRemoveUnit: true,
-        showViewUnit: true,
-        showUpdateUnit: true,
-      },
       details: {},
       statusTitles: ["Unit Received", "Out for Repair", "Repair Completed",  "QA/CA", "Unit Shipped"],
       editTicket:{
@@ -404,20 +425,18 @@ export default {
     };
   },
   mounted() {
-    // if (this.isFromMaster === true) {
-    //   this.showBtns.showRemoveUnit = false;
-    //   this.showBtns.showUpdateUnit = false;
-    //   this.showBtns.showViewUnit = true;
-    // } else {
-    //   this.showBtns.showRemoveUnit = true;
-    //   this.showBtns.showUpdateUnit = true;
-    //   this.showBtns.showViewUnit = false;
-    // }
   },
   computed:{
     ...mapWritableState(useEditTicketStore, [
       "getSerialsByTicketId",
     ]),
+    showBtns(){
+      return{
+        showRemoveUnit : !this.isFromMaster,
+        showUpdateUnit : !this.isFromMaster,
+        showViewUnit : this.isFromMaster,
+      }
+    }
   },
   methods: {
     ...mapActions(useEditTicketStore, [
@@ -427,7 +446,7 @@ export default {
       "removeSN",
       "addSN",
     ]),
-    handleRowClick(evt, row, index) {
+    handleRowClick(evt, row) {
       //display popup buttons
       this.$refs.popupBtns.addPopupBtns(evt);
       this.modalState.serialData = row;
@@ -457,7 +476,6 @@ export default {
     handleClickViewUnit() {
       const { xmOID } = this.modalState.serialData;
       const link = "/ticketing/viewDetails?id=" + xmOID;
-      console.log(link);
       this.$api
         .get(link)
         .then((response) => {
@@ -465,12 +483,9 @@ export default {
             throw new Error(response.data.errorMessage);
           }
           this.details = response.data.data[0];
-          console.log(this.details);
 
           this.computeStatusItem();
           this.showDetailModal = true;
-
-          console.log(this.details);
         })
         .catch(function (error) {
           // handle error

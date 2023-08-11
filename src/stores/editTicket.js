@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
-import {serialNumberUpdateQuery} from "../utils/ticketUtils.js"
+import { serialNumberUpdateQuery } from "../utils/ticketUtils.js";
 
 const capacity = 10;
 
@@ -20,6 +20,7 @@ export const useEditTicketStore = defineStore("editTicket", {
             (t) => parseInt(t.moOID) === parseInt(ticketId)
           );
           const serials = ticket.serials;
+          console.log(serials);
           return serials;
         }
       };
@@ -78,15 +79,15 @@ export const useEditTicketStore = defineStore("editTicket", {
           const ticketInfo = response.data.data;
 
           ticketInfo.timeStamp = new Date();
-            ticketInfo.trackingNumbers.forEach((t) => {
-              const deepcopy = JSON.parse(JSON.stringify(t.num));
-              t.oldValue = deepcopy;
-            });
+          ticketInfo.trackingNumbers.forEach((t) => {
+            const deepcopy = JSON.parse(JSON.stringify(t.num));
+            t.oldValue = deepcopy;
+          });
 
-            ticketInfo.edit = {
-              deleteTracking: [],
-              deleteSerial: [],
-            };
+          ticketInfo.edit = {
+            deleteTracking: [],
+            deleteSerial: [],
+          };
 
           this.removeTicket(ticketId);
           this.tickets.push(ticketInfo);
@@ -161,14 +162,16 @@ export const useEditTicketStore = defineStore("editTicket", {
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
         serialNumberUpdateQuery(oldSN, serial).then((wrappedSerial) => {
-          const oldSerial = ticket.serials.find((s) => s.serialNumber === oldSN);
+          const oldSerial = ticket.serials.find(
+            (s) => s.serialNumber === oldSN
+          );
           if (wrappedSerial != null) {
             oldSerial.serialNumber = serial.serialNumber;
             oldSerial.customerReportedIssue = serial.customerReportedIssue;
             oldSerial.terminalID = serial.terminalID;
             oldSerial.isUpdate = true;
           }
-        })
+        });
       }
     },
     removeSN(ticketId, sn) {
@@ -199,15 +202,16 @@ export const useEditTicketStore = defineStore("editTicket", {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
-        serialNumberUpdateQuery(serial.serialNumber, serial)
-          .then((wrappedSerial) => {
-              if(wrappedSerial != null){
-                ticket.serials.unshift(serial);
-              }
-        })
+        serialNumberUpdateQuery(serial.serialNumber, serial).then(
+          (wrappedSerial) => {
+            if (wrappedSerial != null) {
+              ticket.serials.unshift(wrappedSerial);
+            }
+          }
+        );
       }
     },
-    findEditSN(ticketId, sn){
+    findEditSN(ticketId, sn) {
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
@@ -222,23 +226,26 @@ export const useEditTicketStore = defineStore("editTicket", {
         );
         result.deleteSerial = ticket.edit.deleteSerial;
         ticket.serials.forEach((s) => {
-          if(s.isUpdate === true){
+          if (s.isUpdate === true) {
             result.updateSerial.push({
               xmOID: s.xmOID,
               serialNumber: s.serialNumber,
-              customerReportedIssue: s.customerReportedIssue,
-              terminalID:s.terminalID
-            })
+              customerReportedIssueExt: s.customerReportedIssue,
+              customerTerminalID: s.terminalID,
+              msnOID:s.msnOID,
+            });
           }
-          if(s.xmOID === null){
+          if (s.xmOID === null) {
             //added serial
             result.addSerial.push({
+              xmOID: s.xmOID,
               serialNumber: s.serialNumber,
-              customerReportedIssue: s.customerReportedIssue,
-              terminalID:s.terminalID
-            })
+              customerReportedIssueExt: s.customerReportedIssue,
+              customerTerminalID: s.terminalID,
+              msnOID:s.msnOID,
+            });
           }
-        })
+        });
         return result;
       }
     },
@@ -284,11 +291,14 @@ export const useEditTicketStore = defineStore("editTicket", {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
-        console.log(ticket.trackingNumbers);
         ticket.trackingNumbers.forEach((element) => {
           if (element.xitOID === null && element.num != null) {
             //find added tracking numbers
-            result.addTracking.push(element.num);
+            result.addTracking.push({
+              moOID: ticketId,
+              num: element.num,
+              xitOID: null,
+            });
           } else if (
             element.xitOID != null &&
             element.num != element.oldValue
@@ -296,7 +306,8 @@ export const useEditTicketStore = defineStore("editTicket", {
             //find updated tracking numbers
             result.updateTracking.push({
               xitOID: element.xitOID,
-              newValue: element.num,
+              num: element.num,
+              moOID: ticketId,
             });
           }
           result.deleteTracking = ticket.edit.deleteTracking;
