@@ -336,8 +336,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             } else {
                 ticket.setIsFromMaster(true);
                 List<SNInfo> serials=ticketMapper.getOdsMaterials(id);
-
                 ticket.setSerials(serials);
+            }
+
+            for(SNInfo sn : ticket.getSerials()){
+                sn.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(sn.getWarrantyEndDate(), sn.getWarrantyVoidedDate(), sn.getOrderDate()));
             }
 
             if(ticket.getSubmitterID() != null){

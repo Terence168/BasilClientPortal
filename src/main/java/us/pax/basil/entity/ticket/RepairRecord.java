@@ -21,7 +21,6 @@ public class RepairRecord {
     private Date repairDate; //xm.REPAIR_DATE, date
     private Date completedDate; // xref_material.repair_date, date
     private Date quarantineDate;//xref_material.quarantine_date, date
-    private Date shipDate; //BASIL_ODS_PRD.XREF_SHIP.ship_date
     private Date scheduledDate; //BASIL_ODS_PRD.XREF_SHIP.SCHEDULED_DATE
 
     private String partNumber; //master_part.part_number_long, varchar(23)
@@ -48,6 +47,7 @@ public class RepairRecord {
     private String assignee; //EMPLOYEE_MASTER.name
     private String techNotes;//xm.TECH_NOTES
 
+    private Date shipDate; //BASIL_ODS_PRD.XREF_SHIP.ship_date
     private String warrantyStatus; //compute by ship_date, warranty_voided_date, warranty_end_date
     private Date warrantyVoidedDate; //msn.WARRANTY_VOIDED_DATE
     private Date warrantyEndDate;//msn.WARRANTY_END_DATE

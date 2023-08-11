@@ -167,8 +167,8 @@
 
         msn.WARRANTY_END_DATE as warrantyEndDate,
         msn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
-        DATE(mo.ORDER_DATE) as orderDate,
-        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID = xm.BOX_OID) as shipDate
+        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID = xm.BOX_OID) as shipDate,
+        DATE(mo.ORDER_DATE) as orderDate
 
         FROM MASTER_ORDER mo
         INNER JOIN XREF_MATERIALS xm ON xm.MO_OID = mo.MO_OID
@@ -218,7 +218,12 @@
     <select id="getSecMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
         select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
         customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
-        customerReportedIssueExt, xma.XM_OID as xmOID, xma. MO_OID as moOID
+        customerReportedIssueExt, xma.XM_OID as xmOID, xma. MO_OID as moOID,
+
+        sn.WARRANTY_END_DATE as warrantyEndDate,
+        sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
+        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate
+
         from BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
         left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID=xma.MSN_OID
         <where>
@@ -231,7 +236,12 @@
     <select id="getOdsMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
         select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
         customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
-        customerReportedIssueExt, xma.XM_OID as xmOID, xma.MO_OID as moOID
+        customerReportedIssueExt, xma.XM_OID as xmOID, xma.MO_OID as moOID,
+
+        sn.WARRANTY_END_DATE as warrantyEndDate,
+        sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
+        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate
+
         from BASIL_ODS_PRD.XREF_MATERIALS as xma
         left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID=xma.MSN_OID
         <where>
@@ -627,21 +637,25 @@
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false">
-        INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,
-        CUSTOMER_REPORTED_ISSUE_EXT)
-        VALUES
-        <foreach item="item" collection="list" separator=",">
-            (#{item.moOID}, #{item.xmOID}, #{item.msnOID},
-            #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
-        </foreach>
+        <if test ="list!= null and list.size() > 0">
+            INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,
+            CUSTOMER_REPORTED_ISSUE_EXT)
+            VALUES
+            <foreach item="item" collection="list" separator=",">
+                (#{item.moOID}, #{item.xmOID}, #{item.msnOID},
+                #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
+            </foreach>
+        </if>
     </insert>
 
     <insert id="insertXref_Inbound_Tracking" useGeneratedKeys="true" keyColumn="XIT_OID">
+        <if test ="list!= null and list.size() > 0">
         INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
         VALUES
         <foreach item="item" collection="trackingNumbers" separator=",">
             (#{item}, #{mo_OID})
         </foreach>
+        </if>
     </insert>
 
 <!--    Edit Ticket -->
@@ -670,54 +684,80 @@
     </delete>
 
     <insert id="batchInsertXref_Inbound_Tracking" parameterType="java.util.List">
-        INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
-        <foreach collection="list" item="item" open="(" separator="union" close=")" >
-            SELECT #{item.num} AS TRACKING_NUMBER, #{item.moOID} AS MO_OID
-            FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
-            WHERE NOT EXISTS (
-                SELECT 1 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
-                WHERE TRACKING_NUMBER = #{item.num} AND MO_OID = #{item.moOID}
-            )
-        </foreach>
+        <if test ="list!= null and list.size() > 0">
+            INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
+            <foreach collection="list" item="item" open="(" separator="union" close=")" >
+                SELECT #{item.num} AS TRACKING_NUMBER, #{item.moOID} AS MO_OID
+                FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                    WHERE TRACKING_NUMBER = #{item.num} AND MO_OID = #{item.moOID}
+                )
+            </foreach>
+        </if>
     </insert>
 
     <delete id="deletePrep_Xref_Materials" parameterType="java.util.List">
-        DELETE FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS
-        WHERE XM_OID IN
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
+        <if test ="list!= null and list.size() > 0">
+            DELETE FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS
+            WHERE XM_OID IN
+            <foreach collection="list" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
     </delete>
 
     <delete id="deleteXref_Materials" parameterType="java.util.List">
-        DELETE FROM BASIL_ODS_PRD.XREF_MATERIALS
-        WHERE XM_OID IN
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
+        <if test ="list!= null and list.size() > 0">
+            DELETE FROM BASIL_ODS_PRD.XREF_MATERIALS
+            WHERE XM_OID IN
+            <foreach collection="list" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
     </delete>
 
 <!--    (MO_OID, XM_OID,
 MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,-->
 <!--    CUSTOMER_REPORTED_ISSUE_EXT)-->
     <update id="updatePrep_Xref_Materials" parameterType="java.util.List">
-        <foreach collection="list" item="item" separator=";">
-            UPDATE BASIL_SEC_PRD.PREP_XREF_MATERIALS
-            SET CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
-            CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
-            MSN_OID = #{item.msnOID}
-            WHERE XM_OID = #{item.xmOID}
-        </foreach>
+        <if test ="list!= null and list.size() > 0">
+            <foreach collection="list" item="item" separator=";">
+                UPDATE BASIL_SEC_PRD.PREP_XREF_MATERIALS
+                <set>
+                    <if test = "item.customerReportedIssueExt != null">
+                        CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
+                    </if>
+                    <if test="item.customerTerminalID != null">
+                        CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
+                    </if>
+                    <if test="item.msnOID!= null">
+                        MSN_OID = #{item.msnOID}
+                    </if>
+                </set>
+                WHERE XM_OID = #{item.xmOID}
+            </foreach>
+        </if>
     </update>
 
     <update id="updateXref_Materials" parameterType="java.util.List">
-        <foreach collection="list" item="item" separator=";">
-            UPDATE BASIL_ODS_PRD.XREF_MATERIALS
-            SET CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
-            CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
-            MSN_OID = #{item.msnOID}
-            WHERE XM_OID = #{item.xmOID}
-        </foreach>
+        <if test ="list!= null and list.size() > 0">
+            <foreach collection="list" item="item" separator=";">
+                UPDATE BASIL_ODS_PRD.XREF_MATERIALS
+                <set>
+                    <if test = "item.customerReportedIssueExt != null">
+                        CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
+                    </if>
+                    <if test="item.customerTerminalID != null">
+                        CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
+                    </if>
+                    <if test="item.msnOID!= null">
+                        MSN_OID = #{item.msnOID}
+                    </if>
+                </set>
+                WHERE XM_OID = #{item.xmOID}
+            </foreach>
+        </if>
     </update>
 </mapper>
 
