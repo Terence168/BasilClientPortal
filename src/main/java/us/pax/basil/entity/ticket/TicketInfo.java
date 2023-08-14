@@ -14,6 +14,8 @@ import java.util.List;
 @ApiModel(value="View Ticketing", description="")
 public class TicketInfo {
     private Integer moOID; //ticket id
+    private Integer mcOID;//company id
+    private Integer clientGroup; //458 small market, 801 mid market, 459 large
     private Boolean isFromMaster; //if it's from master_order, mark it as true, else false
     private String orderStatus;//from (prep_)master_order ORDER_STATUS
     private Date createDate;//from (prep_)master_order Order_Date
@@ -21,6 +23,7 @@ public class TicketInfo {
     private Integer submitterID; //submitter'id
     private String submitterEmail;//submitters' email, not sure
     private String submitterName;//submitters' name, not sure
+    private String submitterOrg;
     private Integer typeOfRepair; //use mo_oid to query from BASIL_ODS_PRD.MASTER_ORDER and BASIL_SEC_PRD.PREP_MASTER_ORDER
     private String address; //use mo_oid to query from BASIL_ODS_PRD.MASTER_ORDER and BASIL_SEC_PRD.PREP_MASTER_ORDER
     private List<TrackingNum> trackingNumbers; //use mo_oid to query from BASIL_SEC_PRD.XREF_INBOUND_TRACKING

@@ -4,6 +4,7 @@ import java.util.List;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.boot.actuate.integration.IntegrationGraphEndpoint;
 import us.pax.basil.dto.output.SubmitTicketDTO;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
@@ -85,9 +86,9 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     List<TrackingNum> getTrackingNumber(String id);
 
-    List<SNInfo> getOdsMaterials(String id);
+    List<SNInfo> getOdsMaterials(@Param("id")String id, @Param("companyId")Integer companyId);
 
-    List<SNInfo> getSecMaterials(String id);
+    List<SNInfo> getSecMaterials(@Param("id")String id, @Param("companyId")Integer companyId);
 
     Integer insertResponse(TicketResponse ticketResponse);
 
@@ -103,4 +104,7 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     void updateXref_Materials(List<SNsInsertionObject> updateSerials);
     void updatePrep_Xref_Materials(List<SNsInsertionObject> updateSerials);
+
+    void updateMasterOrder(Integer orderType);
+    void updatePrepMasterOrder(Integer orderType);
 }

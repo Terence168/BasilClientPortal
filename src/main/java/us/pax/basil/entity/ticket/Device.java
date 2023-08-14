@@ -27,12 +27,11 @@ public class Device {
     private String warrantyStatus;
 
     private Integer cosmeticPrice;
-
     private Integer diagnosticPrice;
+    private Integer minorPrice;
 
     private Boolean existInAnotherTicket;
 
-    private Integer minorPrice;
 
     private Integer xmOID;
 

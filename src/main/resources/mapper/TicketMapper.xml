@@ -186,21 +186,27 @@
     </select>
 
     <select id="existingMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
-        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, ADDRESS as address, SUBMITTER_ID as submitterID
-        from BASIL_ODS_PRD.MASTER_ORDER as ma
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, ADDRESS as address, SUBMITTER_ID as submitterID,
+        mo.mc_oid as mcOID,
+        client_group as clientGroup
+        from BASIL_ODS_PRD.MASTER_ORDER as mo
+        left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
             <if test="id !=null">
-                ma.MO_OID = #{id}
+                mo.MO_OID = #{id}
             </if>
         </where>
     </select>
 
     <select id="existingPREPMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
-        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair,ADDRESS as address, SUBMITTER_ID as submitterID
-        from BASIL_SEC_PRD.PREP_MASTER_ORDER as pref
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair,ADDRESS as address, SUBMITTER_ID as submitterID,
+        mo.mc_oid as mcOID,
+        client_group as clientGroup
+        from BASIL_SEC_PRD.PREP_MASTER_ORDER as mo
+        left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
             <if test="id !=null">
-                pref.MO_OID = #{id}
+                mo.MO_OID = #{id}
             </if>
         </where>
     </select>
@@ -215,41 +221,6 @@
         </where>
     </select>
 
-    <select id="getSecMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
-        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
-        customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
-        customerReportedIssueExt, xma.XM_OID as xmOID, xma. MO_OID as moOID,
-
-        sn.WARRANTY_END_DATE as warrantyEndDate,
-        sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
-        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate
-
-        from BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
-        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID=xma.MSN_OID
-        <where>
-            <if test="id !=null">
-                xma.MO_OID = #{id}
-            </if>
-        </where>
-    </select>
-
-    <select id="getOdsMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
-        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
-        customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
-        customerReportedIssueExt, xma.XM_OID as xmOID, xma.MO_OID as moOID,
-
-        sn.WARRANTY_END_DATE as warrantyEndDate,
-        sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
-        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate
-
-        from BASIL_ODS_PRD.XREF_MATERIALS as xma
-        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID=xma.MSN_OID
-        <where>
-            <if test="id !=null">
-                xma.MO_OID = #{id}
-            </if>
-        </where>
-    </select>
 
     <select id="getResponse" resultType="us.pax.basil.entity.ticket.TicketResponse">
         select res.MO_OID as moOID ,res.RESPONSE_DATE as responseDate,res.CONTENT as content, users.NAME as responseBy
@@ -620,7 +591,6 @@
         </where>
     </select>
 
-
     <select id="findUSBasedDevices" parameterType="java.util.List" resultType="java.lang.String">
         SELECT msn.SERIAL_NUMBER
         FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
@@ -628,6 +598,66 @@
         <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
             #{item, jdbcType=INTEGER}
         </foreach>
+    </select>
+
+    <select id="getSecMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
+        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
+        customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
+        customerReportedIssueExt, xma.XM_OID as xmOID,
+
+        xma.COSMETIC as cosmetic,
+        sn.WARRANTY_END_DATE as warrantyEndDate,
+        sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
+        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate,
+
+        hpcf.`Full_PN` as model,
+        hpcf.`Version` as version,
+
+        rc.COSMETIC AS cosmeticPrice,
+        rc.DIAGNOSTIC AS diagnosticPrice,
+        rc.MINOR AS minorPrice
+
+
+        from BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
+        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID = xma.MSN_OID
+        left join BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = sn.SERIAL_NUMBER
+        left join BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
+        left join BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) =
+        rc.PART_NUMBER_SHORT and (rc.customer=#{companyId} or rc.customer = null or rc.customer = '')
+        <where>
+            <if test="id !=null">
+                xma.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="getOdsMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
+        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
+        customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
+        customerReportedIssueExt, xma.XM_OID as xmOID,
+        xma.COSMETIC as cosmetic,
+        sn.WARRANTY_END_DATE as warrantyEndDate,
+        sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
+        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate,
+
+        hpcf.`Full_PN` as model,
+        hpcf.`Version` as version,
+
+        rc.COSMETIC AS cosmeticPrice,
+        rc.DIAGNOSTIC AS diagnosticPrice,
+        rc.MINOR AS minorPrice
+
+        from BASIL_ODS_PRD.XREF_MATERIALS as xma
+        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID = xma.MSN_OID
+        left join BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = sn.SERIAL_NUMBER
+        left join BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
+        left join BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) =
+        rc.PART_NUMBER_SHORT and (rc.customer=#{companyId} or rc.customer is null)
+        <where>
+            <if test="id !=null">
+                xma.MO_OID = #{id}
+            </if>
+        </where>
     </select>
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
@@ -758,6 +788,27 @@ MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,-->
                 WHERE XM_OID = #{item.xmOID}
             </foreach>
         </if>
+    </update>
+
+    <update id="updateMasterOrder" >
+        UPDATE BASIL_ODS_PRD.MASTER_ORDER
+        <set>
+            <if test="orderType != null">
+                <set>orderType = #{orderType}</set>
+            </if>
+            <if></if>
+        </set>
+        WHERE XM_OID = #{item.xmOID}
+    </update>
+
+    <update id="updatePrepMasterOrder" >
+        UPDATE BASIL_ODS_PRD.MASTER_ORDER
+        <set>
+            <if test="orderType != null">
+                <set>orderType = #{orderType}</set>
+            </if>
+        </set>
+        WHERE XM_OID = #{item.xmOID}
     </update>
 </mapper>
 

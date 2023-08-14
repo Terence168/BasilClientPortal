@@ -325,18 +325,19 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     public QueryResultDTO viewEditTicket(String id) {
         try {
-            TicketInfo ticket = ticketMapper.existingMasterOrder(id); //existing check BASIL_ODS_PRD.XREF_MATERIALS
+            TicketInfo ticket = ticketMapper.existingMasterOrder(id); //existing check BASIL_ODS_PRD.XREF_MATERIALS\
+            Integer companyId = ticket.getMcOID();
             if (ticket == null) {
                 ticket = ticketMapper.existingPREPMasterOrder(id); //existing check BASIL_SEC_PRD.PREP_XREF_MATERIALS
                 if(ticket != null) {
                     ticket.setIsFromMaster(false);
-                    List<SNInfo> serials = ticketMapper.getSecMaterials(id);
-                    ticket.setSerials(serials);
+                    List<SNInfo> devices = ticketMapper.getSecMaterials(id, companyId);
+                    ticket.setSerials(devices);
                 }
             } else {
                 ticket.setIsFromMaster(true);
-                List<SNInfo> serials=ticketMapper.getOdsMaterials(id);
-                ticket.setSerials(serials);
+                List<SNInfo> devices = ticketMapper.getOdsMaterials(id, companyId);
+                ticket.setSerials(devices);
             }
 
             for(SNInfo sn : ticket.getSerials()){
@@ -345,6 +346,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             if(ticket.getSubmitterID() != null){
                 User user = userMapper.getUserById(ticket.getSubmitterID());
+                String company = userMapper.getCompanyName(user.getCompanyId());
+                ticket.setSubmitterOrg(company);
                 ticket.setSubmitterEmail(user.getEmail());
                 ticket.setSubmitterName(user.getName());
             }
@@ -375,7 +378,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
         }
-
     }
 
 
@@ -408,6 +410,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     public QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO) {
         try{
             //update tracking number part
+            if(ticketEditDTO.isFromMaster()){
+                ticketMapper.updateMasterOrder(ticketEditDTO.getOrderType());
+            }
+            else{
+                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getOrderType());
+            }
             if(ticketEditDTO.getUpdateTracking().size() != 0 ){
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());
             }

@@ -16,25 +16,20 @@ public class SNInfo {
     private String serialNumber;//MSN_oid
 
     private Date orderDate;
-
     private String orderStatus;
 
-    private String mcOID;
+//    private String mcOID;
+//    private Integer moOID; //ticket id
 
-    private Integer moOID; //ticket id
-
-    private String customerID;
+//    private String customerID;
 
     private Integer xmOID; //If it's in master_order, fill in it
-
-//    private Integer pxmOID; //if it's in prep_master_order, fill in it
-
     private Integer msnOID; //this is the master serial number which used to link to serial number
 
+    private Integer cosmetic;
+
     private String customerRMA;
-
     private String customerTerminalID;
-
     private String customerReportedIssueExt;
 
     private Date shipDate; //BASIL_ODS_PRD.XREF_SHIP.ship_date
@@ -42,4 +37,10 @@ public class SNInfo {
     private Date warrantyVoidedDate; //msn.WARRANTY_VOIDED_DATE
     private Date warrantyEndDate;//msn.WARRANTY_END_DATE
 
+    private Integer cosmeticPrice;
+    private Integer diagnosticPrice;
+    private Integer minorPrice;
+
+    private String model;
+    private String version;
 }
