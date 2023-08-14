@@ -57,4 +57,10 @@ public class CustomUserDetails extends User {
 		this.standardUser = standardUser;
 		return this;
 	}
+	public boolean isClientUser() {
+		return standardUser == 1;
+	}
+	public boolean canViewOrEditOtherCustomersRecords(int otherCompanyId) {
+		return !isClientUser() || companyId == otherCompanyId;
+	}
 }
