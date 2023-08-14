@@ -14,7 +14,7 @@ spring:
     port: 587
     protocol: smtp
     username: "basil@pax.us"
-    password: "Pax4Future!@"
+    password: "8Dqa$hxc8egtHeSVl.D}"
     properties:
       mail:
         transport:
