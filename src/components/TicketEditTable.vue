@@ -61,10 +61,26 @@
         title="Ticket Serial Numbers" 
         row-key="name" 
         :columns="columns" 
-        :rows="getSerialsByTicketId(ticketId)"
-      >
+        :rows="getSerialsByTicketId(ticketId, inputValue)"
+        :rows-per-page-options="[10, 25, 50, 100]"
+        >
+      <template v-slot:bottom-row>
+        <q-tr>
+          <q-td colspan="100%" >
+            <div class="text-h6 text-right">
+            Total Estimated Cost: $ {{totalInvoice}}
+            </div>
+          </q-td>
+        </q-tr>
+      </template>
         <template v-slot:body="props" >
-          <q-tr :prop="props" :class="props.row.bgColor" @click="handleRowClick($event, props.row)">
+          <q-tr :prop="props" :class="props.row.bgColor" 
+          @click="handleRowClick($event, props.row)"
+          >
+            <q-td key="cosmetic" :props="props">
+              <q-checkbox v-model="props.row.cosmetic">
+              </q-checkbox>
+            </q-td>
             <q-td key="sn" :props="props">
               {{props.row.serialNumber}}
             </q-td>
@@ -72,7 +88,7 @@
               {{props.row.model}}
             </q-td>
             <q-td key="version" :props="props">
-              {{props.row.versionNumber}}
+              {{props.row.version}}
             </q-td>
             <q-td key="customerReportedIssue" :props="props">
               {{props.row.customerReportedIssueExt}}
@@ -87,7 +103,7 @@
               {{getParseDate(props.row.warrantyEndDate)}}
             </q-td>
             </q-tr>
-      </template>
+        </template>
       </q-table>
     </div>  
     <PopUpBtns
@@ -315,8 +331,7 @@
           />
         </div>
       </div>
-    </BaseModal>
-
+    </BaseModal> 
     <!-- Pop-up window: add or Update Device to Ticket Window -->
     <EditModal 
       ref="editModal"
@@ -340,14 +355,21 @@ import { DateTime } from "luxon";
 import { Notify } from "quasar";
 import {parseDateTime, parseDate} from "../utils/timeUtils.js"
 import { batchSerialNumberQuery, serialNumberUpdateQuery } from "src/utils/ticketUtils";
-
+import { api } from "src/boot/axios";
 export default {
-  props: ["ticketId",  "isFromMaster"],
-  components: { PopUpBtns, BaseModal, EditModal},
+  props: ["ticketId",  "isFromMaster", "clientGroup", "orderType"],
+  components: { PopUpBtns, EditModal, BaseModal},
   emits: ["clickOnSerial"],
   data() {
     return {
       columns: [
+        {
+          name: "cosmetic",
+          align: "center",
+          label: "Cosmetic",
+          field: "cosmetic",
+          sortable: false
+        },
         {
           name: "sn",
           align: "center",
@@ -422,6 +444,7 @@ export default {
       },
       file: null,
       fileUploading: false,
+      inputValue:null,
     };
   },
   mounted() {
@@ -436,6 +459,31 @@ export default {
         showUpdateUnit : !this.isFromMaster,
         showViewUnit : this.isFromMaster,
       }
+    },
+    totalInvoice(){
+      const serials = this.getSerialsByTicketId(this.ticketId);
+      let amt = 0;
+      if(this.orderType === 3){
+        //repair
+        serials.forEach((s) =>{
+          if(s.valid === true && this.ticketInfo == 458){
+            amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)}
+          });
+      }
+      if(this.orderType === 7){
+        serials.forEach((s) => {
+          if(s.valid === true ){
+            amt=amt+(s.diagnosticPrice == null ? 0: s.diagnosticPrice);
+          }
+        });
+      }
+      serials.forEach((s) => {{
+          //cosmetic
+        if(s.valid != false && s.cosmetic === true){
+          amt = amt + s.cosmeticPrice;
+        }}
+      })
+      return amt;
     }
   },
   methods: {
@@ -476,7 +524,8 @@ export default {
     handleClickViewUnit() {
       const { xmOID } = this.modalState.serialData;
       const link = "/ticketing/viewDetails?id=" + xmOID;
-      this.$api
+      const vm = this;
+      api
         .get(link)
         .then((response) => {
           if (response.data.resultCode !== 0) {
@@ -485,7 +534,8 @@ export default {
           this.details = response.data.data[0];
 
           this.computeStatusItem();
-          this.showDetailModal = true;
+          vm.$refs.detailModal.displayDetailModal();
+          // this.showDetailModal = true;
         })
         .catch(function (error) {
           // handle error

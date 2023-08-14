@@ -101,3 +101,4 @@ export const validateSerial = (serial) => {
   }
   return newSerial;
 }
+

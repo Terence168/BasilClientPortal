@@ -173,7 +173,7 @@
             </div>
           </q-form>
         </div>
-
+        
         <!-- add serials here -->
         <TicketSerialsGrid
           @updateSerial="handleUpdateSerial"

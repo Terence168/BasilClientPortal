@@ -117,6 +117,8 @@
         <TicketEditTable
           :ticketId="ticketId"
           :isFromMaster="ticketInfo.isFromMaster"
+          :clientGroup="ticketInfo.clientGroup"
+          :orderType="ticketInfo.typeOfRepair"
         />
         <!-- Button for submit ticket -->
         <div class="row justify-center">
@@ -125,7 +127,7 @@
             color="primary"
             @click="handleEditTicket"
             style="min-width: 200px"
-            :loading="ticketSubmitting"
+            :loading="ticketEditing"
           >
             Submit
           </q-btn>
@@ -152,8 +154,6 @@ import { api } from "src/boot/axios";
 import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
 
-import { watchArray } from "@vueuse/core";
-import { batchSerialNumberQuery } from "../utils/ticketUtils.js";
 
 export default {
   components: { MessageBoard, TicketEditTable },
@@ -185,6 +185,7 @@ export default {
       withClient: false,
       showModalView: true,
       updateOrAddLoading: false, //to control the update/add button's loading
+      ticketEditing:false,
     };
   },
   created() {
@@ -246,11 +247,32 @@ export default {
     ]),
     handleEditTicket() {
       //valid serials and update it 
-
+      this.ticketEditing = true;
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
-    
       
+      //If user didn't choose order type, don't allow user to submit the ticket
+      if (this.ticketInfo.orderType === null) {
+        this.$q.notify({
+          type: "negative",
+          message: "Please Select Order Type before Submitting.",
+        });
+        this.ticketEditing = false;
+        return;
+      }
+
+      //if SN isn't found. Don't let customer submit ticket before Remove the record.
+      for (const serial of this.getSerialsByTicketId(this.ticketId)) {
+        if (serial.valid === false) {
+          this.$q.notify({
+            type: "negative",
+            message: "Please Delete Invalid SN before Submiting",
+          });
+          this.ticketEditing = false;
+          return;
+        }
+      }
+
       const payload = { ...editTracking, ...editSerial, 
         isFromMaster: this.ticketInfo.isFromMaster, 
         orderType: this.ticketInfo.orderType, 
@@ -285,6 +307,7 @@ export default {
         })
         .finally(()=> {
           this.resetTicket();
+          this.ticketEditing = false;
         })
     },
     resetTicket() {

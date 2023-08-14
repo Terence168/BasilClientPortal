@@ -225,6 +225,7 @@
 
 <script>
 import { parseDateTime, parseDate } from "../utils/timeUtils.js";
+
 export default {
   props: ["details"],
   data() {

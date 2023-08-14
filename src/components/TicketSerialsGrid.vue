@@ -379,20 +379,20 @@ export default {
       if(this.orderType === 3){
         //repair
         serials.forEach((s) =>{
-          if(s.valid === false){
+          if(s.valid === true){
             amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)}
       });
       }
       if(this.orderType === 7){
         serials.forEach((s) => {
-          if(s.valid === false){
+          if(s.valid === true){
             amt=amt+(s.diagnosticPrice == null ? 0: s.diagnosticPrice);
           }
         });
       }
       serials.forEach((s) => {{
           //cosmetic
-        if(s.valid != false && s.cosmetic === true){
+        if(s.valid === true && s.cosmetic === true){
           amt = amt + s.cosmeticPrice;
         }}
       })

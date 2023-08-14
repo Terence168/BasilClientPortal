@@ -1,24 +1,33 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
-import { serialNumberUpdateQuery } from "../utils/ticketUtils.js";
+
 
 const capacity = 10;
 
 export const useEditTicketStore = defineStore("editTicket", {
   state: () => ({
     tickets: [],
-    tickets: [],
   }),
   getters: {
     getSerialsByTicketId: (state) => {
-      return (ticketId) => {
+      return (ticketId, query) => {
         const index = state.tickets.findIndex(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
         if (index != -1) {
           const ticket = state.tickets.find(
-            (t) => parseInt(t.moOID) === parseInt(ticketId)
+            (t) => {
+              if(query != null){
+                return parseInt(t.moOID) === parseInt(ticketId) && 
+                (t.serialNumber != null && t.serialNumber.includes(query) 
+                || t.model!= null && t.model.includes(query)) 
+                || t.customerReportedIssueExt.includes(query)
+              } 
+              else {
+                return parseInt(t.moOID) === parseInt(ticketId);
+              }
+            }
           );
           const serials = ticket.serials;
           console.log(serials);
@@ -47,10 +56,7 @@ export const useEditTicketStore = defineStore("editTicket", {
       const index = this.tickets.findIndex((t) => t.mo_oid === key);
       if (index === -1) {
         if (this.tickets.length === capacity) {
-      if (index === -1) {
-        if (this.tickets.length === capacity) {
           //remove the least recently used
-          this.tickets.sort((t1, t2) => t1.timeStamp < t2.timeStamp);
           this.tickets.sort((t1, t2) => t1.timeStamp < t2.timeStamp);
           this.tickets.pop();
         }
@@ -63,68 +69,20 @@ export const useEditTicketStore = defineStore("editTicket", {
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
       if (index != -1) {
-      const index = this.tickets.findIndex(
-        (t) => parseInt(t.moOID) === parseInt(ticketId)
-      );
-      if (index != -1) {
         this.tickets.splice(index, 1);
       }
     },
-    async fetchTicket(ticketId) {
-      //fetch it from the backend
-      const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
-      const vm = this;
-      return api
-        .get(actionURL, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        .then((response) => {
-          if (response.data.resultCode !== 0) {
-            throw new Error(response.data.errorMessage);
-          }
-          const ticketInfo = response.data.data;
-
-          ticketInfo.timeStamp = new Date();
-          ticketInfo.trackingNumbers.forEach((t) => {
-            const deepcopy = JSON.parse(JSON.stringify(t.num));
-            t.oldValue = deepcopy;
-          });
-
-          ticketInfo.edit = {
-            deleteTracking: [],
-            deleteSerial: [],
-          };
-
-          this.removeTicket(ticketId);
-          this.tickets.push(ticketInfo);
-          return ticketInfo;
-        })
-        .catch((error) => {
-          console.log(error);
-          Notify.create({
-            type: "negative",
-            message: error.message,
-          });
-          return null;
-        });
+    addSN(ticketId, serial) {
+      if (this.ticketMap.has(ticketId)) {
+        const ticket = this.ticketMap.get(key);
+        ticket.serials.push(serial);
+      }
     },
-    getTicket(ticketId) {
-      const index = this.tickets.findIndex(
-        (t) => parseInt(t.moOID) === parseInt(ticketId)
-      );
-      if (index != -1) {
-        return new Promise((resolve, reject) =>
-          resolve(
-            this.tickets.find((t) => parseInt(t.moOID) === parseInt(ticketId))
-          )
-        );
-      } else {
+    fetchTicket(ticketId) {
+        //fetch it from the backend
         const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
         const vm = this;
-        return api
-          .get(actionURL, {
+        return api.get(actionURL, {
             headers: {
               "Content-Type": "application/json",
             },
@@ -135,17 +93,8 @@ export const useEditTicketStore = defineStore("editTicket", {
             }
             const ticketInfo = response.data.data;
             ticketInfo.timeStamp = new Date();
-            ticketInfo.trackingNumbers.forEach((t) => {
-              const deepcopy = JSON.parse(JSON.stringify(t.num));
-              t.oldValue = deepcopy;
-            });
-
-            ticketInfo.edit = {
-              deleteTracking: [],
-              deleteSerial: [],
-            };
+            this.removeTicket(ticketId);
             this.tickets.push(ticketInfo);
-
             return ticketInfo;
           })
           .catch((error) => {
@@ -155,8 +104,43 @@ export const useEditTicketStore = defineStore("editTicket", {
               message: error.message,
             });
             return null;
-          });
-      }
+          })
+    },
+    getTicket(ticketId){
+        const index = this.tickets.findIndex((t) => {
+          return parseInt(t.moOID) === parseInt(ticketId);
+        });
+        if(index != -1){
+          return this.tickets.find((t) => parseInt(t.moOID) === parseInt(ticketId));
+        }
+        else{
+          const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
+          const vm = this;
+          api.get(actionURL, {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            })
+            .then((response) => {
+              if (response.data.resultCode !== 0) {
+                throw new Error(response.data.errorMessage);
+              }
+              const ticketInfo = response.data.data;
+              ticketInfo.timeStamp = new Date();
+              this.tickets.push(ticketInfo);
+      
+              return ticketInfo;
+            })
+            .catch((error) => {
+              console.log(error);
+              Notify.create({
+                type: "negative",
+                message: error.message,
+              });
+
+              return null;
+            })
+        }
     },
     /**
      * For serials
