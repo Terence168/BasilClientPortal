@@ -796,9 +796,15 @@ MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,-->
             <if test="orderType != null">
                 <set>orderType = #{orderType}</set>
             </if>
-            <if></if>
+            <if test="address != nul">
+                <set>address=#{address}</set>
+            </if>
         </set>
-        WHERE XM_OID = #{item.xmOID}
+        <where>
+            <if test="xmOID != null">
+            XM_OID = #{item.xmOID}
+            </if>
+        </where>
     </update>
 
     <update id="updatePrepMasterOrder" >

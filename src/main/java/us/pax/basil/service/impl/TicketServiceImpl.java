@@ -37,7 +37,11 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implements TicketService {
     @Autowired
     private EmailService emailService;
+
+    @Autowired
     private TicketMapper ticketMapper;
+
+    @Autowired
     private UserMapper userMapper;
 
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -345,6 +349,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
 
             if(ticket.getSubmitterID() != null){
+
                 User user = userMapper.getUserById(ticket.getSubmitterID());
                 String company = userMapper.getCompanyName(user.getCompanyId());
                 ticket.setSubmitterOrg(company);
