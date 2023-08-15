@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import us.pax.basil.entity.customer.Address;
 
 import java.util.Date;
 
@@ -28,8 +29,13 @@ public class TicketInsertionObject {
 
     private String rmaNumber;
     private Integer submitterID;
-    public void setOrderDateToCurrentDate(){
+    private String address;
+    public void setOrderDateToCurrentDate() {
         this.orderDate = new Date();
+    }
+
+    public void setAddress(Address address){
+        this.address = address.toString();
     }
 
 }

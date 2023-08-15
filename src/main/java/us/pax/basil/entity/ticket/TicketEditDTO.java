@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import us.pax.basil.entity.customer.Address;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 @Accessors(chain = true)
 @ApiModel(value="Ticketing edit", description="")
 public class TicketEditDTO {
-    private String address;
+    private Address address;
     private boolean isFromMaster;
     private Integer orderType;
     private String originalRMA;

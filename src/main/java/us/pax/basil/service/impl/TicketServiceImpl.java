@@ -7,10 +7,12 @@ import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.*;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
+import us.pax.basil.service.AddressService;
 import us.pax.basil.service.EmailService;
 import us.pax.basil.service.TicketService;
 import us.pax.basil.utils.AuthUtil;
@@ -23,6 +25,7 @@ import java.util.*;
 import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
 
+import javax.jws.Oneway;
 import javax.persistence.EntityManager;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -43,6 +46,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private AddressService addressService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
     @Override
@@ -344,6 +350,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 ticket.setSerials(devices);
             }
 
+            if(ticket.getXaOID() != null){
+                Address address = addressService.findById(ticket.getXaOID());
+                ticket.setAddress(address);
+            }
+
             for(SNInfo sn : ticket.getSerials()){
                 sn.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(sn.getWarrantyEndDate(), sn.getWarrantyVoidedDate(), sn.getOrderDate()));
             }
@@ -597,18 +608,21 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     @Override
-    public SubmitTicketDTO submitTicket(TicketInsertion ticketInsertion) {
-        CustomUserDetails submitter = AuthUtil.getUser();
+    public QueryResultDTO submitTicket(TicketInsertion ticketInsertion) {
+        Integer submitterId = AuthUtil.getUser().getUserId();
 
         List<SNsInsertionObject> sNsInsertionObjectList = ticketInsertion.getSerials();
+        List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
 
         Integer orderType = ticketInsertion.getOrderType();
-        List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
         String originalRMA = ticketInsertion.getOriginalRMA();
+        Address address = ticketInsertion.getAddress();
 
         TicketInsertionObject tio = new TicketInsertionObject();
         tio.setOrderType(orderType);
         tio.setRmaNumber(originalRMA);
+        tio.setSubmitterID(submitterId);
+        tio.setAddress(address);
 
         int mo_OID = insertTicketToPMO(tio);
 
@@ -620,10 +634,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if (!trackingNumbers.isEmpty()) {
                 ticketMapper.insertXref_Inbound_Tracking(trackingNumbers, mo_OID);
             }
+            Map<String, Object> result = new HashMap<>();
+            result.put("mo_OID", mo_OID);
             //emailService.sendRmaConfirmationEmail(mo_OID, "xiaoxuan.liao@pax.us");
-            return new SubmitTicketDTO(mo_OID, 0, "");
+            return new QueryResultDTO(result, 0, "");
         } catch (Exception e) {
-            return new SubmitTicketDTO(null, -1, e.getMessage());
+            return new QueryResultDTO(null, -1, "");
         }
     }
 

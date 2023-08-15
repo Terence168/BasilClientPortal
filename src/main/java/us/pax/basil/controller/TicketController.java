@@ -52,7 +52,7 @@ public class TicketController {
     }
     @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25viewEditTicket?id=189
     //submit the ticket
-    public SubmitTicketDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
+    public QueryResultDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
         return ticketService.submitTicket(ticketInsertion);
     }
 
@@ -62,8 +62,9 @@ public class TicketController {
         return ticketService.handleTicket(ticketEditObject);
     }
 
-    @GetMapping("/viewEditTicket")//BCP-28 view
-    public QueryResultDTO viewEditTicket(@RequestParam(value = "id", required = true) String id){
+    //get ticket
+    @GetMapping("/{ticketId}")
+    public QueryResultDTO viewEditTicket(@PathVariable(value = "ticketId", required = true) String id){
         return ticketService.viewEditTicket(id);
     }
 
