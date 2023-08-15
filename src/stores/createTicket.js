@@ -26,6 +26,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
     orderType: null,
     orderTypeOpt: null,
+    address: null,
     trackingNums: [],
     serials: [],
     //pagination
