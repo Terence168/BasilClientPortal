@@ -125,7 +125,7 @@
 
         <div class="row items-start">
           <!-- Add Serial Number -->
-          <q-btn class="col-auto" color="primary" @click="showModal = true">
+          <q-btn class="col-auto" color="primary" @click="this.$refs.editTable.handleClickAddUnit()">
             Add Serial Number
           </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
@@ -177,10 +177,14 @@
           </q-form>
         </div>
         
-        <!-- add serials here -->
-        <TicketSerialsGrid
-          @updateSerial="handleUpdateSerial"
+        <TicketEditTable
+          ref="editTable"
+          :isFromMaster="false"
           :orderType="orderType"
+          :rows="getSerials"
+          @add-sn="handleAddSN"
+          @update-sn="handleUpdateSN"
+          @remove-sn="handleRemoveSN"
         />
         <!-- Button for submit ticket -->
         <div class="row justify-center">
@@ -196,77 +200,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Pop-up window: add or Update Device to Ticket Window -->
-    <BaseModal
-      v-model:show="showModal"
-      v-bind:title="modalState.title"
-      :width="500"
-      @update:show="resetModalState"
-    >
-      <q-form ref="modalForm" @submit.prevent="handleSubmitSerialForm">
-        <q-input
-          class="col q-mb-sm"
-          outlined
-          v-model="modalState.serialData.serialNumber"
-          label="Serial Number"
-          lazy-rules
-          dense
-          :rules="[
-            (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
-          ]"
-        />
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          autogrow
-          v-model="modalState.serialData.customerReportedIssue"
-          label="Customer Reported Issue"
-          lazy-rules
-          dense
-          :rules="[
-            (val) =>
-              (val && val.length > 0) ||
-              'Customer Reported Issue cannot be empty',
-          ]"
-        />
-        <q-input
-          class="col q-mt-sm q-mb-sm"
-          outlined
-          v-model="modalState.serialData.terminalID"
-          label="Customer Terminal ID"
-          dense
-        />
-        <div class="row justify-center q-mt-md">
-          <div class="col-auto">
-            <!-- update/add device Button -->
-            <q-btn
-              class="q-mr-md"
-              type="submit"
-              v-bind:label="modalState.btnLable"
-              color="primary"
-              style="min-width: 150px"
-              :loading="updateOrAddLoading"
-            >
-              <template v-slot:loading>
-                <q-spinner-facebook />
-              </template>
-            </q-btn>
-          </div>
-          <!-- cancel Button -->
-          <div class="col-auto">
-            <q-btn
-              label="Cancel"
-              color="grey-4"
-              text-color="grey-6"
-              style="min-width: 150px"
-              @click="resetModalState"
-            />
-          </div>
-        </div>
-      </q-form>
-    </BaseModal>
-
     <BaseModal
       :show="showAddressModal"
       title="Select Shipping Address"
@@ -284,7 +217,8 @@ import { useCreateTicketStore } from "stores/createTicket";
 import { mapWritableState, mapActions } from "pinia";
 import { mapState } from "pinia";
 import BaseModal from "src/components/BaseModal.vue";
-import TicketSerialsGrid from "src/components/TicketSerialsGrid.vue";
+import TicketEditTable from "src/components/TicketEditTable.vue";
+
 import AddressBlock from "src/components/AddressBlock.vue";
 import AddressGrid from "src/components/AddressGrid.vue";
 import { Notify } from "quasar";
@@ -293,7 +227,7 @@ import {batchSerialNumberQuery} from "../utils/ticketUtils.js"
 const user = useUserStore();
 
 export default {
-  components: { BaseModal, TicketSerialsGrid, AddressBlock, AddressGrid },
+  components: { BaseModal, TicketEditTable, AddressBlock, AddressGrid, TicketEditTable},
   data() {
     return {
       file: null,
@@ -338,15 +272,12 @@ export default {
     isReRepair() {
       return this.orderType === 4;
     },
-
     userName() {
       return user.username || "Guest";
     },
-
     userEmail() {
       return user.email || "N/A";
     },
-
     companyName() {
       return user.companyName || "";
     },
@@ -364,6 +295,7 @@ export default {
       "populateOrderTypeOpt",
       "addSerial",
       "updateSerial",
+      "removeSerial",
     ]),
     onFileSubmit(e) {
       if (!this.file) {
@@ -384,65 +316,10 @@ export default {
         .finally(() => {
           this.fileUploading = false;
         });
-
-      // const vm = this;
-      // this.$api
-      //   .post(actionURL, formData, {
-      //     headers: {
-      //       "Content-Type": "multipart/form-data",
-      //     },
-      //   })
-      //   .then(function (response) {
-      //     if (response.data.resultCode !== 0) {
-      //       throw new Error(response.data.errorMessage);
-      //     }
-      //     vm.file = null;
-      //     let serials = [...response.data.data];
-      //     serials.forEach((s) => {
-      //       vm.addSerial(s);
-      //     });
-      //   })
-      //   .catch((e) => {
-      //     this.$q.notify({
-      //       type: "negative",
-      //       message: e.message,
-      //     });
-      //   })
-      //   .finally(() => {
-      //     this.fileUploading = false;
-      //   });
     },
-    /*
-      Event listener for updateSerial(TicketSerialsGrid)
-      1. Set modal state to update
-      2. Populate data and index
-     */
-    handleUpdateSerial({ serialData, serialNumber }) {
-      this.modalState = this.modalMap.updateModal;
-      this.isModalStateAdd = false;
-      //deep copy to avoid input change cause serial data change
-      let serialDataDeepCopy = JSON.parse(JSON.stringify(serialData));
-      this.modalState.serialData = serialDataDeepCopy;
-
-      this.modalState.serialNumber = serialNumber;
-      this.showModal = true;
-    },
-    /*
-      1. Set Modal to addModal
-      2. Clear data inside
-      3. Remove Modal from screen
-     */
-    resetModalState() {
-      this.modalState = this.modalMap.addModal;
-      this.modalState.serialData = {};
-      this.isModalStateAdd = true;
-      this.showModal = false;
-    },
-
     showAddressGrid() {
       this.showAddressModal = true;
     },
-
     handleSubmitSerialForm() {
       const { serialData } = this.modalState;
       const { serialNumber: sn } = serialData;
@@ -524,7 +401,7 @@ export default {
         return;
       }
 
-      //if SN isn't found. Don't let customer submit ticket before Remove the record.
+      //if shipping address is not selected 
       for (const serial of serials) {
         if (serial.valid === false) {
           this.$q.notify({
@@ -535,13 +412,21 @@ export default {
           return;
         }
       }
-
+      if(this.address === null){
+        this.$q.notify({
+            type: "negative",
+            message: "Please Select Shipping Address before Submitting",
+          });
+          this.serialsSubmitting = false;
+          return;
+      }
       const trackingNumbers = [...this.getTrackingNums];
       const payload = {
         orderType: this.orderType,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
+        address:this.address
       };
 
       const vm = this;
@@ -555,7 +440,7 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          const mo_OID = response.data.mo_OID;
+          const mo_OID = response.data.data.mo_OID;
           Notify.create({
             type: "positive",
             message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
@@ -572,7 +457,15 @@ export default {
           vm.resetTicket();
         });
     },
-
+    handleAddSN({serial}){
+      this.addSerial(serial);
+    },
+    handleUpdateSN({oldSN, serial}){
+      this.updateSerial(oldSN, serial);
+    },
+    handleRemoveSN({sn}){
+      this.removeSerial(sn);
+    },
     selectShippingAddress(address) {
       this.address = address;
       this.showAddressModal = false;

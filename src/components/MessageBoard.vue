@@ -66,7 +66,7 @@ export default {
   emits:["add-comment"],
   data: () => {
     return {
-      editor: null,
+      editor: ""
     };
   },
   computed:{

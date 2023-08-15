@@ -16,7 +16,7 @@
           class="col q-mt-sm q-mb-sm"
           outlined
           autogrow
-          v-model="newSerial.customerReportedIssue"
+          v-model="newSerial.customerReportedIssueExt"
           label="Customer Reported Issue"
           lazy-rules
           dense
@@ -29,7 +29,7 @@
         <q-input
           class="col q-mt-sm q-mb-sm"
           outlined
-          v-model="newSerial.terminalID"
+          v-model="newSerial.customerTerminalID"
           label="Customer Terminal ID"
           dense
         />
@@ -74,8 +74,8 @@ export default {
     return {
       newSerial: {
         serialNumber: null,
-        terminalID: null,
-        customerReportedIssue: null,
+        customerTerminalIDterminalID: null,
+        customerReportedIssueExt: null,
       },
       loading: false,
       show: true,
@@ -90,8 +90,8 @@ export default {
     resetModal() {
       this.newSerial = {
           serialNumber:null,
-          terminalID:null,
-          customerReportedIssue:null,
+          customerTerminalID:null,
+          customerReportedIssueExt:null,
       };
       this.withClient = false;
     },

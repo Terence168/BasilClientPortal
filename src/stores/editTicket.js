@@ -1,7 +1,10 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
-
+import {
+  batchSerialNumberQuery,
+  serialNumberUpdateQuery,
+} from "src/utils/ticketUtils";
 
 const capacity = 10;
 
@@ -30,7 +33,6 @@ export const useEditTicketStore = defineStore("editTicket", {
             }
           );
           const serials = ticket.serials;
-          console.log(serials);
           return serials;
         }
       };
@@ -47,6 +49,17 @@ export const useEditTicketStore = defineStore("editTicket", {
           return ticket.trackingNumbers;
         }
       };
+    },
+    getTicketbyId : (state) => {
+      return (ticketId) => {      
+        const index = state.tickets.findIndex((t) => {
+          return parseInt(t.moOID) === parseInt(ticketId);
+        });
+        if(index != -1){
+          return state.tickets.find((t) => parseInt(t.moOID) === parseInt(ticketId));
+        }
+        return null;
+      }
     },
   },
   reset() {},
@@ -72,15 +85,9 @@ export const useEditTicketStore = defineStore("editTicket", {
         this.tickets.splice(index, 1);
       }
     },
-    addSN(ticketId, serial) {
-      if (this.ticketMap.has(ticketId)) {
-        const ticket = this.ticketMap.get(key);
-        ticket.serials.push(serial);
-      }
-    },
     fetchTicket(ticketId) {
         //fetch it from the backend
-        const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
+        const actionURL = "/ticketing/" + ticketId;
         const vm = this;
         return api.get(actionURL, {
             headers: {
@@ -114,7 +121,7 @@ export const useEditTicketStore = defineStore("editTicket", {
           return this.tickets.find((t) => parseInt(t.moOID) === parseInt(ticketId));
         }
         else{
-          const actionURL = "/ticketing/viewEditTicket?id=" + ticketId;
+          const actionURL = "/ticketing/" + ticketId;
           const vm = this;
           api.get(actionURL, {
               headers: {
@@ -128,7 +135,10 @@ export const useEditTicketStore = defineStore("editTicket", {
               const ticketInfo = response.data.data;
               ticketInfo.timeStamp = new Date();
               this.tickets.push(ticketInfo);
-      
+              ticketInfo.edit = {
+                deleteSerial : [],
+                deleteTracking: []
+              }
               return ticketInfo;
             })
             .catch((error) => {
@@ -153,14 +163,15 @@ export const useEditTicketStore = defineStore("editTicket", {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
+
         serialNumberUpdateQuery(oldSN, serial).then((wrappedSerial) => {
           const oldSerial = ticket.serials.find(
             (s) => s.serialNumber === oldSN
           );
           if (wrappedSerial != null) {
             oldSerial.serialNumber = serial.serialNumber;
-            oldSerial.customerReportedIssue = serial.customerReportedIssue;
-            oldSerial.terminalID = serial.terminalID;
+            oldSerial.customerReportedIssueExt = serial.customerReportedIssueExt;
+            oldSerial.customerTerminalID = serial.customerTerminalID;
             oldSerial.isUpdate = true;
           }
         });
@@ -186,7 +197,6 @@ export const useEditTicketStore = defineStore("editTicket", {
       }
     },
     addSN(ticketId, serial) {
-      console.log("in add sn");
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
@@ -196,6 +206,8 @@ export const useEditTicketStore = defineStore("editTicket", {
         );
         serialNumberUpdateQuery(serial.serialNumber, serial).then(
           (wrappedSerial) => {
+            wrappedSerial.customerReportedIssueExt = serial.customerReportedIssueExt;
+            wrappedSerial.customerTerminalID = serial.customerTerminalID;
             if (wrappedSerial != null) {
               ticket.serials.unshift(wrappedSerial);
             }
@@ -307,6 +319,20 @@ export const useEditTicketStore = defineStore("editTicket", {
       }
       return result;
     },
+    /**
+     * For address
+     */
+    updateAddress(newAddress, ticketId){
+      const index = this.tickets.findIndex(
+        (t) => parseInt(t.moOID) === parseInt(ticketId)
+      );
+      if (index != -1) {
+        const ticket = this.tickets.find(
+          (t) => parseInt(t.moOID) === parseInt(ticketId)
+        );
+        ticket.address = newAddress;
+      }
+    }
   },
   persist: true,
 });

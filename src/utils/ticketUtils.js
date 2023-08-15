@@ -1,6 +1,7 @@
 import { api } from "src/boot/axios";
 import { Notify } from "quasar";
 
+
 export const batchSerialNumberQuery = async (formData) => {
   const actionURL = "/ticketing/batchSerialNumberQuery";
 
@@ -70,11 +71,6 @@ export const validateSerial = (serial) => {
   // }
   if (newSerial.existInAnotherTicket === true) {
     throw new Error(`SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`);
-    // Notify.create({
-    //   type: "negative",
-    //   message: `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,
-    // });
-    // return null;
   }
   //If the serial don't have warranty information, hightlight grey
   if (

@@ -8,7 +8,6 @@
     <div class="q-mt-lg generic-container">
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg text-body1">
         <div class="row q-mb-md text-weight-medium">
-          <!-- todo:get from ticket info -->
           <div class="col">Ticket Status: Open</div>
           <div class="col-auto" @click="resetTicket">
             <q-btn color="red">Refresh Data</q-btn>
@@ -79,6 +78,8 @@
             />
           </div>
         </div>
+        <div class="q-my-sm">Shipping Address:</div>
+        <AddressBlock :address="address" @click="showAddressGrid" />
         <!-- tracking number section -->
         <div class="row q-my-sm items-center">
           <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
@@ -112,13 +113,69 @@
             @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
+        <div class="q-py-md text-subtitle1 text-weight-bold">
+      Ticket Serial Numbers
+    </div>
+    <div class="row items-start">
+      <q-btn class="col-auto" color="primary" @click="this.$refs.editTable.handleClickAddUnit()">
+        Add Serial Number
+      </q-btn>
+      <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
+      <q-form class="col-auto" @submit="onFileSubmit">
+        <div class="row items-start">
+          <q-file
+            style="min-width: 250px"
+            name="file"
+            class="col q-mr-sm"
+            clearable
+            bottom-slots
+            outlined
+            v-model="file"
+            label="Upload Excel File"
+            dense
+            counter
+            :disable="fileUploading"
+          >
+            <template v-slot:prepend>
+              <q-icon name="attach_file" />
+            </template>
 
+            <template v-slot:hint> Allowed file format: .xlsx </template>
+          </q-file>
+
+          <q-btn
+            class="col"
+            type="submit"
+            label="Upload"
+            color="primary"
+            style="min-width: 150px"
+            :loading="fileUploading"
+          >
+            <template v-slot:loading>
+              <q-spinner-facebook />
+            </template>
+          </q-btn>
+
+          &nbsp;
+          <q-input
+            clearable
+            class="q-mr-sm"
+            label="Serial Number OR Model OR Reported Issue"
+            style="min-width: 380px"
+            v-model="inputValue"
+          />&nbsp;
+        </div>
+      </q-form>
+    </div>
         <!-- ticket serials -->
         <TicketEditTable
-          :ticketId="ticketId"
+          ref="editTable"
           :isFromMaster="ticketInfo.isFromMaster"
-          :clientGroup="ticketInfo.clientGroup"
           :orderType="ticketInfo.typeOfRepair"
+          :rows="getSerialsByTicketId(this.ticketId)"
+          @add-sn="handleAddSN"
+          @update-sn="handleUpdateSN"
+          @remove-sn="handleRemoveSN"
         />
         <!-- Button for submit ticket -->
         <div class="row justify-center">
@@ -140,6 +197,15 @@
       @add-comment="addComment"
       ref="messageBoard"
     />
+
+    <BaseModal
+      :show="showAddressModal"
+      title="Select Shipping Address"
+      :width="972"
+      @update:show="showAddressModal = false"
+    >
+      <AddressGrid @selectShippingAddress="selectShippingAddress" />
+    </BaseModal>
   </div>
 </template>
 
@@ -149,14 +215,19 @@ import { mapWritableState, mapActions } from "pinia";
 import { mapState, mapStores } from "pinia";
 import MessageBoard from "src/components/MessageBoard.vue";
 import TicketEditTable from "src/components/TicketEditTable.vue";
+import AddressBlock from "src/components/AddressBlock.vue";
+import AddressGrid from "src/components/AddressGrid.vue";
+import BaseModal from "src/components/BaseModal.vue";
 import { Notify, TouchSwipe } from "quasar";
 import { api } from "src/boot/axios";
 import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
-
+import {
+  batchSerialNumberQuery
+} from "src/utils/ticketUtils";
 
 export default {
-  components: { MessageBoard, TicketEditTable },
+  components: { MessageBoard, TicketEditTable, AddressBlock, AddressGrid, BaseModal},
   data: () => {
     return {
       ticketInfo: {
@@ -179,13 +250,14 @@ export default {
         removeSerials: [],
         updateSerials: [],
       },
-      ticketSubmitting: false,
-      showModal: false,
       isLoading: false,
-      withClient: false,
-      showModalView: true,
-      updateOrAddLoading: false, //to control the update/add button's loading
-      ticketEditing:false,
+      ticketEditing: false,
+
+      file: null,
+      fileUploading: false,
+      inputValue: null,
+
+      showAddressModal: false,
     };
   },
   created() {
@@ -225,12 +297,16 @@ export default {
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
+      "getTicketbyId"
     ]),
     isReRepair() {
       return this.ticketInfo.typeOfRepair === 4;
     },
     ticketId() {
       return this.$route.params.ticketId;
+    },
+    address(){
+      return this.ticketInfo.address;
     },
   },
   methods: {
@@ -244,13 +320,15 @@ export default {
       "findEditTrackingNums",
       "findEditSN",
       "addSN",
+      "updateSN",
+      "updateAddress"
     ]),
     handleEditTicket() {
-      //valid serials and update it 
+      //valid serials and update it
       this.ticketEditing = true;
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
-      
+
       //If user didn't choose order type, don't allow user to submit the ticket
       if (this.ticketInfo.orderType === null) {
         this.$q.notify({
@@ -273,17 +351,18 @@ export default {
         }
       }
 
-      const payload = { ...editTracking, ...editSerial, 
-        isFromMaster: this.ticketInfo.isFromMaster, 
-        orderType: this.ticketInfo.orderType, 
+      const payload = {
+        ...editTracking,
+        ...editSerial,
+        isFromMaster: this.ticketInfo.isFromMaster,
+        orderType: this.ticketInfo.orderType,
         address: this.ticketInfo.address,
         typeOfRepair: this.ticketInfo.typeOfRepair,
         originalRMA: this.ticketInfo.originalRMA,
-        };
-      
+      };
+
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
       console.log(payload);
-
       api
         .post(actionURL, payload, {
           headers: {
@@ -295,9 +374,9 @@ export default {
             throw new Error(response.data.errorMessage);
           }
           Notify.create({
-            type:"positive",
-            message:"Update Ticket Successfully"
-          })
+            type: "positive",
+            message: "Update Ticket Successfully",
+          });
         })
         .catch((e) => {
           Notify.create({
@@ -305,10 +384,10 @@ export default {
             message: e.message,
           });
         })
-        .finally(()=> {
+        .finally(() => {
           this.resetTicket();
           this.ticketEditing = false;
-        })
+        });
     },
     resetTicket() {
       this.isLoading = true;
@@ -320,6 +399,39 @@ export default {
           this.isLoading = false;
         });
     },
+    handleAddSN({serial}){
+      this.addSN(this.ticketId, serial);
+    },
+    handleUpdateSN({oldSN, serial}){
+      this.updateSN(this.ticketId, oldSN, serial);
+    },
+    handleRemoveSN({sn}){
+      this.removeSN(this.ticketId, sn);
+    },
+    onFileSubmit(e) {
+      if (!this.file) {
+        return;
+      }
+      this.fileUploading = true;
+      const formData = new FormData(e.target);
+      formData.append("fileName", this.file ? this.file.name : "");
+
+      batchSerialNumberQuery(formData)
+        .then((serials) => {
+          this.file = null;
+          serials.forEach((s) => {
+            ///needs to valid in addSN, here is the difference
+            this.addSN(this.ticketId, s);
+          });
+        })
+        .finally(() => {
+          this.fileUploading = false;
+        });
+    },
+    /**
+     * 
+     * For Message board
+     */
     fetchComments(ticketId) {
       const vm = this;
       const link = "/ticketing/" + ticketId + "/response";
@@ -362,6 +474,13 @@ export default {
             message: error.message,
           });
         });
+    },
+    selectShippingAddress(address) {
+      this.updateAddress(address, this.ticketId);
+      this.showAddressModal = false;
+    },
+    showAddressGrid() {
+      this.showAddressModal = true;
     },
   },
 };

@@ -258,7 +258,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.serials.unshift(newSerial);
     },
 
-    updateSerial(serialData, oldSerialNumber) {
+    updateSerial(oldSerialNumber, serialData) {
       const { serialNumber } = serialData;
       if (
         serialNumber != oldSerialNumber &&
