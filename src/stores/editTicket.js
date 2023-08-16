@@ -19,22 +19,23 @@ export const useEditTicketStore = defineStore("editTicket", {
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
         if (index != -1) {
-          const ticket = state.tickets.find(
-            (t) => {
-              if(query != null){
-                return parseInt(t.moOID) === parseInt(ticketId) && 
-                (t.serialNumber != null && t.serialNumber.includes(query) 
-                || t.model!= null && t.model.includes(query)) 
-                || t.customerReportedIssueExt.includes(query)
-              } 
-              else {
-                return parseInt(t.moOID) === parseInt(ticketId);
-              }
+          const ticket = state.tickets.find((t) => {
+            if (query != null) {
+              return (
+                (parseInt(t.moOID) === parseInt(ticketId) &&
+                  ((t.serialNumber != null && t.serialNumber.includes(query)) ||
+                    (t.model != null && t.model.includes(query)))) ||
+                t.customerReportedIssueExt.includes(query)
+              );
+            } else {
+              return parseInt(t.moOID) === parseInt(ticketId);
             }
-          );
+          });
           const serials = ticket.serials;
           return serials;
         }
+
+        return [];
       };
     },
     getTrackingNumsByTicketId: (state) => {
@@ -50,16 +51,18 @@ export const useEditTicketStore = defineStore("editTicket", {
         }
       };
     },
-    getTicketbyId : (state) => {
-      return (ticketId) => {      
+    getTicketbyId: (state) => {
+      return (ticketId) => {
         const index = state.tickets.findIndex((t) => {
           return parseInt(t.moOID) === parseInt(ticketId);
         });
-        if(index != -1){
-          return state.tickets.find((t) => parseInt(t.moOID) === parseInt(ticketId));
+        if (index != -1) {
+          return state.tickets.find(
+            (t) => parseInt(t.moOID) === parseInt(ticketId)
+          );
         }
         return null;
-      }
+      };
     },
   },
   reset() {},
@@ -86,71 +89,42 @@ export const useEditTicketStore = defineStore("editTicket", {
       }
     },
     fetchTicket(ticketId) {
-        //fetch it from the backend
-        const actionURL = "/ticketing/" + ticketId;
-        const vm = this;
-        return api.get(actionURL, {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
-          .then((response) => {
-            if (response.data.resultCode !== 0) {
-              throw new Error(response.data.errorMessage);
-            }
-            const ticketInfo = response.data.data;
-            ticketInfo.timeStamp = new Date();
-            this.removeTicket(ticketId);
-            this.tickets.push(ticketInfo);
-            return ticketInfo;
-          })
-          .catch((error) => {
-            console.log(error);
-            Notify.create({
-              type: "negative",
-              message: error.message,
-            });
-            return null;
-          })
-    },
-    getTicket(ticketId){
-        const index = this.tickets.findIndex((t) => {
-          return parseInt(t.moOID) === parseInt(ticketId);
-        });
-        if(index != -1){
-          return this.tickets.find((t) => parseInt(t.moOID) === parseInt(ticketId));
-        }
-        else{
-          const actionURL = "/ticketing/" + ticketId;
-          const vm = this;
-          api.get(actionURL, {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            })
-            .then((response) => {
-              if (response.data.resultCode !== 0) {
-                throw new Error(response.data.errorMessage);
-              }
-              const ticketInfo = response.data.data;
-              ticketInfo.timeStamp = new Date();
-              this.tickets.push(ticketInfo);
-              ticketInfo.edit = {
-                deleteSerial : [],
-                deleteTracking: []
-              }
-              return ticketInfo;
-            })
-            .catch((error) => {
-              console.log(error);
-              Notify.create({
-                type: "negative",
-                message: error.message,
-              });
+      //fetch it from the backend
+      const actionURL = "/ticketing/" + ticketId;
 
-              return null;
-            })
-        }
+      return api
+        .get(actionURL, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          const ticketInfo = response.data.data;
+          ticketInfo.timeStamp = new Date();
+
+          ticketInfo.edit = {
+            deleteSerial: [],
+            deleteTracking: [],
+          };
+
+          this.removeTicket(ticketId);
+          this.tickets.push(ticketInfo);
+          return ticketInfo;
+        });
+    },
+
+    getTicket(ticketId) {
+      const index = this.tickets.findIndex((t) => {
+        return parseInt(t.moOID) === parseInt(ticketId);
+      });
+      if (index != -1) {
+        return this.tickets[index];
+      }
+
+      return this.fetchTicket(ticketId);
     },
     /**
      * For serials
@@ -170,7 +144,8 @@ export const useEditTicketStore = defineStore("editTicket", {
           );
           if (wrappedSerial != null) {
             oldSerial.serialNumber = serial.serialNumber;
-            oldSerial.customerReportedIssueExt = serial.customerReportedIssueExt;
+            oldSerial.customerReportedIssueExt =
+              serial.customerReportedIssueExt;
             oldSerial.customerTerminalID = serial.customerTerminalID;
             oldSerial.isUpdate = true;
           }
@@ -206,7 +181,8 @@ export const useEditTicketStore = defineStore("editTicket", {
         );
         serialNumberUpdateQuery(serial.serialNumber, serial).then(
           (wrappedSerial) => {
-            wrappedSerial.customerReportedIssueExt = serial.customerReportedIssueExt;
+            wrappedSerial.customerReportedIssueExt =
+              serial.customerReportedIssueExt;
             wrappedSerial.customerTerminalID = serial.customerTerminalID;
             if (wrappedSerial != null) {
               ticket.serials.unshift(wrappedSerial);
@@ -236,7 +212,7 @@ export const useEditTicketStore = defineStore("editTicket", {
               serialNumber: s.serialNumber,
               customerReportedIssueExt: s.customerReportedIssue,
               customerTerminalID: s.terminalID,
-              msnOID:s.msnOID,
+              msnOID: s.msnOID,
             });
           }
           if (s.xmOID === null) {
@@ -246,7 +222,7 @@ export const useEditTicketStore = defineStore("editTicket", {
               serialNumber: s.serialNumber,
               customerReportedIssueExt: s.customerReportedIssue,
               customerTerminalID: s.terminalID,
-              msnOID:s.msnOID,
+              msnOID: s.msnOID,
             });
           }
         });
@@ -322,7 +298,7 @@ export const useEditTicketStore = defineStore("editTicket", {
     /**
      * For address
      */
-    updateAddress(newAddress, ticketId){
+    updateAddress(newAddress, ticketId) {
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
@@ -332,7 +308,7 @@ export const useEditTicketStore = defineStore("editTicket", {
         );
         ticket.address = newAddress;
       }
-    }
+    },
   },
   persist: true,
 });

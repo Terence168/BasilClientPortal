@@ -93,9 +93,7 @@ import TicketDetailForm from "./TicketDetailForm.vue";
 import { DateTime } from "luxon";
 import { Notify } from "quasar";
 import { parseDateTime, parseDate } from "../utils/timeUtils.js";
-import {
-  batchSerialNumberQuery
-} from "src/utils/ticketUtils";
+import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 
 import { api } from "src/boot/axios";
 
@@ -199,7 +197,7 @@ export default {
       if (this.orderType === 3) {
         //repair
         serials.forEach((s) => {
-          if (s.valid === true ) {
+          if (s.valid === true) {
             amt = amt + (s.minorPrice == null ? 0 : s.minorPrice);
           }
         });
@@ -255,7 +253,7 @@ export default {
     },
     handleClickRemoveUnit() {
       const sn = this.modalState.serialData.serialNumber;
-      this.$emit("remove-sn", {sn});
+      this.$emit("remove-sn", { sn });
     },
     handleClickViewUnit() {
       const { xmOID } = this.modalState.serialData;
@@ -285,12 +283,12 @@ export default {
      * Handler for child component: EditModal
      */
     handleAddSerial(serial) {
-      this.$emit("add-sn", {serial});
+      this.$emit("add-sn", { serial });
       this.$refs.editModal.hideEditModal();
     },
     handleUpdateSerial(serial) {
       const oldSN = this.modalState.serialData.serialNumber;
-      this.$emit("update-sn", {oldSN, serial});
+      this.$emit("update-sn", { oldSN, serial });
       this.$refs.editModal.hideEditModal();
     },
     computeStatusItem() {
