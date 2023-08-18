@@ -603,29 +603,29 @@
     </select>
 
     <select id="getSecMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
-        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
-        customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
-        customerReportedIssueExt, xma.XM_OID as xmOID,
-
+        SELECT
+        sn.SERIAL_NUMBER as serialNumber,
+        xma.MSN_OID as msnOID,
+        xma.CUSTOMER_RMA as customerRMA,
+        xma.CUSTOMER_TERMINAL_ID as customerTerminalID,
+        xma.CUSTOMER_REPORTED_ISSUE_EXT as customerReportedIssueExt,
+        xma.XM_OID as xmOID,
         xma.COSMETIC as cosmetic,
         sn.WARRANTY_END_DATE as warrantyEndDate,
         sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
-        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate,
+        xs.SHIP_DATE as shipDate,
+        mp.PART_NUMBER_LONG as model,
+        mp.VERSION_NUMBER as version,
+        COALESCE(rc1.COSMETIC, rc2.COSMETIC) AS cosmeticPrice,
+        COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC) AS diagnosticPrice,
+        COALESCE(rc1.MINOR, rc2.MINOR) AS minorPrice
 
-        hpcf.`Full_PN` as model,
-        hpcf.`Version` as version,
-
-        rc.COSMETIC AS cosmeticPrice,
-        rc.DIAGNOSTIC AS diagnosticPrice,
-        rc.MINOR AS minorPrice
-
-
-        from BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
-        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID = xma.MSN_OID
-        left join BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = sn.SERIAL_NUMBER
-        left join BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
-        left join BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) =
-        rc.PART_NUMBER_SHORT and (rc.customer=#{companyId} or rc.customer = null or rc.customer = '')
+        FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
+        LEFT JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn ON sn.MSN_OID = xma.MSN_OID
+        LEFT JOIN BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc1 ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc2 ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+        LEFT JOIN BASIL_ODS_PRD.XREF_SHIP xs ON xs.BOX_OID = xma.BOX_OID
         <where>
             <if test="id !=null">
                 xma.MO_OID = #{id}
@@ -634,27 +634,29 @@
     </select>
 
     <select id="getOdsMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
-        select sn.SERIAL_NUMBER as serialNumber, xma.MSN_OID as msnOID, xma.CUSTOMER_RMA as
-        customerRMA,xma.CUSTOMER_TERMINAL_ID as customerTerminalID, xma.CUSTOMER_REPORTED_ISSUE as
-        customerReportedIssueExt, xma.XM_OID as xmOID,
+        SELECT
+        sn.SERIAL_NUMBER as serialNumber,
+        xma.MSN_OID as msnOID,
+        xma.CUSTOMER_RMA as customerRMA,
+        xma.CUSTOMER_TERMINAL_ID as customerTerminalID,
+        xma.CUSTOMER_REPORTED_ISSUE_EXT as customerReportedIssueExt,
+        xma.XM_OID as xmOID,
         xma.COSMETIC as cosmetic,
         sn.WARRANTY_END_DATE as warrantyEndDate,
         sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
-        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID=xma.BOX_OID) as shipDate,
+        xs.SHIP_DATE as shipDate,
+        mp.PART_NUMBER_LONG as model,
+        mp.VERSION_NUMBER as version,
+        COALESCE(rc1.COSMETIC, rc2.COSMETIC) AS cosmeticPrice,
+        COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC) AS diagnosticPrice,
+        COALESCE(rc1.MINOR, rc2.MINOR) AS minorPrice
 
-        hpcf.`Full_PN` as model,
-        hpcf.`Version` as version,
-
-        rc.COSMETIC AS cosmeticPrice,
-        rc.DIAGNOSTIC AS diagnosticPrice,
-        rc.MINOR AS minorPrice
-
-        from BASIL_ODS_PRD.XREF_MATERIALS as xma
-        left join BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn on sn.MSN_OID = xma.MSN_OID
-        left join BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = sn.SERIAL_NUMBER
-        left join BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
-        left join BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) =
-        rc.PART_NUMBER_SHORT and (rc.customer=#{companyId} or rc.customer is null)
+        FROM BASIL_ODS_PRD.XREF_MATERIALS as xma
+        LEFT JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn ON sn.MSN_OID = xma.MSN_OID
+        LEFT JOIN BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc1 ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc2 ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+        LEFT JOIN BASIL_ODS_PRD.XREF_SHIP xs ON xs.BOX_OID = xma.BOX_OID
         <where>
             <if test="id !=null">
                 xma.MO_OID = #{id}

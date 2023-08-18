@@ -336,16 +336,18 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     public QueryResultDTO viewEditTicket(String id) {
         try {
             TicketInfo ticket = ticketMapper.existingMasterOrder(id); //existing check BASIL_ODS_PRD.XREF_MATERIALS\
-            Integer companyId = ticket.getMcOID();
+            Integer companyId;
             if (ticket == null) {
                 ticket = ticketMapper.existingPREPMasterOrder(id); //existing check BASIL_SEC_PRD.PREP_XREF_MATERIALS
                 if(ticket != null) {
                     ticket.setIsFromMaster(false);
+                    companyId = ticket.getMcOID();
                     List<SNInfo> devices = ticketMapper.getSecMaterials(id, companyId);
                     ticket.setSerials(devices);
                 }
             } else {
                 ticket.setIsFromMaster(true);
+                companyId = ticket.getMcOID();
                 List<SNInfo> devices = ticketMapper.getOdsMaterials(id, companyId);
                 ticket.setSerials(devices);
             }
