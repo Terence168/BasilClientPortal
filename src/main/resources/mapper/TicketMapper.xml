@@ -532,7 +532,8 @@
         cosmeticPrice,
         diagnosticPrice,
         minorPrice,
-        existInAnotherTicket
+        existInAnotherTicket,
+        moOID
         FROM(
         SELECT
         msn.SERIAL_NUMBER,
@@ -552,9 +553,10 @@
         rc.DIAGNOSTIC AS diagnosticPrice,
         rc.MINOR AS minorPrice,
         xm.XM_OID as xmOID,
-        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE) AS existInAnotherTicket,
+        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE)  AS existInAnotherTicket,
         ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE)
-        DESC) AS RN
+        DESC) AS RN,
+        Case when xm.XM_OID is not null then xm.MO_OID else pxm.MO_OID end as moOID
         FROM
         BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
         LEFT JOIN
@@ -611,7 +613,7 @@
         xma.CUSTOMER_REPORTED_ISSUE_EXT as customerReportedIssueExt,
         xma.XM_OID as xmOID,
         xma.COSMETIC as cosmetic,
-        sn.WARRANTY_END_DATE as warrantyEndDate,
+        sn.WARRANTY_END_DATE as warrantyExpDate,
         sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
         xs.SHIP_DATE as shipDate,
         mp.PART_NUMBER_LONG as model,
@@ -642,7 +644,7 @@
         xma.CUSTOMER_REPORTED_ISSUE_EXT as customerReportedIssueExt,
         xma.XM_OID as xmOID,
         xma.COSMETIC as cosmetic,
-        sn.WARRANTY_END_DATE as warrantyEndDate,
+        sn.WARRANTY_END_DATE as warrantyExpDate,
         sn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
         xs.SHIP_DATE as shipDate,
         mp.PART_NUMBER_LONG as model,
@@ -666,8 +668,8 @@
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
             useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER, SUBMITTER_ID, Address)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID}, #{address})
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER, SUBMITTER_ID, XA_OID)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID}, #{xaOID})
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false">
@@ -751,9 +753,6 @@
         </if>
     </delete>
 
-<!--    (MO_OID, XM_OID,
-MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,-->
-<!--    CUSTOMER_REPORTED_ISSUE_EXT)-->
     <update id="updatePrep_Xref_Materials" parameterType="java.util.List">
         <if test ="list!= null and list.size() > 0">
             <foreach collection="list" item="item" separator=";">
@@ -797,31 +796,33 @@ MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,-->
     <update id="updateMasterOrder" >
         UPDATE BASIL_ODS_PRD.MASTER_ORDER
         <set>
-            <if test="orderType != null">
-                <set>orderType = #{orderType}</set>
+            <if test="typeOfRepair != null">
+                ORDER_TYPE = #{typeOfRepair},
             </if>
-            <if test="address != null and address.xaOid != null">
-                <set>xa_oid = #{address.xaOid}</set>
+            <if test="xaOID != null">
+                XA_OID = #{xaOID},
+            </if>
+            <if test="originalRMA != null">
+                RMA_NUMBER = #{originalRMA}
             </if>
         </set>
-        <where>
-            <if test="xmOID != null">
-            XM_OID = #{item.xmOID}
-            </if>
-        </where>
+        WHERE MO_OID = #{moOID}
     </update>
 
     <update id="updatePrepMasterOrder" >
         UPDATE BASIL_ODS_PRD.MASTER_ORDER
         <set>
-            <if test="orderType != null">
-                <set>orderType = #{orderType}</set>
+            <if test="typeOfRepair != null">
+                ORDER_TYPE = #{typeOfRepair},
             </if>
-            <if test="address != null and address.xaOid != null">
-                <set>xa_oid = #{address.xaOid}</set>
+            <if test="xaOID != null">
+                XA_OID = #{xaOID},
+            </if>
+            <if test="originalRMA != null">
+                RMA_NUMBER = #{originalRMA}
             </if>
         </set>
-        WHERE XM_OID = #{item.xmOID}
+        WHERE MO_OID = #{moOID}
     </update>
 </mapper>
 

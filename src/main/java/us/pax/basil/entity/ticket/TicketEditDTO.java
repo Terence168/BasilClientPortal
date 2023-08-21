@@ -15,9 +15,8 @@ import java.util.List;
 public class TicketEditDTO {
     private Address address;
     private boolean isFromMaster;
-    private Integer orderType;
+    private Integer typeOfRepair;
     private String originalRMA;
-
     private List<String> deleteSerial; //xm_oid
     private List<SNsInsertionObject> addSerial;
     private List<SNsInsertionObject> updateSerial;

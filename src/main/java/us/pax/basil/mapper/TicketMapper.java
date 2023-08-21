@@ -104,6 +104,7 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void updateXref_Materials(List<SNsInsertionObject> updateSerials);
     void updatePrep_Xref_Materials(List<SNsInsertionObject> updateSerials);
 
-    void updateMasterOrder(Integer orderType);
-    void updatePrepMasterOrder(Integer orderType);
+    void updateMasterOrder(Integer typeOfRepair, String originalRMA, String moOID, Integer xaOID);
+//            TicketEditDTO ticketEditDTO, String id);
+    void updatePrepMasterOrder(Integer typeOfRepair, String originalRMA,  String moOID, Integer xaOID);
 }

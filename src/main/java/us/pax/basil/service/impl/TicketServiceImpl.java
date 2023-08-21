@@ -8,6 +8,7 @@ import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.*;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Address;
+import us.pax.basil.entity.invoice.Invoice;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.mapper.UserMapper;
@@ -358,11 +359,10 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
 
             for(SNInfo sn : ticket.getSerials()){
-                sn.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(sn.getWarrantyEndDate(), sn.getWarrantyVoidedDate(), sn.getOrderDate()));
+                sn.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(sn.getWarrantyExpDate(), sn.getWarrantyVoidedDate(), sn.getOrderDate()));
             }
 
             if(ticket.getSubmitterID() != null){
-
                 User user = userMapper.getUserById(ticket.getSubmitterID());
                 String company = userMapper.getCompanyName(user.getCompanyId());
                 ticket.setSubmitterOrg(company);
@@ -370,7 +370,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 ticket.setSubmitterName(user.getName());
             }
 
-            List<TrackingNum> trackingNumber=ticketMapper.getTrackingNumber(id);
+            List<TrackingNum> trackingNumber = ticketMapper.getTrackingNumber(id);
             ticket.setTrackingNumbers(trackingNumber);
 
             Map<String, Object> ticketingViewsMap = objectMapper.convertValue(ticket, Map.class);
@@ -429,10 +429,19 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         try{
             //update tracking number part
             if(ticketEditDTO.isFromMaster()){
-                ticketMapper.updateMasterOrder(ticketEditDTO.getOrderType());
+                //    void updateMasterOrder(Integer typeOfRepair, String originalRMA, String moOID, String xaOID);
+                Integer xaOID = null;
+                if(ticketEditDTO.getAddress() != null){
+                    xaOID = ticketEditDTO.getAddress().getXaOid();
+                }
+                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
             }
             else{
-                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getOrderType());
+                Integer xaOID = null;
+                if(ticketEditDTO.getAddress() != null){
+                    xaOID = ticketEditDTO.getAddress().getXaOid();
+                }
+                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
             }
             if(ticketEditDTO.getUpdateTracking().size() != 0 ){
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());
@@ -573,6 +582,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("diagnosticPrice", d.getDiagnosticPrice());
             batchDeviceInfo.put("minorPrice", d.getMinorPrice());
             batchDeviceInfo.put("existInAnotherTicket", d.getExistInAnotherTicket());
+            batchDeviceInfo.put("mo_OID", d.getMoOID());
             if (d.getExistInAnotherTicket() || d.getXmOID() != null)
                 errorMsg = "This device has already existed in another active ticket.";
             batchDeviceInfo.put("errorMsg", errorMsg);
@@ -618,21 +628,24 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         Integer orderType = ticketInsertion.getOrderType();
         String originalRMA = ticketInsertion.getOriginalRMA();
-        Address address = ticketInsertion.getAddress();
+        Integer xaOId = ticketInsertion.getXaOID();
 
         TicketInsertionObject tio = new TicketInsertionObject();
+
         tio.setOrderType(orderType);
         tio.setRmaNumber(originalRMA);
         tio.setSubmitterID(submitterId);
-        tio.setAddress(address);
+        tio.setXaOID(xaOId);
 
         int mo_OID = insertTicketToPMO(tio);
-
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
             snsObject.setMoOID(mo_OID);
         }
+
+
         try {
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
+
             if (!trackingNumbers.isEmpty()) {
                 ticketMapper.insertXref_Inbound_Tracking(trackingNumbers, mo_OID);
             }

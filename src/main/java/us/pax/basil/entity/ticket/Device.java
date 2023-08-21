@@ -11,30 +11,18 @@ import java.util.Date;
 @Accessors(chain =  true)
 @ApiModel(value = "Device Object", description = "")
 public class Device {
-
     private String serialNumber;
-
     private Date voidDate;
-
     private Date warrantyExpDate;
-
     private String model;
-
     private String version;
-
     private String customerReportedIssue;
-
     private String warrantyStatus;
-
     private Integer cosmeticPrice;
     private Integer diagnosticPrice;
     private Integer minorPrice;
-
     private Boolean existInAnotherTicket;
-
-
     private Integer xmOID;
-
     private Integer msnOID;
-
+    private Integer moOID;
 }

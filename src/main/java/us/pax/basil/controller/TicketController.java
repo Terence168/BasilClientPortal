@@ -139,6 +139,7 @@ public class TicketController {
         return ticketService.insertResponse(response);
     }
 
+
     @GetMapping("/dropdown/department")
     public QueryResultArrayDTO departmentDropDown(){
         return ticketService.queryDepartment();

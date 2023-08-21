@@ -23,8 +23,6 @@ public class SNsInsertionObject {
 
     private Integer moOID; //ticket id
 
-    private String customerID;
-
     private Integer xmOID;
 
     private Integer msnOID; //this is the master serial number which used to link to serial number
@@ -34,5 +32,22 @@ public class SNsInsertionObject {
     private String customerTerminalID;
 
     private String customerReportedIssueExt;
-    
+    private Boolean cosmetic;
+//    public void setCosmetic(String value){
+//        if(value.isEmpty() || value == null || value.equals("891")){
+//            this.cosmetic = false;
+//        }
+//        else{
+//            this.cosmetic = true;
+//        }
+//    }
+//
+//    public String getCosmetic(){
+//        if(!cosmetic){
+//            return "891";
+//        }
+//        else{
+//            return "890";
+//        }
+//    }
 }

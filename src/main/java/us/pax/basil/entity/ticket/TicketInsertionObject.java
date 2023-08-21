@@ -29,13 +29,10 @@ public class TicketInsertionObject {
 
     private String rmaNumber;
     private Integer submitterID;
-    private String address;
+    private Integer xaOID;
     public void setOrderDateToCurrentDate() {
         this.orderDate = new Date();
     }
 
-    public void setAddress(Address address){
-        this.address = address.toString();
-    }
 
 }
