@@ -15,8 +15,15 @@ export const batchSerialNumberQuery = async (formData) => {
       if (response.data.resultCode !== 0) {
         throw new Error(response.data.errorMessage);
       }
-      let serials = [...response.data.data];
-      return serials;
+      const serials = [...response.data.data];
+      const result = [];
+      serials.forEach((s) => {
+        let sn = validateSerial(s);
+        if(sn != null){
+          result.push(sn);
+        }
+      })
+      return result;
     })
     .catch((e) => {
       Notify.create({
@@ -27,7 +34,7 @@ export const batchSerialNumberQuery = async (formData) => {
     });
 };
 
-export const serialNumberUpdateQuery = async (sn, serialData) => {
+export const serialNumberUpdateQuery = async (sn) => {
   const actionURL = `/ticketing/serialNumberUpdate?serialNumber=${sn}`;
   const vm = this;
 
@@ -38,12 +45,7 @@ export const serialNumberUpdateQuery = async (sn, serialData) => {
         throw new Error(response.data.errorMessage);
       }
       const queryData = response.data.data[0];
-      const serial = {
-        ...queryData,
-        customerReportedIssue: serialData.customerReportedIssue,
-        terminalID: serialData.terminalID,
-      };
-      const validSerial = validateSerial(serial);
+      const validSerial = validateSerial(queryData);
       return validSerial;
     })
     .catch((e) => {
@@ -65,28 +67,20 @@ export const validateSerial = (serial) => {
     bgColor: null,
     invoiceAmt: 0,
   };
-  //If the SN is duplicate, show error
-  // if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
-  //   return;
-  // }
   if (newSerial.existInAnotherTicket === true) {
-    throw new Error(`SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`);
+    Notify.create({
+      type: "negative",
+      message: `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,
+    });
+    return null;
   }
-  //If the serial don't have warranty information, hightlight grey
-  if (
-    newSerial.warrantyExpDate === null ||
-    newSerial.warrantyStatus === null ||
-    newSerial.warrantyStatus === "N/A" ||
-    newSerial.warrantyExpDate === "N/A"
-  ) {
+  //If the serial don't have warranty information, hightlight grey and prevent user to submit it
+  if(newSerial.warrantyStatus === "N/A" || newSerial.warrantyStatus === "Order Date Missing" || newSerial.warrantyStatus === null || newSerial.warrantyExpDate === "N/A"){
     newSerial.bgColor = "bg-grey-5";
+    newSerial.valie = false;
     newSerial.warrantyExpDate = "N/A";
-    newSerial.warrantyStatus = "N/A";
   }
-  if (
-    newSerial.warrantyExpDate != null &&
-    newSerial.warrantyExpDate != "N/A"
-  ) {
+  else{
     const date = new Date(newSerial.warrantyExpDate);
     newSerial.warrantyExpDate = date.toLocaleDateString("un-US");
   }

@@ -45,7 +45,7 @@
               {{ props.row.warrantyStatus }}
             </q-td>
             <q-td key="warrantyExpDate">
-              {{ getParseDate(props.row.warrantyEndDate) }}
+              {{ props.row.warrantyExpDate }}
             </q-td>
           </q-tr>
         </template>
