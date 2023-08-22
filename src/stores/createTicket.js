@@ -227,7 +227,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         return;
       }
       //go to backend to validate it 
-      serialNumberUpdateQuery(serialData.serialNumber).then((serial) => {
+      serialNumberUpdateQuery(serialData.serialNumber, null).then((serial) => {
         if(serial != null){
           serial.customerReportedIssueExt  = serialData.customerReportedIssueExt;
           serial.customerTerminalID = serialData.customerTerminalID;
@@ -241,7 +241,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         //If the SN is duplicate, show error
         return;
       }
-      serialNumberUpdateQuery(serialData.serialNumber).then((serial) => {
+      serialNumberUpdateQuery(serialData.serialNumber, null).then((serial) => {
         //go to backend to validate it 
         if(serial != null){
           serial.customerReportedIssueExt  = serialData.customerReportedIssueExt;

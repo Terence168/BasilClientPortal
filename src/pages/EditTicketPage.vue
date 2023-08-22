@@ -172,7 +172,7 @@
           ref="editTable"
           :isFromMaster="ticketInfo.isFromMaster"
           :orderType="ticketInfo.typeOfRepair"
-          :rows="getSerialsByTicketId(this.ticketId)"
+          :rows="getSerialsByTicketId(this.ticketId, inputValue)"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -321,7 +321,9 @@ export default {
       "findEditSN",
       "addSN",
       "updateSN",
+      "removeSN",
       "updateAddress"
+
     ]),
     handleEditTicket() {
       //valid serials and update it
@@ -359,6 +361,7 @@ export default {
         address: this.ticketInfo.address,
         typeOfRepair: this.ticketInfo.typeOfRepair,
         originalRMA: this.ticketInfo.originalRMA,
+        clientGroup: this.clientGroup,
       };
 
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
@@ -420,7 +423,6 @@ export default {
         .then((serials) => {
           this.file = null;
           serials.forEach((s) => {
-            ///needs to valid in addSN, here is the difference
             this.addSN(this.ticketId, s);
           });
         })

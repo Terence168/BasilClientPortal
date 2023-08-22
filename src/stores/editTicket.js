@@ -2,8 +2,8 @@ import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
 import {
-  batchSerialNumberQuery,
   serialNumberUpdateQuery,
+  validateSerial
 } from "src/utils/ticketUtils";
 
 const capacity = 10;
@@ -19,19 +19,16 @@ export const useEditTicketStore = defineStore("editTicket", {
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
         if (index != -1) {
-          const ticket = state.tickets.find((t) => {
-            if (query != null) {
-              return (
-                (parseInt(t.moOID) === parseInt(ticketId) &&
-                  ((t.serialNumber != null && t.serialNumber.includes(query)) ||
-                    (t.model != null && t.model.includes(query)))) ||
-                t.customerReportedIssueExt.includes(query)
-              );
-            } else {
-              return parseInt(t.moOID) === parseInt(ticketId);
-            }
-          });
-          const serials = ticket.serials;
+          const ticket = state.tickets.find((t) => 
+                (parseInt(t.moOID) === parseInt(ticketId)
+              ));
+          let serials = ticket.serials;
+          if(query != null){
+            serials = ticket.serials.filter((t) => 
+            (t.serialNumber != null && t.serialNumber.includes(query)) ||
+            (t.model != null && t.model.includes(query)) ||
+            (t.customerReportedIssueExt!= null && t.customerReportedIssueExt.includes(query)))
+          }
           return serials;
         }
 
@@ -109,9 +106,10 @@ export const useEditTicketStore = defineStore("editTicket", {
             deleteSerial: [],
             deleteTracking: [],
           };
-
+          
           this.removeTicket(ticketId);
           this.tickets.push(ticketInfo);
+          ticketInfo.serials = ticketInfo.serials.map((s) => validateSerial(s));
           return ticketInfo;
         });
     },
@@ -123,7 +121,6 @@ export const useEditTicketStore = defineStore("editTicket", {
       if (index != -1) {
         return this.tickets[index];
       }
-
       return this.fetchTicket(ticketId);
     },
     /**
@@ -137,13 +134,22 @@ export const useEditTicketStore = defineStore("editTicket", {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
+        if(serial.serialNumber != oldSN){
+          const sIndex = ticket.serials.findIndex((s) => s.serialNumber === serial.serialNumber);
+          if(sIndex != -1){
+            Notify.create({
+              type: "negative",
+              message: `SN ${serial.serialNumber} Already in the Table.`,
+            })
+            return;
+          }
+        }
 
-        serialNumberUpdateQuery(oldSN, serial).then((wrappedSerial) => {
+        serialNumberUpdateQuery(oldSN, ticket.moOID).then((wrappedSerial) => {
           const oldSerial = ticket.serials.find(
             (s) => s.serialNumber === oldSN
           );
           if (wrappedSerial != null) {
-            oldSerial.serialNumber = serial.serialNumber;
             oldSerial.customerReportedIssueExt =
               serial.customerReportedIssueExt;
             oldSerial.customerTerminalID = serial.customerTerminalID;
@@ -167,7 +173,6 @@ export const useEditTicketStore = defineStore("editTicket", {
         if (sIndex != -1) {
           serials.splice(sIndex, 1);
         }
-        //todo: touch the ticket
         ticket.edit.deleteSerial.push(xmOID);
       }
     },
@@ -179,7 +184,15 @@ export const useEditTicketStore = defineStore("editTicket", {
         const ticket = this.tickets.find(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
-        serialNumberUpdateQuery(serial.serialNumber, serial).then(
+        const sIndex = ticket.serials.findIndex((s) => s.serialNumber === serial.serialNumber);
+        if(sIndex != -1){
+          Notify.create({
+            type: "negative",
+            message: `SN ${serial.serialNumber} Already in the Table.`,
+          })
+          return;
+        }
+        serialNumberUpdateQuery(serial.serialNumber, ticket.moOID).then(
           (wrappedSerial) => {
             wrappedSerial.customerReportedIssueExt =
               serial.customerReportedIssueExt;
@@ -191,6 +204,7 @@ export const useEditTicketStore = defineStore("editTicket", {
         );
       }
     },
+  
     findEditSN(ticketId, sn) {
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
@@ -210,8 +224,8 @@ export const useEditTicketStore = defineStore("editTicket", {
             result.updateSerial.push({
               xmOID: s.xmOID,
               serialNumber: s.serialNumber,
-              customerReportedIssueExt: s.customerReportedIssue,
-              customerTerminalID: s.terminalID,
+              customerReportedIssueExt: s.customerReportedIssueExt,
+              customerTerminalID: s.customerTerminalID,
               msnOID: s.msnOID,
             });
           }
@@ -220,8 +234,8 @@ export const useEditTicketStore = defineStore("editTicket", {
             result.addSerial.push({
               xmOID: s.xmOID,
               serialNumber: s.serialNumber,
-              customerReportedIssueExt: s.customerReportedIssue,
-              customerTerminalID: s.terminalID,
+              customerReportedIssueExt: s.customerReportedIssueExt,
+              customerTerminalID: s.customerTerminalID,
               msnOID: s.msnOID,
             });
           }

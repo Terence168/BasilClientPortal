@@ -45,7 +45,7 @@
               {{ props.row.warrantyStatus }}
             </q-td>
             <q-td key="warrantyExpDate">
-              {{ props.row.warrantyExpDate }}
+              {{ props.row.warrantyExpDate === "N/A" ? "N/A" : this.getParseDate(props.row.warrantyExpDate)}}
             </q-td>
           </q-tr>
         </template>
@@ -93,7 +93,6 @@ import TicketDetailForm from "./TicketDetailForm.vue";
 import { DateTime } from "luxon";
 import { Notify } from "quasar";
 import { parseDateTime, parseDate } from "../utils/timeUtils.js";
-import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 
 import { api } from "src/boot/axios";
 
@@ -197,12 +196,13 @@ export default {
       if (this.orderType === 3) {
         //repair
         serials.forEach((s) => {
-          if (s.valid === true) {
-            amt = amt + (s.minorPrice == null ? 0 : s.minorPrice);
+          if(s.valid === true && s.warrantyStatus === "Out of Warranty"){
+            amt += s.minorPrice;
           }
         });
       }
       if (this.orderType === 7) {
+        //diagnostic
         serials.forEach((s) => {
           if (s.valid === true) {
             amt = amt + (s.diagnosticPrice == null ? 0 : s.diagnosticPrice);

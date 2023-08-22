@@ -34,7 +34,7 @@ export const batchSerialNumberQuery = async (formData) => {
     });
 };
 
-export const serialNumberUpdateQuery = async (sn) => {
+export const serialNumberUpdateQuery = async (sn, mo_OID) => {
   const actionURL = `/ticketing/serialNumberUpdate?serialNumber=${sn}`;
   const vm = this;
 
@@ -45,7 +45,7 @@ export const serialNumberUpdateQuery = async (sn) => {
         throw new Error(response.data.errorMessage);
       }
       const queryData = response.data.data[0];
-      const validSerial = validateSerial(queryData);
+      const validSerial = validateSerial(queryData, mo_OID);
       return validSerial;
     })
     .catch((e) => {
@@ -57,7 +57,7 @@ export const serialNumberUpdateQuery = async (sn) => {
     })
 };
 
-export const validateSerial = (serial) => {
+export const validateSerial = (serial, moOID) => {
   const newSerial = {
     ...serial,
     cosmetic: false,
@@ -67,7 +67,8 @@ export const validateSerial = (serial) => {
     bgColor: null,
     invoiceAmt: 0,
   };
-  if (newSerial.existInAnotherTicket === true) {
+  
+  if (newSerial.moOID != moOID && newSerial.existInAnotherTicket === true) {
     Notify.create({
       type: "negative",
       message: `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,
@@ -75,15 +76,15 @@ export const validateSerial = (serial) => {
     return null;
   }
   //If the serial don't have warranty information, hightlight grey and prevent user to submit it
-  if(newSerial.warrantyStatus === "N/A" || newSerial.warrantyStatus === "Order Date Missing" || newSerial.warrantyStatus === null || newSerial.warrantyExpDate === "N/A"){
+  if(newSerial.warrantyStatus === "N/A" || newSerial.warrantyStatus === null){
     newSerial.bgColor = "bg-grey-5";
-    newSerial.valie = false;
+    newSerial.valid = false;
     newSerial.warrantyExpDate = "N/A";
   }
-  else{
-    const date = new Date(newSerial.warrantyExpDate);
-    newSerial.warrantyExpDate = date.toLocaleDateString("un-US");
-  }
+  // if(newSerial.warrantyStatus === "Order Date Missing"){
+  //   newSerial.bgColor = "bg-grey-5";
+  //   newSerial.valid = false;
+  // }
   //If it's not a us-based serial, hightlight yellow
   if (newSerial.resultCode === -1) {
     newSerial.bgColor = "bg-warning";
