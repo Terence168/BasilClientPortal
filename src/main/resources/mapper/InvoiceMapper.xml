@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.InvoiceMapper">
+    <insert id="insertSecInvoiceList" parameterType="java.util.List" useGeneratedKeys="true">
+        INSERT INTO BASIL_SEC_PRD.FACT_INVOICE (XM_OID, PXM_OID, MO_OID, COSMETIC, DIAGNOSTIC, MINOR, CREATE_DATE,
+        INV1_ITEM_TOTAL)
+
+        SELECT NULL,
+        t1.XM_OID,
+        t1.MO_OID,
+        t1.cosmeticPrice,
+        t1.diagnosticPrice,
+        t1.minorPrice,
+        NOW(),
+        CASE
+        WHEN orderType = 3 THEN
+        IF(warrantyStatus = 'Under Warranty',
+        IF(cosmetic = 890, cosmeticPrice, 0.00),
+        minorPrice + IF(cosmetic = 890, cosmeticPrice, 0.00))
+        WHEN orderType = 4 THEN 0.00
+        WHEN orderType = 7 THEN diagnosticPrice
+        ELSE 0.00
+        END AS unitInvoice
+        FROM (SELECT xm.XM_OID,
+        xm.MO_OID,
+        CAST(COALESCE(rc1.COSMETIC, rc2.COSMETIC, 0.00) AS DECIMAL(6, 2))     cosmeticPrice,
+        CAST(COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC, 0.00) AS DECIMAL(6, 2)) diagnosticPrice,
+        CAST(COALESCE(rc1.MINOR, rc2.MINOR, 0.00) AS DECIMAL(6, 2))           minorPrice,
+        xm.COSMETIC                             as                           cosmetic,
+        CASE
+        WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+        WHEN COALESCE(mo1.ORDER_DATE, mo2.ORDER_DATE) <![CDATA[<]]>
+            COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        ELSE 'Out Of Warranty'
+        END                                  AS                           warrantyStatus,
+
+        COALESCE(mo1.ORDER_TYPE, mo2.ORDER_TYPE) AS                           orderType
+        FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS xm
+        LEFT JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
+        LEFT JOIN BASIL_ODS_PRD.MASTER_PART mp USING (PART_OID)
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc1
+        ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc2
+        ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+        LEFT JOIN BASIL_ODS_PRD.MASTER_ORDER mo1 ON xm.MO_OID = mo1.MO_OID
+        LEFT JOIN BASIL_SEC_PRD.PREP_MASTER_ORDER mo2 ON xm.MO_OID = mo2.MO_OID
+        WHERE xm.XM_OID IN
+        <foreach collection="pxmOidList" item="item" open="(" separator="," close=")" >
+            #{item}
+        </foreach>
+        ) t1
+    </insert>
+
+    <update id="updateInvoiceList" parameterType="java.util.List">
+        <foreach collection="list" item="item" separator=";">
+            UPDATE BASIL_SEC_PRD.FACT_INVOICE
+            <set>
+                <if test = "item.diagnostic != null">
+                    DIAGNOSTIC = #{item.diagnostic},
+                </if>
+                <if test="item.cosmetic != null">
+                    COSMETIC = #{item.cosmetic}
+                </if>
+                <if test="item.minor!= null">
+                    MINOR = #{item.minor}
+                </if>
+                <if test="item.inv1ItemTotal != null">
+                    INV1_ITEM_TOTAL = #{item.inv1ItemTotal}
+                </if>
+                UPDATE_DATE = #{now()}
+            </set>
+            WHERE FI_OID = #{item.fiOID}
+        </foreach>
+    </update>
+
+    <select id="getInvoiceByMoOID" resultType="us.pax.basil.entity.invoice.Invoice">
+        select FI_OID as fiOID, XM_OID as xmOID, PXM_OID as pxmOID, MO_OID as moOID, DIAGNOSTIC as diagnostic,
+        COSMETIC as cosmetic, MINOR as minor, CREATED_DATE as createDate, UPDATE_DATE as updateDate
+        from BASIL_SEC_PRD.FACT_INVOICE
+        where MO_OID = #{moOID}
+    </select>
+</mapper>
