@@ -489,40 +489,8 @@
         </where>
     </select>
 
-
-    <select id="queryDeviceInfo" resultType="us.pax.basil.entity.ticket.Device">
-        SELECT
-        hpcf.SN as serialNumber,
-        hpcf.`Full_PN#` as model,
-        hpcf.`Version_#` as version,
-        msn.WARRANTY_END_DATE as warrantyExpDate,
-        rc.PART_NUMBER_SHORT,
-        rc.CUSTOMER AS COMPANY,
-        rc.COSMETIC as cosmeticPrice,
-        rc.DIAGNOSTIC as diagnosticPrice,
-        rc.MINOR as minorPrice
-        FROM
-        BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
-        JOIN BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = msn.SERIAL_NUMBER
-        JOIN BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(hpcf.`Full_PN#`, LOCATE('-', hpcf.`Full_PN#`) - 1) =
-        rc.PART_NUMBER_SHORT
-        <where>
-            <if test="serialNumber != null">
-                msn.SERIAL_NUMBER = #{serialNumber}
-            </if>
-            <if test="companyId != null">
-                AND (rc.CUSTOMER = #{companyId} OR rc.CUSTOMER IS NULL)
-            </if>
-        </where>
-        <if test="companyId != null">
-            ORDER BY rc.CUSTOMER DESC
-        </if>
-        LIMIT 1;
-    </select>
-
     <select id="getDeviceInfos" parameterType="java.util.List" resultType="us.pax.basil.entity.ticket.Device">
-        SELECT
-        SERIAL_NUMBER as serialNumber,
+        SELECT SERIAL_NUMBER as serialNumber,
         msnOID,
         xmOID,
         warrantyExpDate,
@@ -534,31 +502,25 @@
         minorPrice,
         existInAnotherTicket,
         moOID
-        FROM(
-        SELECT
-        msn.SERIAL_NUMBER,
-        msn.MSN_OID as msnOID,
-        CASE
-        WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN msn.WARRANTY_VOIDED_DATE
-        ELSE msn.WARRANTY_END_DATE
-        END AS warrantyExpDate,
+        FROM (SELECT msn.SERIAL_NUMBER,
+        msn.MSN_OID                                                                      as msnOID,
+        COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE)                        AS warrantyExpDate,
         CASE
         WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
-        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE (msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
         ELSE 'Out Of Warranty'
-        END AS warrantyStatus,
-        mp.PART_NUMBER_LONG AS model,
-        mp.VERSION_NUMBER AS version,
-        rc.COSMETIC AS cosmeticPrice,
-        rc.DIAGNOSTIC AS diagnosticPrice,
-        rc.MINOR AS minorPrice,
-        xm.XM_OID as xmOID,
-        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE)  AS existInAnotherTicket,
+        END                                                                          AS warrantyStatus,
+        mp.PART_NUMBER_LONG                                                              AS model,
+        mp.VERSION_NUMBER                                                                AS version,
+        COALESCE(rc1.COSMETIC, rc2.COSMETIC)                                             AS cosmeticPrice,
+        COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC)                                         AS diagnosticPrice,
+        COALESCE(rc1.MINOR, rc2.MINOR)                                                   AS minorPrice,
+        xm.XM_OID                                                                        as xmOID,
+        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE) AS existInAnotherTicket,
         ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE)
-        DESC) AS RN,
-        Case when xm.XM_OID is not null then xm.MO_OID else pxm.MO_OID end as moOID
-        FROM
-        BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+        DESC)                                                                        AS RN,
+        IF(xm.XM_OID is not null, xm.MO_OID, pxm.MO_OID)                                 as moOID
+        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
         LEFT JOIN
         BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
         LEFT JOIN
@@ -566,32 +528,18 @@
         LEFT JOIN
         BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
         LEFT JOIN
-        BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) =
-        rc.PART_NUMBER_SHORT
-        <where>
-            msn.SERIAL_NUMBER IN
+        BASIL_SEC_PRD.REPAIR_COST rc1 ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+        LEFT JOIN
+        BASIL_SEC_PRD.REPAIR_COST rc2
+        ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+        WHERE msn.SERIAL_NUMBER IN
             <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
                 #{item, jdbcType=INTEGER}
             </foreach>
-            AND (
-            rc.CUSTOMER = #{companyId} OR
-            (
-            rc.CUSTOMER IS NULL AND
-            NOT EXISTS (
-            SELECT 1
-            FROM BASIL_SBX_PRD.REPAIR_COST rc2
-            WHERE rc2.PART_NUMBER_SHORT = rc.PART_NUMBER_SHORT
-            <if test="companyId != null">
-                AND rc2.CUSTOMER = #{companyId}
-            </if>
-            )
-            )
-            )
-        </where>
         ) AS CTE
         <where>
-            (existInAnotherTicket = 1) OR
-            (existInAnotherTicket = 0 AND RN = 1);
+            (existInAnotherTicket = 1)
+            OR (existInAnotherTicket = 0 AND RN = 1)
         </where>
     </select>
 
