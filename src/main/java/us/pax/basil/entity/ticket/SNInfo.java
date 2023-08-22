@@ -40,6 +40,8 @@ public class SNInfo {
     private Integer cosmeticPrice;
     private Integer diagnosticPrice;
     private Integer minorPrice;
+    
+    private Integer unitInvoice;
 
     private String model;
     private String version;
