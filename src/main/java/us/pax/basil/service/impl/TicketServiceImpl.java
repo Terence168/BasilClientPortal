@@ -443,27 +443,35 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 }
                 ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
             }
-            if(ticketEditDTO.getUpdateTracking().size() != 0 ){
+            if(ticketEditDTO.getUpdateTracking().size() > 0 ){
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());
             }
-            if(ticketEditDTO.getDeleteTracking().size() != 0){
+            if(ticketEditDTO.getDeleteTracking().size() > 0){
                 ticketMapper.deleteXref_Inbound_Tracking(ticketEditDTO.getDeleteTracking());
             }
-            if(ticketEditDTO.getAddTracking().size() != 0){
-                ticketMapper.batchInsertXref_Inbound_Tracking(ticketEditDTO.getAddTracking());
+            if(ticketEditDTO.getAddTracking().size() > 0){
+                if(ticketEditDTO.getAddTracking().size() == 1){
+                    ticketMapper.insertSingleXref_Inbound_Tracking(ticketEditDTO.getAddTracking().get(0));
+                }
+                else{
+                    ticketMapper.batchInsertXref_Inbound_Tracking(ticketEditDTO.getAddTracking());
+                }
             }
 
-            //update serials number part
-            if(ticketEditDTO.getAddSerial().size() > 0){
-                ticketMapper.insertPrep_Xref_Materials(ticketEditDTO.getAddSerial());
-            }
             if(ticketEditDTO.getDeleteSerial().size() > 0){
                 ticketMapper.deletePrep_Xref_Materials(ticketEditDTO.getDeleteSerial());
-                ticketMapper.deleteXref_Materials(ticketEditDTO.getDeleteSerial());
+                //ticketMapper.deleteXref_Materials(ticketEditDTO.getDeleteSerial());
+            }
+            //update serials number part
+            if(ticketEditDTO.getAddSerial().size() > 0){
+                for (SNsInsertionObject snsObject : ticketEditDTO.getAddSerial()) {
+                    snsObject.setMoOID(Integer.valueOf(id));
+                }
+                ticketMapper.insertPrep_Xref_Materials(ticketEditDTO.getAddSerial());
             }
             if(ticketEditDTO.getUpdateSerial().size() > 0){
                 ticketMapper.updatePrep_Xref_Materials(ticketEditDTO.getUpdateSerial());
-                ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
+                //ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
             }
             return new QueryResultArrayDTO(null,0, 0, "");
         }catch (Exception e){
@@ -567,8 +575,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             String errorMsg = "";
             String curSN = d.getSerialNumber();
             batchDeviceInfo.put("serialNumber", curSN);
-            batchDeviceInfo.put("xm_OID", d.getXmOID());
-            batchDeviceInfo.put("msn_OID", d.getMsnOID());
+            batchDeviceInfo.put("xmOID", d.getXmOID());
+            batchDeviceInfo.put("msnOID", d.getMsnOID());
             batchDeviceInfo.put("model", d.getModel());
             batchDeviceInfo.put("version", d.getVersion());
             batchDeviceInfo.put("customerReportedIssue", deviceInfoMap.get(curSN)[0]);
@@ -582,7 +590,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("diagnosticPrice", d.getDiagnosticPrice());
             batchDeviceInfo.put("minorPrice", d.getMinorPrice());
             batchDeviceInfo.put("existInAnotherTicket", d.getExistInAnotherTicket());
-            batchDeviceInfo.put("mo_OID", d.getMoOID());
+            batchDeviceInfo.put("moOID", d.getMoOID());
             if (d.getExistInAnotherTicket() || d.getXmOID() != null)
                 errorMsg = "This device has already existed in another active ticket.";
             batchDeviceInfo.put("errorMsg", errorMsg);
@@ -641,8 +649,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
             snsObject.setMoOID(mo_OID);
         }
-
-
         try {
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
 
@@ -658,9 +664,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
-    @Override
-    public SubmittingTicket handleTicket(TicketEditObject ticketEditObject) {
-        return null;
-    }
+
 
 }

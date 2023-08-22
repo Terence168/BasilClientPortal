@@ -720,10 +720,10 @@
     </delete>
 
     <insert id="batchInsertXref_Inbound_Tracking" parameterType="java.util.List">
-        <if test ="list!= null and list.size() > 0">
+        <if test ="list!= null and list.size() > 1">
             INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
-            <foreach collection="list" item="item" open="(" separator="union" close=")" >
-                SELECT #{item.num} AS TRACKING_NUMBER, #{item.moOID} AS MO_OID
+            <foreach collection="list" item="item" open="("  separator="union" close=")" >
+                SELECT distinct #{item.num} AS TRACKING_NUMBER, #{item.moOID} AS MO_OID
                 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
                 WHERE NOT EXISTS (
                     SELECT 1 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
@@ -731,6 +731,22 @@
                 )
             </foreach>
         </if>
+    </insert>
+
+    <insert id="insertSingleXref_Inbound_Tracking" parameterType="us.pax.basil.entity.ticket.TrackingNum">
+            INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID) (
+                SELECT distinct #{num} AS TRACKING_NUMBER, #{moOID} AS MO_OID
+                FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                WHERE NOT EXISTS (
+                SELECT 1 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                WHERE TRACKING_NUMBER =  #{num} AND MO_OID = #{moOID}
+                )
+            )
+    </insert>
+
+    <insert id="InsertXref_Inbound_Tracking">
+            INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID) values
+            ({item.num}, #{item.moOID})
     </insert>
 
     <delete id="deletePrep_Xref_Materials" parameterType="java.util.List">

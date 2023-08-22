@@ -33,21 +33,5 @@ public class SNsInsertionObject {
 
     private String customerReportedIssueExt;
     private Boolean cosmetic;
-//    public void setCosmetic(String value){
-//        if(value.isEmpty() || value == null || value.equals("891")){
-//            this.cosmetic = false;
-//        }
-//        else{
-//            this.cosmetic = true;
-//        }
-//    }
-//
-//    public String getCosmetic(){
-//        if(!cosmetic){
-//            return "891";
-//        }
-//        else{
-//            return "890";
-//        }
-//    }
+
 }

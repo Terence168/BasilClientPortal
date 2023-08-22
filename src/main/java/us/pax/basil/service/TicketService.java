@@ -62,7 +62,6 @@ public interface TicketService extends IService<Integer>{
     int insertTicketToPMO(TicketInsertionObject tio);
     QueryResultDTO submitTicket(TicketInsertion ticketInsertion);
 
-    SubmittingTicket handleTicket(TicketEditObject ticketEditObject);
 
     QueryResultDTO viewEditTicket(String id);
 

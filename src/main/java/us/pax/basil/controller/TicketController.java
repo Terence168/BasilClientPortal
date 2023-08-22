@@ -56,12 +56,6 @@ public class TicketController {
         return ticketService.submitTicket(ticketInsertion);
     }
 
-    @PostMapping(value = "/handleTicket", consumes = "application/json", produces = "application/json")//BCP-28
-    //handle the ticket
-    public SubmittingTicket handleTicket(@RequestBody TicketEditObject ticketEditObject){
-        return ticketService.handleTicket(ticketEditObject);
-    }
-
     //get ticket
     @GetMapping("/{ticketId}")
     public QueryResultDTO viewEditTicket(@PathVariable(value = "ticketId", required = true) String id){
