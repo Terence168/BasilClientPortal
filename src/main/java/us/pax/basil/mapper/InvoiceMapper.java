@@ -6,7 +6,7 @@ import us.pax.basil.entity.invoice.Invoice;
 import java.util.List;
 @Mapper
 public interface InvoiceMapper {
-    void insertMasterInvoiceList(List<Invoice> invoiceList);
+    void insertSecInvoiceList(List<Integer> pxmOidList, Integer companyId);
 
     void updateMasterInvoice(List<Invoice> invoiceList);
 
