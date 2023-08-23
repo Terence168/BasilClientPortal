@@ -1,7 +1,6 @@
 package us.pax.basil.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,7 +36,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         try {
             if(!pxmOidList.isEmpty()) {
                 invoiceMapper.deleteInvoiceList(pxmOidList);
-                invoiceMapper.insertSecInvoiceList(pxmOidList, companyId);
+                invoiceMapper.reinsertSecInvoiceList(pxmOidList, companyId);
             }
             return new QueryResultDTO(null, 0, "");
         } catch (Exception e) {

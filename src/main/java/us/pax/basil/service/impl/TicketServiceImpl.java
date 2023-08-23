@@ -366,9 +366,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     Address address = addressService.findById(ticket.getXaOID());
                     ticket.setAddress(address);
                 }
-                for(SNInfo sn : ticket.getSerials()){
-                    sn.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(sn.getWarrantyExpDate(), sn.getWarrantyVoidedDate(), sn.getOrderDate()));
-                }
 
                 if(ticket.getSubmitterID() != null){
                     User user = userMapper.getUserById(ticket.getSubmitterID());
@@ -682,7 +679,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             //emailService.sendRmaConfirmationEmail(mo_OID, "xiaoxuan.liao@pax.us");
             return new QueryResultDTO(result, 0, "");
         } catch (Exception e) {
-            return new QueryResultDTO(null, -1, "");
+            return new QueryResultDTO(null, -1, e.getMessage());
         }
     }
 
