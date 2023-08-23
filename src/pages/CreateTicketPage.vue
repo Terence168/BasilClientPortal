@@ -198,6 +198,18 @@
             Submit
           </q-btn>
         </div>
+
+        <!-- Button for test email -->
+        <!-- <div class="row justify-center">
+          <q-btn
+            class="col-auto"
+            color="primary"
+            @click="testEmailSerivce"
+            style="min-width: 200px"
+          >
+            Test Email
+          </q-btn>
+        </div> -->
       </div>
     </div>
     <BaseModal
@@ -380,7 +392,6 @@ export default {
         xaOID:this.address.xaOid
       };
 
-      console.log(payload);
       const vm = this;
       this.$api
         .post(actionURL, payload, {
@@ -422,6 +433,29 @@ export default {
       this.address = address;
       this.showAddressModal = false;
     },
+    testEmailSerivce(){
+      const actionURL = "/aws/email/test";
+      const vm = this;
+      this.$api
+        .get(actionURL)
+        .then(function (response) {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          console.log("send email success");
+          // const mo_OID = response.data.data.mo_OID;
+          // Notify.create({
+          //   type: "positive",
+          //   message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
+          // });
+        })
+        .catch((e) => {
+          this.$q.notify({
+            type: "negative",
+            message: e.message,
+          });
+        })
+    }
   },
 };
 </script>
