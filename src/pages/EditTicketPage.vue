@@ -278,6 +278,10 @@ export default {
     this.$watch(
       () => this.$route.params,
       () => {
+        if (this.$route.name !== "edit-ticket") {
+          return;
+        }
+
         this.isLoading = true;
 
         Promise.all([
@@ -304,7 +308,9 @@ export default {
       { immediate: true }
     );
   },
+
   mounted() {},
+
   computed: {
     // ...mapWritableState(useCreateTicketStore, ["orderType"]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
