@@ -9,6 +9,6 @@ public interface InvoiceMapper {
     void insertSecInvoiceList(List<Integer> pxmOidList, Integer companyId);
     void reinsertSecInvoiceList(List<Integer> pxmOidList, Integer companyId);
     void deleteInvoiceList(List<Integer> pxmOidList);
-
     List<Invoice> getInvoiceByMoOID(Integer moOID);
+    Double getTotalInvoice(Integer moOID);
 }

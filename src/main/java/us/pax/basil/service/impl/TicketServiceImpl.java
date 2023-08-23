@@ -2,33 +2,40 @@ package us.pax.basil.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
+import software.amazon.awssdk.core.Response;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.*;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Address;
-import us.pax.basil.entity.invoice.Invoice;
+import us.pax.basil.entity.customer.Company;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.AddressService;
-import us.pax.basil.service.EmailService;
 import us.pax.basil.service.InvoiceService;
 import us.pax.basil.service.TicketService;
+import us.pax.basil.service.aws.ses.EmailService;
+import us.pax.basil.service.aws.ses.SESResponse;
 import us.pax.basil.utils.AuthUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
 
-import javax.jws.Oneway;
 import javax.persistence.EntityManager;
 
 import org.apache.poi.ss.usermodel.Row;
@@ -644,6 +651,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     @Override
     public QueryResultDTO submitTicket(TicketInsertion ticketInsertion) {
         Integer submitterId = AuthUtil.getUser().getUserId();
+        String submitterEmail = AuthUtil.getUser().getEmailAddress();
         Integer companyId = AuthUtil.getUser().getCompanyId();
 
         List<SNsInsertionObject> sNsInsertionObjectList = ticketInsertion.getSerials();
@@ -670,19 +678,55 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             List<Integer> pxmOidList = new ArrayList<>();
             sNsInsertionObjectList.stream().forEach(s -> pxmOidList.add(s.getXmOID()));
             invoiceService.insertInvoiceList(pxmOidList, companyId);
-
+            Double invoice = invoiceService.getTotalInvoice(mo_OID);
             if (!trackingNumbers.isEmpty()) {
                 ticketMapper.insertXref_Inbound_Tracking(trackingNumbers, mo_OID);
             }
             Map<String, Object> result = new HashMap<>();
             result.put("mo_OID", mo_OID);
-            //emailService.sendRmaConfirmationEmail(mo_OID, "xiaoxuan.liao@pax.us");
+            if(invoice > 0d) {
+                Company company = userMapper.getCompanyInfo(companyId);
+                Integer clientGroup = company.getClientGroupId();
+                String content = constructEmail(mo_OID, invoice, clientGroup);
+                String subject = String.format("RMA #%d Confirmation", mo_OID);
+                submitterEmail="success@simulator.amazonses.com";
+                Mono<String> delivery = emailService.sendEmail(submitterEmail, subject, content).map(response ->
+                        response.isSuccess() ? "Success, message ID: " + response.getResponse().messageId()
+                                : response.getException() != null ? response.getException().getMessage()
+                                : "Service Disabled");
+                delivery.subscribe(
+                        value ->{
+                            result.put("emailDeliveryResult", value);
+                        },
+                        error->{
+                            log.error(error.getMessage());
+                        }
+                );
+            }
             return new QueryResultDTO(result, 0, "");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
         }
     }
 
+    private String constructEmail(Integer moOID, Double invoice, Integer clientGroup) throws IOException {
+        Map<String, Object> map = new HashMap<>();
+        map.put("moOID", moOID);
+        map.put("invoice", invoice);
 
+        MustacheFactory mf = new DefaultMustacheFactory();
+        Mustache mustache = null;
+        if(clientGroup.equals(458)){
+            //small client
+            mustache = mf.compile("html/email/smallMktRmaEmail.mustache");
+
+        }else {
+            mustache = mf.compile("html/email/midLargeRmaEmail.mustache");
+        }
+        StringWriter writer = new StringWriter();
+        mustache.execute(writer, map).flush();
+        String emailBody = writer.toString();
+        return emailBody;
+    }
 
 }

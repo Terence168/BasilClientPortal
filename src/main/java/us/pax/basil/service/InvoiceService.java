@@ -10,5 +10,6 @@ public interface InvoiceService {
     QueryResultDTO insertInvoiceList(List<Integer> pxmOidList, Integer companyId);
     QueryResultDTO updateInvoiceList(List<Integer> pxmOidList, Integer companyId);
     QueryResultArrayDTO getInvoiceList(Integer moOID);
+    Double getTotalInvoice(Integer moOID);
     QueryResultDTO deleteInvoiceList(List<Integer> pxmOidList);
 }

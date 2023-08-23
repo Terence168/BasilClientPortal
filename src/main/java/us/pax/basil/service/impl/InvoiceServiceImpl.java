@@ -1,6 +1,9 @@
 package us.pax.basil.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,7 +13,10 @@ import us.pax.basil.entity.invoice.Invoice;
 import us.pax.basil.mapper.InvoiceMapper;
 import us.pax.basil.service.InvoiceService;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,6 +66,15 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
+    public Double getTotalInvoice(Integer moOID) {
+        try {
+            return invoiceMapper.getTotalInvoice(moOID);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
     public QueryResultDTO deleteInvoiceList(List<Integer> pxmOidList) {
         try {
             if(!pxmOidList.isEmpty()) {
@@ -70,4 +85,6 @@ public class InvoiceServiceImpl implements InvoiceService {
             return new QueryResultDTO(null, -1, e.getMessage());
         }
     }
+
+
 }

@@ -101,6 +101,14 @@
         </foreach>
     </delete>
 
+    <select id="getTotalInvoice" resultType="Double">
+        select sum(INV1_ITEM_TOTAL) from BASIL_SEC_PRD.FACT_INVOICE
+        <where>
+            <if test = "moOID != null">
+                mo_oid = #{moOID}
+            </if>
+        </where>
+    </select>
 </mapper>
 
 
