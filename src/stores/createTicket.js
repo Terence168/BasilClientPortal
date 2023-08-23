@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
+import {serialNumberUpdateQuery} from "../utils/ticketUtils"
 
 /**
   filter input words
@@ -225,57 +226,32 @@ export const useCreateTicketStore = defineStore("createTicket", {
       if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
         return;
       }
-      if (newSerial.existInAnotherTicket === true) {
-        Notify.create({
-          type: "negative",
-          message: `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,
-        });
-        return;
-      }
-      //If the serial don't have warranty information, hightlight grey
-      if (
-        newSerial.warrantyExpDate === null ||
-        newSerial.warrantyStatus === null ||
-        newSerial.warrantyStatus === "N/A" ||
-        newSerial.warrantyExpDate === "N/A"
-      ) {
-        newSerial.bgColor = "bg-grey-5";
-        newSerial.warrantyExpDate = "N/A";
-        newSerial.warrantyStatus = "N/A";
-      }
-      if (
-        newSerial.warrantyExpDate != null &&
-        newSerial.warrantyExpDate != "N/A"
-      ) {
-        const date = new Date(newSerial.warrantyExpDate);
-        newSerial.warrantyExpDate = date.toLocaleDateString("un-US");
-      }
-      //If it's not a us-based serial, hightlight yellow
-      if (newSerial.resultCode === -1) {
-        newSerial.bgColor = "bg-warning";
-        newSerial.valid = false;
-      }
-      this.serials.unshift(newSerial);
+      //go to backend to validate it 
+      serialNumberUpdateQuery(serialData.serialNumber, null).then((serial) => {
+        if(serial != null){
+          serial.customerReportedIssueExt  = serialData.customerReportedIssueExt;
+          serial.customerTerminalID = serialData.customerTerminalID;
+          this.serials.unshift(serial);
+        }
+      })
     },
 
     updateSerial(oldSerialNumber, serialData) {
-      const { serialNumber } = serialData;
-      if (
-        serialNumber != oldSerialNumber &&
-        this.isSerialNumberUnqiue(serialNumber) === false
-      ) {
+      if(oldSerialNumber != serialData.serialNumber && this.isSerialNumberUnqiue(serialData.serialNumber) === false){
+        //If the SN is duplicate, show error
         return;
       }
-      const newSerial = {
-        ...serialData,
-        cosmetic: false,
-        show: true,
-        loading: false,
-      };
-      const index = this.serials.findIndex(
-        (s) => oldSerialNumber === s.serialNumber
-      );
-      this.serials[index] = newSerial;
+      serialNumberUpdateQuery(serialData.serialNumber, null).then((serial) => {
+        //go to backend to validate it 
+        if(serial != null){
+          serial.customerReportedIssueExt  = serialData.customerReportedIssueExt;
+          serial.customerTerminalID = serialData.customerTerminalID;
+          const index = this.serials.findIndex(
+            (s) => oldSerialNumber === s.serialNumber
+          );
+          this.serials[index] = serial;
+        }
+      })
     },
 
     resetTicket() {

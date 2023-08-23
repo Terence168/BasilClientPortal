@@ -15,8 +15,15 @@ export const batchSerialNumberQuery = async (formData) => {
       if (response.data.resultCode !== 0) {
         throw new Error(response.data.errorMessage);
       }
-      let serials = [...response.data.data];
-      return serials;
+      const serials = [...response.data.data];
+      const result = [];
+      serials.forEach((s) => {
+        let sn = validateSerial(s);
+        if(sn != null){
+          result.push(sn);
+        }
+      })
+      return result;
     })
     .catch((e) => {
       Notify.create({
@@ -27,7 +34,7 @@ export const batchSerialNumberQuery = async (formData) => {
     });
 };
 
-export const serialNumberUpdateQuery = async (sn, serialData) => {
+export const serialNumberUpdateQuery = async (sn, mo_OID) => {
   const actionURL = `/ticketing/serialNumberUpdate?serialNumber=${sn}`;
   const vm = this;
 
@@ -38,12 +45,7 @@ export const serialNumberUpdateQuery = async (sn, serialData) => {
         throw new Error(response.data.errorMessage);
       }
       const queryData = response.data.data[0];
-      const serial = {
-        ...queryData,
-        customerReportedIssue: serialData.customerReportedIssue,
-        terminalID: serialData.terminalID,
-      };
-      const validSerial = validateSerial(serial);
+      const validSerial = validateSerial(queryData, mo_OID);
       return validSerial;
     })
     .catch((e) => {
@@ -55,41 +57,34 @@ export const serialNumberUpdateQuery = async (sn, serialData) => {
     })
 };
 
-export const validateSerial = (serial) => {
+export const validateSerial = (serial, moOID) => {
   const newSerial = {
     ...serial,
-    cosmetic: false,
+    cosmetic: (serial.cosmetic === null || serial.cosmetic === 891)?false:true,
     show: true,
     loading: false,
     valid: true,
     bgColor: null,
     invoiceAmt: 0,
   };
-  //If the SN is duplicate, show error
-  // if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
-  //   return;
-  // }
-  if (newSerial.existInAnotherTicket === true) {
-    throw new Error(`SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`);
+  
+  if (newSerial.moOID != moOID && newSerial.existInAnotherTicket === true) {
+    Notify.create({
+      type: "negative",
+      message: `SN ${newSerial.serialNumber} Already in the Warehouse. Can't add to ticket.`,
+    });
+    return null;
   }
-  //If the serial don't have warranty information, hightlight grey
-  if (
-    newSerial.warrantyExpDate === null ||
-    newSerial.warrantyStatus === null ||
-    newSerial.warrantyStatus === "N/A" ||
-    newSerial.warrantyExpDate === "N/A"
-  ) {
+  //If the serial don't have warranty information, hightlight grey and prevent user to submit it
+  if(newSerial.warrantyStatus === "N/A" || newSerial.warrantyStatus === null){
     newSerial.bgColor = "bg-grey-5";
+    newSerial.valid = false;
     newSerial.warrantyExpDate = "N/A";
-    newSerial.warrantyStatus = "N/A";
   }
-  if (
-    newSerial.warrantyExpDate != null &&
-    newSerial.warrantyExpDate != "N/A"
-  ) {
-    const date = new Date(newSerial.warrantyExpDate);
-    newSerial.warrantyExpDate = date.toLocaleDateString("un-US");
-  }
+  // if(newSerial.warrantyStatus === "Order Date Missing"){
+  //   newSerial.bgColor = "bg-grey-5";
+  //   newSerial.valid = false;
+  // }
   //If it's not a us-based serial, hightlight yellow
   if (newSerial.resultCode === -1) {
     newSerial.bgColor = "bg-warning";

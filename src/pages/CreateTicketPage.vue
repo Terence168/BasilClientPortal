@@ -309,6 +309,7 @@ export default {
       batchSerialNumberQuery(formData)
         .then((serials) => {
           this.file = null;
+
           serials.forEach((s) => {
             this.addSerial(s);
           });
@@ -320,46 +321,6 @@ export default {
     showAddressGrid() {
       this.showAddressModal = true;
     },
-    handleSubmitSerialForm() {
-      const { serialData } = this.modalState;
-      const { serialNumber: sn } = serialData;
-
-      const actionURL = `/ticketing/serialNumberUpdate?serialNumber=${sn}`;
-
-      const vm = this;
-      this.updateOrAddLoading = true;
-
-      this.$api
-        .get(actionURL)
-        .then(function (response) {
-          if (response.data.resultCode !== 0) {
-            throw new Error(response.data.errorMessage);
-          }
-          const queryData = response.data.data[0];
-
-          if (vm.isModalStateAdd === true) {
-            vm.addSerial(queryData);
-          } else {
-            const oldSN = vm.modalState.serialNumber;
-            const updatedSerial = {
-              ...queryData,
-              customerReportedIssue: serialData.customerReportedIssue,
-              terminalID: serialData.terminalID,
-            };
-            vm.updateSerial(updatedSerial, oldSN);
-          }
-        })
-        .catch((e) => {
-          this.$q.notify({
-            type: "negative",
-            message: e.message,
-          });
-        })
-        .finally(() => {
-          this.updateOrAddLoading = false;
-          this.resetModalState();
-        });
-    },
     handleSubmitSerials() {
       const serials = this.getAllSerials;
       if (serials === undefined || serials.length == 0) {
@@ -370,27 +331,17 @@ export default {
       const actionURL = "/ticketing/submitTicket";
 
       const sNsInsertionObjects = serials.map((serial) => {
-        const {
-          serialNumber,
-          customerReportedIssue: customerReportedIssueExt,
-          terminalID: customerTerminalID,
-          xm_OID: xmOID,
-          msn_OID: msnOID,
-          customerID,
-          customerRMA,
-        } = serial;
-        const sNsInsertionObject = {
-          serialNumber,
-          customerID,
-          xmOID,
-          customerReportedIssueExt,
-          customerRMA,
-          customerTerminalID,
-          msnOID,
-        };
-        return sNsInsertionObject;
+        const snObject = {};
+        snObject.customerReportedIssueExt = serial.customerReportedIssueExt;
+        snObject.customerTerminalID = serial.customerTerminalID;
+        snObject.serialNumber = serial.serialNumber;
+        snObject.customerRMA = serial.customerRMA;
+        snObject.xmOID = serial.xmOID;
+        snObject.msnOID = serial.msnOID;
+        snObject.cosmetic = (serial.cosmetic === null || serial.cosmetic === false)?891:890
+        return snObject;
       });
-
+      
       //If user didn't choose order type, don't allow user to submit the ticket
       if (this.orderType === null) {
         this.$q.notify({
@@ -426,9 +377,10 @@ export default {
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
-        address:this.address
+        xaOID:this.address.xaOid
       };
 
+      console.log(payload);
       const vm = this;
       this.$api
         .post(actionURL, payload, {

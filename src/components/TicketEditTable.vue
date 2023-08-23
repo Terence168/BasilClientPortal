@@ -26,7 +26,11 @@
             :key="props.row.serialNumber"
           >
             <q-td key="cosmetic" :props="props">
-              <q-checkbox v-model="props.row.cosmetic"> </q-checkbox>
+              <q-checkbox
+                v-model="props.row.cosmetic"
+                @update:model-value="props.row.isUpdate = true"
+              >
+              </q-checkbox>
             </q-td>
             <q-td key="serialNumber" :props="props">
               {{ props.row.serialNumber }}
@@ -47,7 +51,11 @@
               {{ props.row.warrantyStatus }}
             </q-td>
             <q-td key="warrantyExpDate" :props="props">
-              {{ getParseDate(props.row.warrantyEndDate) }}
+              {{
+                props.row.warrantyExpDate === "N/A"
+                  ? "N/A"
+                  : this.getParseDate(props.row.warrantyExpDate)
+              }}
             </q-td>
           </q-tr>
 
@@ -68,7 +76,9 @@
     </div>
     <PopUpBtns
       ref="popupBtns"
-      :showBtns="showBtns"
+      :showViewUnit="showViewUnit"
+      :showUpdateUnit="showUpdateUnit"
+      :showRemoveUnit="showRemoveUnit"
       @popup-remove-sn="handleClickRemoveUnit"
       @popup-update-sn="handleClickUpdateUnit"
       @popup-view-sn="handleClickViewUnit"
@@ -108,7 +118,6 @@ import TicketDetailForm from "./TicketDetailForm.vue";
 import { DateTime } from "luxon";
 import { Notify } from "quasar";
 import { parseDateTime, parseDate } from "../utils/timeUtils.js";
-import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 
 import { api } from "src/boot/axios";
 
@@ -192,19 +201,16 @@ export default {
         },
         submitAction: "add",
       },
+
+      showRemoveUnit: false,
+      showUpdateUnit: false,
+      showViewUnit: false,
       details: {},
     };
   },
   mounted() {},
   computed: {
     ...mapWritableState(useEditTicketStore, ["getSerialsByTicketId"]),
-    showBtns() {
-      return {
-        showRemoveUnit: !this.isFromMaster,
-        showUpdateUnit: !this.isFromMaster,
-        showViewUnit: this.isFromMaster,
-      };
-    },
     totalInvoice() {
       //Todo: Incorpoate warrantyu status
       const serials = this.rows;
@@ -212,12 +218,13 @@ export default {
       if (this.orderType === 3) {
         //repair
         serials.forEach((s) => {
-          if (s.valid === true) {
-            amt = amt + (s.minorPrice == null ? 0 : s.minorPrice);
+          if (s.valid === true && s.warrantyStatus === "Out Of Warranty") {
+            amt += s.minorPrice;
           }
         });
       }
       if (this.orderType === 7) {
+        //diagnostic
         serials.forEach((s) => {
           if (s.valid === true) {
             amt = amt + (s.diagnosticPrice == null ? 0 : s.diagnosticPrice);
@@ -244,7 +251,22 @@ export default {
       "addSN",
     ]),
     handleRowClick(evt, row) {
-      //display popup buttons
+      if (this.isFromMaster === true) {
+        if (row.pxmOID === null && row.xmOID === null) {
+          this.showRemoveUnit = true;
+          this.showUpdateUnit = true;
+          this.showViewUnit = false;
+        } else {
+          this.showRemoveUnit = false;
+          this.showUpdateUnit = false;
+          this.showViewUnit = true;
+        }
+      } else {
+        //from pre_xref_material
+        this.showRemoveUnit = true;
+        this.showUpdateUnit = true;
+        this.showViewUnit = false;
+      }
       this.$refs.popupBtns.addPopupBtns(evt);
       this.modalState.serialData = row;
     },
