@@ -114,59 +114,68 @@
           />
         </div>
         <div class="q-py-md text-subtitle1 text-weight-bold">
-      Ticket Serial Numbers
-    </div>
-    <div class="row items-start">
-      <q-btn class="col-auto" color="primary" @click="this.$refs.editTable.handleClickAddUnit()">
-        Add Serial Number
-      </q-btn>
-      <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
-      <q-form class="col-auto" @submit="onFileSubmit">
-        <div class="row items-start">
-          <q-file
-            style="min-width: 250px"
-            name="file"
-            class="col q-mr-sm"
-            clearable
-            bottom-slots
-            outlined
-            v-model="file"
-            label="Upload Excel File"
-            dense
-            counter
-            :disable="fileUploading"
-          >
-            <template v-slot:prepend>
-              <q-icon name="attach_file" />
-            </template>
-
-            <template v-slot:hint> Allowed file format: .xlsx </template>
-          </q-file>
-
-          <q-btn
-            class="col"
-            type="submit"
-            label="Upload"
-            color="primary"
-            style="min-width: 150px"
-            :loading="fileUploading"
-          >
-            <template v-slot:loading>
-              <q-spinner-facebook />
-            </template>
-          </q-btn>
-
-          &nbsp;
-          <q-input
-            clearable
-            class="q-mr-sm"
-            label="Serial Number OR Model OR Reported Issue"
-            style="min-width: 380px"
-            v-model="inputValue"
-          />&nbsp;
+          Ticket Serial Numbers
         </div>
-      </q-form>
-    </div>
+        <div class="row items-start">
+          <q-btn
+            class="col-auto"
+            color="primary"
+            @click="this.$refs.editTable.handleClickAddUnit()"
+          >
+            Add Serial Number
+          </q-btn>
+          <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
+          <q-form class="col-auto" @submit="onFileSubmit">
+            <div class="row items-start">
+              <q-file
+                style="min-width: 250px"
+                name="file"
+                class="col q-mr-sm"
+                clearable
+                bottom-slots
+                outlined
+                v-model="file"
+                label="Upload Excel File"
+                dense
+                counter
+                :disable="fileUploading"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="attach_file" />
+                </template>
+
+                <template v-slot:hint> Allowed file format: .xlsx </template>
+              </q-file>
+
+              <q-btn
+                class="col"
+                type="submit"
+                label="Upload"
+                color="primary"
+                style="min-width: 150px"
+                :loading="fileUploading"
+              >
+                <template v-slot:loading>
+                  <q-spinner-facebook />
+                </template>
+              </q-btn>
+
+              <q-input
+                clearable
+                class="q-ml-sm"
+                label="Serial Number OR Model OR Reported Issue"
+                style="min-width: 350px"
+                v-model="inputValue"
+                outlined
+                dense
+              >
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+            </div>
+          </q-form>
+        </div>
         <!-- ticket serials -->
         <TicketEditTable
           ref="editTable"
@@ -222,12 +231,16 @@ import { Notify, TouchSwipe } from "quasar";
 import { api } from "src/boot/axios";
 import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
-import {
-  batchSerialNumberQuery
-} from "src/utils/ticketUtils";
+import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 
 export default {
-  components: { MessageBoard, TicketEditTable, AddressBlock, AddressGrid, BaseModal},
+  components: {
+    MessageBoard,
+    TicketEditTable,
+    AddressBlock,
+    AddressGrid,
+    BaseModal,
+  },
   data: () => {
     return {
       ticketInfo: {
@@ -265,12 +278,16 @@ export default {
     this.$watch(
       () => this.$route.params,
       () => {
+        if (this.$route.name !== "edit-ticket") {
+          return;
+        }
+
         this.isLoading = true;
 
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
-          // this.populateOrderTypeOpt //ensure it been populdate 
+          // this.populateOrderTypeOpt //ensure it been populdate
         ])
           .then((values) => {
             const ticketInfo = values[0];
@@ -291,14 +308,16 @@ export default {
       { immediate: true }
     );
   },
+
   mounted() {},
+
   computed: {
     // ...mapWritableState(useCreateTicketStore, ["orderType"]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
-      "getTicketbyId"
+      "getTicketbyId",
     ]),
     isReRepair() {
       return this.ticketInfo.typeOfRepair === 4;
@@ -306,7 +325,7 @@ export default {
     ticketId() {
       return this.$route.params.ticketId;
     },
-    address(){
+    address() {
       return this.ticketInfo.address;
     },
   },
@@ -323,8 +342,7 @@ export default {
       "addSN",
       "updateSN",
       "removeSN",
-      "updateAddress"
-
+      "updateAddress",
     ]),
     handleEditTicket() {
       //valid serials and update it
@@ -404,13 +422,13 @@ export default {
           this.isLoading = false;
         });
     },
-    handleAddSN({serial}){
+    handleAddSN({ serial }) {
       this.addSN(this.ticketId, serial);
     },
-    handleUpdateSN({oldSN, serial}){
+    handleUpdateSN({ oldSN, serial }) {
       this.updateSN(this.ticketId, oldSN, serial);
     },
-    handleRemoveSN({sn}){
+    handleRemoveSN({ sn }) {
       this.removeSN(this.ticketId, sn);
     },
     onFileSubmit(e) {
@@ -433,7 +451,7 @@ export default {
         });
     },
     /**
-     * 
+     *
      * For Message board
      */
     fetchComments(ticketId) {

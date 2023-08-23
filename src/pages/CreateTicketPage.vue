@@ -125,7 +125,11 @@
 
         <div class="row items-start">
           <!-- Add Serial Number -->
-          <q-btn class="col-auto" color="primary" @click="this.$refs.editTable.handleClickAddUnit()">
+          <q-btn
+            class="col-auto"
+            color="primary"
+            @click="this.$refs.editTable.handleClickAddUnit()"
+          >
             Add Serial Number
           </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
@@ -165,18 +169,23 @@
                 </template>
               </q-btn>
 
-              &nbsp;
               <q-input
                 clearable
-                class="q-mr-sm"
+                class="q-ml-sm"
                 label="Serial Number OR Model OR Reported Issue"
-                style="min-width: 380px"
+                style="min-width: 350px"
                 v-model="inputValue"
-              />&nbsp;
+                outlined
+                dense
+              >
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
             </div>
           </q-form>
         </div>
-        
+
         <TicketEditTable
           ref="editTable"
           :isFromMaster="false"
@@ -234,12 +243,18 @@ import TicketEditTable from "src/components/TicketEditTable.vue";
 import AddressBlock from "src/components/AddressBlock.vue";
 import AddressGrid from "src/components/AddressGrid.vue";
 import { Notify } from "quasar";
-import {batchSerialNumberQuery} from "../utils/ticketUtils.js"
+import { batchSerialNumberQuery } from "../utils/ticketUtils.js";
 
 const user = useUserStore();
 
 export default {
-  components: { BaseModal, TicketEditTable, AddressBlock, AddressGrid, TicketEditTable},
+  components: {
+    BaseModal,
+    TicketEditTable,
+    AddressBlock,
+    AddressGrid,
+    TicketEditTable,
+  },
   data() {
     return {
       file: null,
@@ -317,7 +332,7 @@ export default {
 
       const formData = new FormData(e.target);
       formData.append("fileName", this.file ? this.file.name : "");
-      
+
       batchSerialNumberQuery(formData)
         .then((serials) => {
           this.file = null;
@@ -350,10 +365,11 @@ export default {
         snObject.customerRMA = serial.customerRMA;
         snObject.xmOID = serial.xmOID;
         snObject.msnOID = serial.msnOID;
-        snObject.cosmetic = (serial.cosmetic === null || serial.cosmetic === false)?891:890
+        snObject.cosmetic =
+          serial.cosmetic === null || serial.cosmetic === false ? 891 : 890;
         return snObject;
       });
-      
+
       //If user didn't choose order type, don't allow user to submit the ticket
       if (this.orderType === null) {
         this.$q.notify({
@@ -364,7 +380,7 @@ export default {
         return;
       }
 
-      //if shipping address is not selected 
+      //if shipping address is not selected
       for (const serial of serials) {
         if (serial.valid === false) {
           this.$q.notify({
@@ -375,13 +391,13 @@ export default {
           return;
         }
       }
-      if(this.address === null){
+      if (this.address === null) {
         this.$q.notify({
-            type: "negative",
-            message: "Please Select Shipping Address before Submitting",
-          });
-          this.serialsSubmitting = false;
-          return;
+          type: "negative",
+          message: "Please Select Shipping Address before Submitting",
+        });
+        this.serialsSubmitting = false;
+        return;
       }
       const trackingNumbers = [...this.getTrackingNums];
       const payload = {
@@ -389,7 +405,7 @@ export default {
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
-        xaOID:this.address.xaOid
+        xaOID: this.address.xaOid,
       };
 
       const vm = this;
@@ -420,13 +436,13 @@ export default {
           vm.resetTicket();
         });
     },
-    handleAddSN({serial}){
+    handleAddSN({ serial }) {
       this.addSerial(serial);
     },
-    handleUpdateSN({oldSN, serial}){
+    handleUpdateSN({ oldSN, serial }) {
       this.updateSerial(oldSN, serial);
     },
-    handleRemoveSN({sn}){
+    handleRemoveSN({ sn }) {
       this.removeSerial(sn);
     },
     selectShippingAddress(address) {

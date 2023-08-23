@@ -86,6 +86,16 @@
               ></q-btn> -->
             </span>
 
+            <span v-if="column.id === 'ticketEdit'">
+              <q-btn
+                flat
+                round
+                color="grey-6"
+                icon="edit"
+                @click="editTicket(row.ticketId)"
+              ></q-btn>
+            </span>
+
             <span
               style="cursor: pointer"
               v-if="column.id === 'techNotes' || column.id === 'reportedIssue'"
@@ -248,6 +258,10 @@ export default {
       } else {
         return output;
       }
+    },
+
+    editTicket(id) {
+      this.$router.push({ name: "edit-ticket", params: { ticketId: id } });
     },
   },
 };

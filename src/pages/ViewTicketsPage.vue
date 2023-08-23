@@ -95,6 +95,7 @@ export default {
             sortable: true,
           },
           { id: "responder", label: "Responder", sortable: true },
+          { id: "ticketEdit", label: "Edit", sortable: false },
         ],
         rows: [],
       },
