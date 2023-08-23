@@ -170,14 +170,14 @@
 <script>
 import { mapState, mapWritableState } from "pinia";
 import { useCreateTicketStore } from "stores/createTicket";
-import {onMounted, ref} from 'vue';
+import { onMounted, ref } from "vue";
 
 export default {
   props: ["pages", "total", "orderType"],
   emits: ["updateSerial"],
   data() {
     return {
-      showBtns:{
+      showBtns: {
         showRemoveUnit: true,
         showViewUnit: false,
         showUpdateUnit: true,
@@ -372,30 +372,35 @@ export default {
       "getIconModelPath",
       "getAllSerials",
     ]),
+
     ...mapWritableState(useCreateTicketStore, ["page"]),
+
     totalInvoice() {
       const serials = this.getAllSerials;
       let amt = 0;
-      if(this.orderType === 3){
+      if (this.orderType === 3) {
         //repair
-        serials.forEach((s) =>{
-          if(s.valid === true){
-            amt=amt+ (s.minorPrice == null ? 0: s.minorPrice)}
-      });
-      }
-      if(this.orderType === 7){
         serials.forEach((s) => {
-          if(s.valid === true){
-            amt=amt+(s.diagnosticPrice == null ? 0: s.diagnosticPrice);
+          if (s.valid === true) {
+            amt = amt + (s.minorPrice == null ? 0 : s.minorPrice);
           }
         });
       }
-      serials.forEach((s) => {{
+      if (this.orderType === 7) {
+        serials.forEach((s) => {
+          if (s.valid === true) {
+            amt = amt + (s.diagnosticPrice == null ? 0 : s.diagnosticPrice);
+          }
+        });
+      }
+      serials.forEach((s) => {
+        {
           //cosmetic
-        if(s.valid === true && s.cosmetic === true){
-          amt = amt + s.cosmeticPrice;
-        }}
-      })
+          if (s.valid === true && s.cosmetic === true) {
+            amt = amt + s.cosmeticPrice;
+          }
+        }
+      });
       return amt;
     },
   },

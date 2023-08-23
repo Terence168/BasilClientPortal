@@ -3,7 +3,7 @@
     <div class="q-pa-md">
       <q-table
         title="Ticket Serial Numbers"
-        row-key="name"
+        row-key="serialNumber"
         :columns="columns"
         :rows="rows"
         :rows-per-page-options="[10, 25, 50, 100]"
@@ -19,14 +19,16 @@
         </template>
         <template v-slot:body="props">
           <q-tr
-            :prop="props"
+            v-if="!props.row.errorMsg"
+            :props="props"
             :class="props.row.bgColor"
             @click="handleRowClick($event, props.row)"
+            :key="props.row.serialNumber"
           >
             <q-td key="cosmetic" :props="props">
               <q-checkbox v-model="props.row.cosmetic"> </q-checkbox>
             </q-td>
-            <q-td key="sn" :props="props">
+            <q-td key="serialNumber" :props="props">
               {{ props.row.serialNumber }}
             </q-td>
             <q-td key="model" :props="props">
@@ -41,11 +43,24 @@
             <q-td key="terminalID" :props="props">
               {{ props.row.customerTerminalID }}
             </q-td>
-            <q-td key="warrantyStatus">
+            <q-td key="warrantyStatus" :props="props">
               {{ props.row.warrantyStatus }}
             </q-td>
-            <q-td key="warrantyExpDate">
+            <q-td key="warrantyExpDate" :props="props">
               {{ getParseDate(props.row.warrantyEndDate) }}
+            </q-td>
+          </q-tr>
+
+          <q-tr
+            v-else
+            :props="props"
+            :class="props.row.bgColor"
+            @click="handleRowClick($event, props.row)"
+          >
+            <q-td key="serialNumber" colspan="100%" :props="props">
+              <div class="text-h6 text-negative">
+                SN: {{ props.row.serialNumber }} - {{ props.row.errorMsg }}
+              </div>
             </q-td>
           </q-tr>
         </template>
@@ -112,7 +127,7 @@ export default {
           sortable: false,
         },
         {
-          name: "sn",
+          name: "serialNumber",
           align: "center",
           label: "Serial Number",
           field: "serialNumber",
