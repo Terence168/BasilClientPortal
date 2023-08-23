@@ -336,9 +336,9 @@ export default {
         snObject.customerTerminalID = serial.customerTerminalID;
         snObject.serialNumber = serial.serialNumber;
         snObject.customerRMA = serial.customerRMA;
-        snObject.xmOID = serial.xm_OID;
-        snObject.msnOID = serial.msn_OID;
-        snObject.cosmetic = serial.cosmetic;
+        snObject.xmOID = serial.xmOID;
+        snObject.msnOID = serial.msnOID;
+        snObject.cosmetic = (serial.cosmetic === null || serial.cosmetic === false)?891:890
         return snObject;
       });
       
@@ -380,6 +380,7 @@ export default {
         xaOID:this.address.xaOid
       };
 
+      console.log(payload);
       const vm = this;
       this.$api
         .post(actionURL, payload, {

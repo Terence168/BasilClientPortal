@@ -270,6 +270,7 @@ export default {
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
+          // this.populateOrderTypeOpt //ensure it been populdate 
         ])
           .then((values) => {
             const ticketInfo = values[0];
@@ -362,6 +363,7 @@ export default {
         typeOfRepair: this.ticketInfo.typeOfRepair,
         originalRMA: this.ticketInfo.originalRMA,
         clientGroup: this.clientGroup,
+        mcOID: this.ticketInfo.mcOID,
       };
 
       const actionURL = "/ticketing/editTicket/" + this.ticketId;

@@ -110,6 +110,7 @@ export const useEditTicketStore = defineStore("editTicket", {
           this.removeTicket(ticketId);
           this.tickets.push(ticketInfo);
           ticketInfo.serials = ticketInfo.serials.map((s) => validateSerial(s));
+          
           return ticketInfo;
         });
     },
@@ -222,14 +223,19 @@ export const useEditTicketStore = defineStore("editTicket", {
         ticket.serials.forEach((s) => {
           if (s.isUpdate === true) {
             result.updateSerial.push({
-              xmOID: s.xmOID,
+              xmOID: s.xmOID === null? s.pxmOID:s.xmOID,
               serialNumber: s.serialNumber,
               customerReportedIssueExt: s.customerReportedIssueExt,
               customerTerminalID: s.customerTerminalID,
               msnOID: s.msnOID,
+              cosmetic: (s.cosmetic === null || s.cosmetic === false)?891:890
             });
           }
-          if (s.xmOID === null) {
+          //cosmetic: null, 891 -> false, 
+          //cosmetic: 890 -> true
+
+
+          if (s.xmOID === null && s.pxmOID === null) {
             //added serial
             result.addSerial.push({
               xmOID: s.xmOID,
@@ -237,6 +243,7 @@ export const useEditTicketStore = defineStore("editTicket", {
               customerReportedIssueExt: s.customerReportedIssueExt,
               customerTerminalID: s.customerTerminalID,
               msnOID: s.msnOID,
+              cosmetic: (s.cosmetic === null || s.cosmetic === false)?891:890
             });
           }
         });

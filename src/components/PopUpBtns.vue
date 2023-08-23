@@ -6,7 +6,7 @@
         color="red"
         icon="close"
         round
-        v-show="showBtns.showRemoveUnit"
+        v-show="showRemoveUnit"
         @click.prevent="this.$emit('popup-remove-sn')"
       />
       <q-btn
@@ -15,7 +15,7 @@
         color="primary"
         icon="edit"
         round
-        v-show="showBtns.showUpdateUnit"
+        v-show="showUpdateUnit"
         @click.prevent="this.$emit('popup-update-sn')"
       />
       <q-btn
@@ -24,14 +24,14 @@
         color="yellow-5"
         icon="visibility"
         round
-        v-show="showBtns.showViewUnit"
+        v-show="showViewUnit"
         @click.prevent="this.$emit('popup-view-sn')"
       />
     </div>
 </template>
 <script>
 export default{
-    props:["showBtns"],
+    props:["showViewUnit", "showUpdateUnit", "showRemoveUnit"],
     emits:['popup-view-sn', 'popup-update-sn', 'popup-remove-sn'],
     updated() {
         if (this.withClient === true && this.removeUnitWidth == null) {

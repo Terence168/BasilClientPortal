@@ -24,7 +24,7 @@
             @click="handleRowClick($event, props.row)"
           >
             <q-td key="cosmetic" :props="props">
-              <q-checkbox v-model="props.row.cosmetic"> </q-checkbox>
+              <q-checkbox v-model="props.row.cosmetic" @update:model-value="props.row.isUpdate = true"> </q-checkbox>
             </q-td>
             <q-td key="sn" :props="props">
               {{ props.row.serialNumber }}
@@ -53,7 +53,9 @@
     </div>
     <PopUpBtns
       ref="popupBtns"
-      :showBtns="showBtns"
+      :showViewUnit="showViewUnit"
+      :showUpdateUnit="showUpdateUnit"
+      :showRemoveUnit="showRemoveUnit"
       @popup-remove-sn="handleClickRemoveUnit"
       @popup-update-sn="handleClickUpdateUnit"
       @popup-view-sn="handleClickViewUnit"
@@ -176,19 +178,16 @@ export default {
         },
         submitAction: "add",
       },
+
+      showRemoveUnit:false,
+      showUpdateUnit:false,
+      showViewUnit: false,
       details: {},
     };
   },
   mounted() {},
   computed: {
     ...mapWritableState(useEditTicketStore, ["getSerialsByTicketId"]),
-    showBtns() {
-      return {
-        showRemoveUnit: !this.isFromMaster,
-        showUpdateUnit: !this.isFromMaster,
-        showViewUnit: this.isFromMaster,
-      };
-    },
     totalInvoice() {
       //Todo: Incorpoate warrantyu status
       const serials = this.rows;
@@ -196,7 +195,7 @@ export default {
       if (this.orderType === 3) {
         //repair
         serials.forEach((s) => {
-          if(s.valid === true && s.warrantyStatus === "Out of Warranty"){
+          if(s.valid === true && s.warrantyStatus === "Out Of Warranty"){
             amt += s.minorPrice;
           }
         });
@@ -229,7 +228,24 @@ export default {
       "addSN",
     ]),
     handleRowClick(evt, row) {
-      //display popup buttons
+      if(this.isFromMaster === true){
+        if(row.pxmOID === null && row.xmOID === null){
+          this.showRemoveUnit=true;
+          this.showUpdateUnit=true;
+          this.showViewUnit=false;
+        }
+        else{
+          this.showRemoveUnit=false;
+          this.showUpdateUnit=false;
+          this.showViewUnit=true;
+        }
+      }
+      else{
+        //from pre_xref_material
+        this.showRemoveUnit=true;
+        this.showUpdateUnit=true;
+        this.showViewUnit=false;
+      }
       this.$refs.popupBtns.addPopupBtns(evt);
       this.modalState.serialData = row;
     },

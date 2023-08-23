@@ -60,7 +60,7 @@ export const serialNumberUpdateQuery = async (sn, mo_OID) => {
 export const validateSerial = (serial, moOID) => {
   const newSerial = {
     ...serial,
-    cosmetic: false,
+    cosmetic: (serial.cosmetic === null || serial.cosmetic === 891)?false:true,
     show: true,
     loading: false,
     valid: true,
