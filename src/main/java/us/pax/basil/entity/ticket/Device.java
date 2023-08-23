@@ -22,7 +22,11 @@ public class Device {
     private Integer diagnosticPrice;
     private Integer minorPrice;
     private Boolean existInAnotherTicket;
+
     private Integer xmOID;
+    private Integer pxmOID;
+
     private Integer msnOID;
     private Integer moOID;
+    private Integer cosmetic;
 }

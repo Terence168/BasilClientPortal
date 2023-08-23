@@ -18,15 +18,9 @@ public class SNInfo {
     private Date orderDate;
     private String orderStatus;
 
-//    private String mcOID;
-//    private Integer moOID; //ticket id
-
-//    private String customerID;
-
     private Integer xmOID; //If it's in master_order, fill in it
+    private Integer pxmOID;//If it's in pre_xref_material, fill in it
     private Integer msnOID; //this is the master serial number which used to link to serial number
-
-    private Integer cosmetic;
 
     private String customerRMA;
     private String customerTerminalID;
@@ -45,4 +39,5 @@ public class SNInfo {
 
     private String model;
     private String version;
+    private Integer cosmetic;
 }

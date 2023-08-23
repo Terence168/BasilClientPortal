@@ -8,7 +8,7 @@ import java.util.List;
 public interface InvoiceMapper {
     void insertSecInvoiceList(List<Integer> pxmOidList, Integer companyId);
 
-    void updateMasterInvoice(List<Invoice> invoiceList);
+    void deleteInvoiceList(List<Integer> pxmOidList);
 
     List<Invoice> getInvoiceByMoOID(Integer moOID);
 }

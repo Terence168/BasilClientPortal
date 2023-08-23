@@ -61,13 +61,8 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO serialNumberQuery(String serialNumber);
     int insertTicketToPMO(TicketInsertionObject tio);
     QueryResultDTO submitTicket(TicketInsertion ticketInsertion);
-
-
     QueryResultDTO viewEditTicket(String id);
-
     QueryResultDTO insertResponse(TicketResponse ticketResponse);
-
     QueryResultArrayDTO getResponse(String id);
-
     QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO);
 }

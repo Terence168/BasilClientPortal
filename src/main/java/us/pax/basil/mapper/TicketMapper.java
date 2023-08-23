@@ -80,7 +80,6 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void insertXref_Inbound_Tracking(@Param("trackingNumbers")List<String> trackingNumbers, @Param("mo_OID")Integer mo_OID);
     void insertSingleXref_Inbound_Tracking(TrackingNum trackingNum);
     TicketInfo existingMasterOrder(String id);
-
     TicketInfo existingPREPMasterOrder(String id);
 
     List<TrackingNum> getTrackingNumber(String id);
@@ -107,4 +106,6 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void updateMasterOrder(Integer typeOfRepair, String originalRMA, String moOID, Integer xaOID);
 //            TicketEditDTO ticketEditDTO, String id);
     void updatePrepMasterOrder(Integer typeOfRepair, String originalRMA,  String moOID, Integer xaOID);
+
+    List<Integer> getAllXmOid(Integer moOID);
 }

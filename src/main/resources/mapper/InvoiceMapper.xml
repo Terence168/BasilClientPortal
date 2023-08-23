@@ -51,32 +51,28 @@
         ) t1
     </insert>
 
-    <update id="updateInvoiceList" parameterType="java.util.List">
-        <foreach collection="list" item="item" separator=";">
-            UPDATE BASIL_SEC_PRD.FACT_INVOICE
-            <set>
-                <if test = "item.diagnostic != null">
-                    DIAGNOSTIC = #{item.diagnostic},
-                </if>
-                <if test="item.cosmetic != null">
-                    COSMETIC = #{item.cosmetic}
-                </if>
-                <if test="item.minor!= null">
-                    MINOR = #{item.minor}
-                </if>
-                <if test="item.inv1ItemTotal != null">
-                    INV1_ITEM_TOTAL = #{item.inv1ItemTotal}
-                </if>
-                UPDATE_DATE = #{now()}
-            </set>
-            WHERE FI_OID = #{item.fiOID}
-        </foreach>
-    </update>
-
     <select id="getInvoiceByMoOID" resultType="us.pax.basil.entity.invoice.Invoice">
         select FI_OID as fiOID, XM_OID as xmOID, PXM_OID as pxmOID, MO_OID as moOID, DIAGNOSTIC as diagnostic,
         COSMETIC as cosmetic, MINOR as minor, CREATED_DATE as createDate, UPDATE_DATE as updateDate
         from BASIL_SEC_PRD.FACT_INVOICE
         where MO_OID = #{moOID}
     </select>
+
+    <delete id="deleteInvoiceList" parameterType="java.util.List" >
+        DELETE FROM BASIL_SEC_PRD.FACT_INVOICE
+        WHERE PXM_OID in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
 </mapper>
+
+
+
+
+
+
+
+
+

@@ -168,8 +168,13 @@
         msn.WARRANTY_END_DATE as warrantyEndDate,
         msn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
         (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID = xm.BOX_OID) as shipDate,
-        DATE(mo.ORDER_DATE) as orderDate
-
+        DATE(mo.ORDER_DATE) as orderDate,
+        CASE
+        WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+        WHEN mo.ORDER_DATE <![CDATA[<]]>
+        COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        ELSE 'Out Of Warranty'
+        END                                  AS                           warrantyStatus
         FROM MASTER_ORDER mo
         INNER JOIN XREF_MATERIALS xm ON xm.MO_OID = mo.MO_OID
         INNER JOIN MASTER_SERIAL_NUMBER msn ON msn.MSN_OID = xm.MSN_OID
@@ -493,6 +498,7 @@
         SELECT SERIAL_NUMBER as serialNumber,
         msnOID,
         xmOID,
+        pxmOID,
         warrantyExpDate,
         warrantyStatus,
         model,
@@ -501,47 +507,52 @@
         diagnosticPrice,
         minorPrice,
         existInAnotherTicket,
-        moOID
-        FROM (SELECT msn.SERIAL_NUMBER,
-        msn.MSN_OID                                                                      as msnOID,
-        COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE)                        AS warrantyExpDate,
-        CASE
-        WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
-        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
-        ELSE 'Out Of Warranty'
-        END                                                                          AS warrantyStatus,
-        mp.PART_NUMBER_LONG                                                              AS model,
-        mp.VERSION_NUMBER                                                                AS version,
-        COALESCE(rc1.COSMETIC, rc2.COSMETIC)                                             AS cosmeticPrice,
-        COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC)                                         AS diagnosticPrice,
-        COALESCE(rc1.MINOR, rc2.MINOR)                                                   AS minorPrice,
-        xm.XM_OID                                                                        as xmOID,
-        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE) AS existInAnotherTicket,
-        ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE)
-        DESC)                                                                        AS RN,
-        IF(xm.XM_OID is not null, xm.MO_OID, pxm.MO_OID)                                 as moOID
-        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
-        LEFT JOIN
-        BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
-        LEFT JOIN
-        BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
-        LEFT JOIN
-        BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
-        LEFT JOIN
-        BASIL_SEC_PRD.REPAIR_COST rc1 ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
-        LEFT JOIN
-        BASIL_SEC_PRD.REPAIR_COST rc2
-        ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
-        WHERE msn.SERIAL_NUMBER IN
-            <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
-                #{item, jdbcType=INTEGER}
-            </foreach>
-        ) AS CTE
-        <where>
-            (existInAnotherTicket = 1)
-            OR (existInAnotherTicket = 0 AND RN = 1)
-        </where>
+        moOID,
+        cosmetic
+        FROM (
+            SELECT msn.SERIAL_NUMBER,
+            msn.MSN_OID                                                                      as msnOID,
+            xm.XM_OID                                                                        as xmOID,
+            pxm.XM_OID                                                                        as pxmOID,
+            COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE)                        AS warrantyExpDate,
+            CASE
+            WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+            WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+            ELSE 'Out Of Warranty'
+            END                                                                          AS warrantyStatus,
+            mp.PART_NUMBER_LONG                                                              AS model,
+            mp.VERSION_NUMBER                                                                AS version,
+            COALESCE(rc1.COSMETIC, rc2.COSMETIC)                                             AS cosmeticPrice,
+            COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC)                                         AS diagnosticPrice,
+            COALESCE(rc1.MINOR, rc2.MINOR)                                                   AS minorPrice,
+            IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE) AS existInAnotherTicket,
+            ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE)
+            DESC)                                                                        AS RN,
+            IF(xm.XM_OID is not null, xm.MO_OID, pxm.MO_OID)                                 as moOID,
+            COALESCE(xm.COSMETIC, pxm.COSMETIC)                                              AS cosmetic
+            FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+            LEFT JOIN
+            BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
+            LEFT JOIN
+            BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+            LEFT JOIN
+            BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
+            LEFT JOIN
+            BASIL_SEC_PRD.REPAIR_COST rc1 ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+            LEFT JOIN
+            BASIL_SEC_PRD.REPAIR_COST rc2
+            ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+            WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
+                    #{item, jdbcType=INTEGER}
+                </foreach>
+            ) AS CTE
+            <where>
+                (existInAnotherTicket = 1)
+                OR (existInAnotherTicket = 0 AND RN = 1)
+            </where>
     </select>
+
 
     <select id="findUSBasedDevices" parameterType="java.util.List" resultType="java.lang.String">
         SELECT msn.SERIAL_NUMBER
@@ -568,7 +579,7 @@
         xma.CUSTOMER_RMA                         as customerRMA,
         xma.CUSTOMER_TERMINAL_ID                 as customerTerminalID,
         xma.CUSTOMER_REPORTED_ISSUE_EXT          as customerReportedIssueExt,
-        xma.XM_OID                               as xmOID,
+        xma.XM_OID                               as pxmOID,
         xma.COSMETIC                             as cosmetic,
         sn.WARRANTY_END_DATE                     as warrantyExpDate,
         sn.WARRANTY_VOIDED_DATE                  as warrantyVoidedDate,
@@ -653,14 +664,15 @@
         VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID}, #{xaOID})
     </insert>
 
-    <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false">
+    <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="xmOID"
+            keyColumn="XM_OID">
         <if test ="list!= null and list.size() > 0">
-            INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,
-            CUSTOMER_REPORTED_ISSUE_EXT)
+            INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,
+            CUSTOMER_REPORTED_ISSUE_EXT, COSMETIC)
             VALUES
             <foreach item="item" collection="list" separator=",">
-                (#{item.moOID}, #{item.xmOID}, #{item.msnOID},
-                #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
+                (#{item.moOID}, #{item.msnOID},
+                #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt}, #{item.cosmetic})
             </foreach>
         </if>
     </insert>
@@ -762,7 +774,10 @@
                         CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
                     </if>
                     <if test="item.msnOID!= null">
-                        MSN_OID = #{item.msnOID}
+                        MSN_OID = #{item.msnOID},
+                    </if>
+                    <if test="item.cosmetic != null">
+                        COSMETIC = #{item.cosmetic}
                     </if>
                 </set>
                 WHERE XM_OID = #{item.xmOID}
@@ -821,6 +836,22 @@
         </set>
         WHERE MO_OID = #{moOID}
     </update>
+
+    <select id="getAllXmOid" resultType="Integer">
+        select xm_oid from BASIL_SEC_PRD.PREP_XREF_MATERIALS
+        <where>
+            <if test="moOID != null">
+                MO_OID = #{moOID}
+            </if>
+        </where>
+        union
+        select xm_oid from BASIL_ODS_PRD.XREF_MATERIALS
+        <where>
+            <if test="moOID != null">
+                MO_OID = #{moOID}
+            </if>
+        </where>
+    </select>
 </mapper>
 
 

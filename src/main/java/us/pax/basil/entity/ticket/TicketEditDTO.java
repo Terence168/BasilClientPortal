@@ -14,6 +14,7 @@ import java.util.List;
 @ApiModel(value="Ticketing edit", description="")
 public class TicketEditDTO {
     private Address address;
+    private Integer mcOID;
     private boolean isFromMaster;
     private Integer typeOfRepair;
     private String originalRMA;

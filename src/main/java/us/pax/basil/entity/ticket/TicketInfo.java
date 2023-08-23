@@ -20,7 +20,7 @@ public class TicketInfo {
     private Boolean isFromMaster; //if it's from master_order, mark it as true, else false
     private String orderStatus;//from (prep_)master_order ORDER_STATUS
     private Date createDate;//from (prep_)master_order Order_Date
-    private String organization;//submitters' org, not sure where to get it
+    //private String organization;//submitters' org, not sure where to get it
     private Integer submitterID; //submitter'id
     private String submitterEmail;//submitters' email, not sure
     private String submitterName;//submitters' name, not sure

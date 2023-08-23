@@ -15,6 +15,7 @@ import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.AddressService;
 import us.pax.basil.service.EmailService;
+import us.pax.basil.service.InvoiceService;
 import us.pax.basil.service.TicketService;
 import us.pax.basil.utils.AuthUtil;
 import lombok.AllArgsConstructor;
@@ -22,6 +23,7 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
@@ -50,6 +52,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Autowired
     private AddressService addressService;
+
+    @Autowired
+    private InvoiceService invoiceService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
     @Override
@@ -191,12 +196,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             List<RepairRecord> repairRecords = ticketMapper.getTicketingViewsDetail(id);
 
             for(RepairRecord repairRecord : repairRecords){
-                repairRecord.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(repairRecord.getWarrantyEndDate(), repairRecord.getWarrantyVoidedDate(), repairRecord.getOrderDate()));
+                //repairRecord.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(repairRecord.getWarrantyEndDate(), repairRecord.getWarrantyVoidedDate(), repairRecord.getOrderDate()));
+
                 Map<String, Object> objectMap = objectMapper.convertValue(repairRecord, Map.class);
                 resultArray.add(objectMap);
             }
 
-            return new QueryResultArrayDTO(resultArray, 0, 0, null);
+            return new QueryResultArrayDTO(resultArray, 1, 0, null);
         }catch(Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
@@ -343,8 +349,10 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if(ticket != null) {
                     ticket.setIsFromMaster(false);
                     companyId = ticket.getMcOID();
-                    List<SNInfo> devices = ticketMapper.getSecMaterials(id, companyId);
-                    ticket.setSerials(devices);
+                    List<SNInfo> prefDevices = ticketMapper.getSecMaterials(id, companyId);
+                    List<SNInfo> xrefDevices = ticketMapper.getOdsMaterials(id, companyId);
+                    prefDevices.addAll(xrefDevices);
+                    ticket.setSerials(prefDevices);
                 }
             } else {
                 ticket.setIsFromMaster(true);
@@ -353,29 +361,33 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 ticket.setSerials(devices);
             }
 
-            if(ticket.getXaOID() != null){
-                Address address = addressService.findById(ticket.getXaOID());
-                ticket.setAddress(address);
+            if(ticket != null){
+                if(ticket.getXaOID() != null){
+                    Address address = addressService.findById(ticket.getXaOID());
+                    ticket.setAddress(address);
+                }
+                for(SNInfo sn : ticket.getSerials()){
+                    sn.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(sn.getWarrantyExpDate(), sn.getWarrantyVoidedDate(), sn.getOrderDate()));
+                }
+
+                if(ticket.getSubmitterID() != null){
+                    User user = userMapper.getUserById(ticket.getSubmitterID());
+                    String company = userMapper.getCompanyName(user.getCompanyId());
+                    ticket.setSubmitterOrg(company);
+                    ticket.setSubmitterEmail(user.getEmail());
+                    ticket.setSubmitterName(user.getName());
+                }
+
+                List<TrackingNum> trackingNumber = ticketMapper.getTrackingNumber(id);
+                ticket.setTrackingNumbers(trackingNumber);
+
+                Map<String, Object> ticketingViewsMap = objectMapper.convertValue(ticket, Map.class);
+
+                return new QueryResultDTO(ticketingViewsMap, 0, "");
             }
-
-            for(SNInfo sn : ticket.getSerials()){
-                sn.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(sn.getWarrantyExpDate(), sn.getWarrantyVoidedDate(), sn.getOrderDate()));
+            else{
+                return new QueryResultDTO(null, -1, "Ticket Not found");
             }
-
-            if(ticket.getSubmitterID() != null){
-                User user = userMapper.getUserById(ticket.getSubmitterID());
-                String company = userMapper.getCompanyName(user.getCompanyId());
-                ticket.setSubmitterOrg(company);
-                ticket.setSubmitterEmail(user.getEmail());
-                ticket.setSubmitterName(user.getName());
-            }
-
-            List<TrackingNum> trackingNumber = ticketMapper.getTrackingNumber(id);
-            ticket.setTrackingNumbers(trackingNumber);
-
-            Map<String, Object> ticketingViewsMap = objectMapper.convertValue(ticket, Map.class);
-
-            return new QueryResultDTO(ticketingViewsMap, 0, "");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
         }
@@ -460,6 +472,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             if(ticketEditDTO.getDeleteSerial().size() > 0){
                 ticketMapper.deletePrep_Xref_Materials(ticketEditDTO.getDeleteSerial());
+                List<Integer> pxmOIDs = ticketEditDTO.getDeleteSerial().stream().map(Integer::parseInt)
+                        .collect(Collectors.toList());
+                invoiceService.deleteInvoiceList(pxmOIDs);
                 //ticketMapper.deleteXref_Materials(ticketEditDTO.getDeleteSerial());
             }
             //update serials number part
@@ -468,9 +483,14 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     snsObject.setMoOID(Integer.valueOf(id));
                 }
                 ticketMapper.insertPrep_Xref_Materials(ticketEditDTO.getAddSerial());
-            }
+                List<Integer> pxmOidList = new ArrayList<>();
+                ticketEditDTO.getAddSerial().stream().forEach(s -> pxmOidList.add(s.getXmOID()));
+                invoiceService.insertInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
+        }
             if(ticketEditDTO.getUpdateSerial().size() > 0){
                 ticketMapper.updatePrep_Xref_Materials(ticketEditDTO.getUpdateSerial());
+                List<Integer> pxmOidList = ticketEditDTO.getUpdateSerial().stream().map(s -> Integer.valueOf(s.getXmOID())).collect(Collectors.toList());
+                invoiceService.updateInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
                 //ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
             }
             return new QueryResultArrayDTO(null,0, 0, "");
@@ -572,10 +592,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         for (Device d : getDevice) {
             Map<String, Object> batchDeviceInfo = new HashMap<>();
-            String errorMsg = "";
+//            String errorMsg = "";
             String curSN = d.getSerialNumber();
             batchDeviceInfo.put("serialNumber", curSN);
             batchDeviceInfo.put("xmOID", d.getXmOID());
+            batchDeviceInfo.put("pxmOID", d.getPxmOID());
+            batchDeviceInfo.put("cosmetic", d.getCosmetic());
             batchDeviceInfo.put("msnOID", d.getMsnOID());
             batchDeviceInfo.put("model", d.getModel());
             batchDeviceInfo.put("version", d.getVersion());
@@ -584,16 +606,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("terminalID", deviceInfoMap.get(curSN)[2]);
             batchDeviceInfo.put("warrantyExpDate", d.getWarrantyExpDate());
             batchDeviceInfo.put("warrantyStatus", d.getWarrantyStatus());
-            if (!d.getWarrantyStatus().equals("Under Warranty"))
-                errorMsg = d.getWarrantyStatus();
             batchDeviceInfo.put("cosmeticPrice", d.getCosmeticPrice());
             batchDeviceInfo.put("diagnosticPrice", d.getDiagnosticPrice());
             batchDeviceInfo.put("minorPrice", d.getMinorPrice());
             batchDeviceInfo.put("existInAnotherTicket", d.getExistInAnotherTicket());
             batchDeviceInfo.put("moOID", d.getMoOID());
-            if (d.getExistInAnotherTicket() || d.getXmOID() != null)
-                errorMsg = "This device has already existed in another active ticket.";
-            batchDeviceInfo.put("errorMsg", errorMsg);
             resultArray.add(batchDeviceInfo);
         }
         return resultArray;
@@ -630,6 +647,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     @Override
     public QueryResultDTO submitTicket(TicketInsertion ticketInsertion) {
         Integer submitterId = AuthUtil.getUser().getUserId();
+        Integer companyId = AuthUtil.getUser().getCompanyId();
 
         List<SNsInsertionObject> sNsInsertionObjectList = ticketInsertion.getSerials();
         List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
@@ -646,11 +664,15 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         tio.setXaOID(xaOId);
 
         int mo_OID = insertTicketToPMO(tio);
+
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
             snsObject.setMoOID(mo_OID);
         }
         try {
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
+            List<Integer> pxmOidList = new ArrayList<>();
+            sNsInsertionObjectList.stream().forEach(s -> pxmOidList.add(s.getXmOID()));
+            invoiceService.insertInvoiceList(pxmOidList, companyId);
 
             if (!trackingNumbers.isEmpty()) {
                 ticketMapper.insertXref_Inbound_Tracking(trackingNumbers, mo_OID);
