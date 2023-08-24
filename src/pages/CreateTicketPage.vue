@@ -334,7 +334,7 @@ export default {
       if (serials === undefined || serials.length == 0) {
         return;
       }
-
+      const trackingNumbers = this.getTrackingNums.filter(t => t!= "" && t.length > 0);
       this.serialsSubmitting = true;
       const actionURL = "/ticketing/submitTicket";
 
@@ -380,7 +380,7 @@ export default {
         return;
       }
       
-      const trackingNumbers = [...this.getTrackingNums];
+      
       const payload = {
         orderType: this.orderType,
         trackingNumbers,
