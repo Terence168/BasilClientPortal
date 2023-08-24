@@ -27,6 +27,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
       }
       return this.serials;
     },
+    getTrackingNums(){
+      return this.trackingNums;
+    }
   },
   reset() {
     this.$refs.state.inputValue.value = "";
@@ -140,7 +143,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         this.page = Math.ceil(this.getTotal / this.perPage);
       }
     },
-
     isSerialNumberUnqiue(serialNumber) {
       const index = this.serials.findIndex(
         (s) => serialNumber === s.serialNumber
