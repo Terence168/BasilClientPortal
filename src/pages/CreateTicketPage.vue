@@ -211,7 +211,6 @@
             Submit
           </q-btn>
         </div>
-
         <!-- Button for test email -->
         <!-- <div class="row justify-center">
           <q-btn
@@ -267,22 +266,6 @@ export default {
       fileUploading: false,
       updateOrAddLoading: false, //to control the update/add button's loading
       serialsSubmitting: false,
-      modalMap: {
-        addModal: {
-          title: "Add Device to Ticket",
-          btnLable: "Add Device",
-          serialData: {},
-          serialNumber: null,
-        },
-        updateModal: {
-          title: "Update Device to Ticket",
-          btnLable: "Update Device",
-          serialData: {},
-          serialNumber: null,
-        },
-      },
-      modalState: null, //current state of Modal
-      isModalStateAdd: true, //true: addState, false: updateState
     };
   },
 
@@ -313,11 +296,7 @@ export default {
       return user.companyName || "";
     },
   },
-
-  created() {
-    this.modalState = this.modalMap.addModal;
-  },
-
+  created() {},
   methods: {
     ...mapActions(useCreateTicketStore, [
       "addTrackingNum",

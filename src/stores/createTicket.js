@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
-import {serialNumberUpdateQuery} from "../utils/ticketUtils"
+import { serialNumberUpdateQuery } from "../utils/ticketUtils";
 
 export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
@@ -10,16 +10,20 @@ export const useCreateTicketStore = defineStore("createTicket", {
     address: null,
     trackingNums: [],
     serials: [],
-    inputValue:null,
+    inputValue: null,
   }),
 
   getters: {
     getSerials() {
-      if(this.inputValue != null){
-        return this.serials.filter((t) => 
-        (t.serialNumber != null && t.serialNumber.includes(this.inputValue)) ||
-        (t.model != null && t.model.includes(this.inputValue)) ||
-        (t.customerReportedIssueExt!= null && t.customerReportedIssueExt.includes(this.inputValue)))
+      if (this.inputValue != null) {
+        return this.serials.filter(
+          (t) =>
+            (t.serialNumber != null &&
+              t.serialNumber.includes(this.inputValue)) ||
+            (t.model != null && t.model.includes(this.inputValue)) ||
+            (t.customerReportedIssueExt != null &&
+              t.customerReportedIssueExt.includes(this.inputValue))
+        );
       }
       return this.serials;
     },
@@ -62,9 +66,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     /**
      * Serial
      */
-    addSerialList(list){
-      list.forEach(element => {
-        if(this.isSerialNumberUnqiue(element.serialNumber) === true){
+    addSerialList(list) {
+      list.forEach((element) => {
+        if (this.isSerialNumberUnqiue(element.serialNumber) === true) {
           this.serials.unshift(element);
         }
       });
@@ -74,31 +78,34 @@ export const useCreateTicketStore = defineStore("createTicket", {
       if (this.isSerialNumberUnqiue(serialData.serialNumber) === false) {
         return;
       }
-      //go to backend to validate it 
+      //go to backend to validate it
       serialNumberUpdateQuery(serialData.serialNumber, null).then((serial) => {
-        if(serial != null){
-          serial.customerReportedIssueExt  = serialData.customerReportedIssueExt;
+        if (serial != null) {
+          serial.customerReportedIssueExt = serialData.customerReportedIssueExt;
           serial.customerTerminalID = serialData.customerTerminalID;
           this.serials.unshift(serial);
         }
-      })
+      });
     },
     updateSerial(oldSerialNumber, serialData) {
-      if(oldSerialNumber != serialData.serialNumber && this.isSerialNumberUnqiue(serialData.serialNumber) === false){
+      if (
+        oldSerialNumber != serialData.serialNumber &&
+        this.isSerialNumberUnqiue(serialData.serialNumber) === false
+      ) {
         //If the SN is duplicate, show error
         return;
       }
       serialNumberUpdateQuery(serialData.serialNumber, null).then((serial) => {
-        //go to backend to validate it 
-        if(serial != null){
-          serial.customerReportedIssueExt  = serialData.customerReportedIssueExt;
+        //go to backend to validate it
+        if (serial != null) {
+          serial.customerReportedIssueExt = serialData.customerReportedIssueExt;
           serial.customerTerminalID = serialData.customerTerminalID;
           const index = this.serials.findIndex(
             (s) => oldSerialNumber === s.serialNumber
           );
           this.serials[index] = serial;
         }
-      })
+      });
     },
     resetTicket() {
       this.$reset();
