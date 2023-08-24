@@ -42,7 +42,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.trackingNums.splice(index, 1);
     },
     populateOrderTypeOpt(_, update) {
-      if (this.orderType) {
+      if (this.orderTypeOpt) {
         update();
         return;
       }
@@ -56,6 +56,24 @@ export const useCreateTicketStore = defineStore("createTicket", {
           });
         })
         .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Order Type Dropdown cannot be populated",
+          });
+        });
+    },
+    populateOrderTypeOptOnce() {
+      const link = "/ticketing/dropdown/repair_type";
+      api
+        .get(link)
+        .then((response) => {
+          this.orderTypeOpt = response.data.data;
+          // console.log(this.orderTypeOpt);
+        })
+        .catch(function (error) {
+          console.log(error);
           // handle error
           Notify.create({
             type: "negative",
