@@ -7,8 +7,9 @@
         :columns="columns"
         :rows="rows"
         :rows-per-page-options="[10, 25, 50, 100]"
+        id="serials"
       >
-        <template v-slot:bottom-row>
+        <template v-slot:bottom-row >
           <q-tr>
             <q-td colspan="100%">
               <div class="text-h6 text-right">
@@ -16,7 +17,7 @@
               </div>
             </q-td>
           </q-tr>
-        </template>
+        </template>d
         <template v-slot:body="props">
           <q-tr
             v-if="!props.row.errorMsg"
@@ -201,18 +202,18 @@ export default {
         },
         submitAction: "add",
       },
-
       showRemoveUnit: false,
       showUpdateUnit: false,
       showViewUnit: false,
       details: {},
     };
   },
-  mounted() {},
+  mounted() {
+    window.addEventListener('click', this.handleGlobalClick);
+  },
   computed: {
     ...mapWritableState(useEditTicketStore, ["getSerialsByTicketId"]),
     totalInvoice() {
-      //Todo: Incorpoate warrantyu status
       const serials = this.rows;
       let amt = 0;
       if (this.orderType === 3) {
@@ -315,6 +316,20 @@ export default {
             message: error.message,
           });
         });
+    },
+    handleGlobalClick(event) {
+      // Handle the global click event here
+      const btns = this.$refs['popupBtns'];
+      if(btns != null){
+
+        // const serials = this.$refs['serials'];
+        const serials = document.getElementById("serials");
+        if (serials != null && !serials.contains(event.target)) {
+          //click out of serials
+          // console.log("out of serials");
+          this.$refs.popupBtns.removePopupBtns();
+        }
+      }
     },
     /**
      * Handler for child component: EditModal

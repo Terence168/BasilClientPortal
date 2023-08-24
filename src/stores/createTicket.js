@@ -3,26 +3,6 @@ import { api } from "boot/axios";
 import { Notify } from "quasar";
 import {serialNumberUpdateQuery} from "../utils/ticketUtils"
 
-/**
-  filter input words
-  match
-**/
-function selectMatchItem(lists, keyWord) {
-  let resArr = [];
-  lists.filter((item) => {
-    for (let i in item) {
-      if (item[i] != null) {
-        if (item[i].toString().indexOf(keyWord) == 0) {
-          resArr.push(item);
-          break;
-        }
-      }
-    }
-  });
-
-  return resArr;
-}
-
 export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
     orderType: null,
@@ -30,87 +10,21 @@ export const useCreateTicketStore = defineStore("createTicket", {
     address: null,
     trackingNums: [],
     serials: [],
-    //pagination
-    page: 1,
-    perPage: 10,
-    inputValue: "",
-    order: false,
-    rangeFrom: 0,
-    rangeTo: 0,
-    numberOfPages: 0,
-    searchData: [],
-    iconSerialNumberPath: "/src/assets/asc.png",
-    iconModelPath: "",
+    inputText:null,
   }),
 
   getters: {
     getSerials() {
-      this.rangeFrom = (this.page - 1) * this.perPage + 1;
-
-      if (this.inputValue != "" && this.inputValue != null) {
-        this.searchData = selectMatchItem(this.serials, this.inputValue);
-
-        this.page = 1;
-        this.perPage = 10;
-
-        const startIndex = this.perPage * (this.page - 1);
-        const endIndex = startIndex + this.perPage;
-        //when typing reload getTotal
-        this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
-
-        return this.searchData.slice(startIndex, endIndex);
-      } else {
-        const startIndex = this.perPage * (this.page - 1);
-        const endIndex = startIndex + this.perPage;
-
-        this.rangeTo = Math.min(this.page * this.perPage, this.getTotal);
-        return this.serials.slice(startIndex, endIndex);
-      }
-    },
-    getTotal() {
-      if (this.inputValue != "" && this.inputValue != null) {
-        return this.searchData.length;
-      } else {
-        return this.serials.length;
-      }
-    },
-
-    getTotalPages() {
-      if (this.inputValue != "" && this.inputValue != null) {
-        this.numberOfPages = Math.ceil(this.searchData.length / this.perPage);
-        return this.numberOfPages;
-      } else {
-        this.numberOfPages = Math.ceil(this.serials.length / this.perPage);
-        return this.numberOfPages;
-      }
-    },
-
-    getRangeForm() {
-      return this.rangeFrom;
-    },
-
-    getRangeTo() {
-      return this.rangeTo;
-    },
-
-    getIconSerialNumberPath() {
-      return this.iconSerialNumberPath;
-    },
-
-    getIconModelPath() {
-      return this.iconModelPath;
-    },
-    getAllSerials() {
       return this.serials;
-    },
-    getTrackingNums() {
-      return this.trackingNums;
     },
   },
   reset() {
     this.$refs.state.inputText.value = "";
   },
   actions: {
+    /**
+     * Tracking number
+     */
     addTrackingNum() {
       this.trackingNums.push("");
     },
@@ -122,9 +36,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         update();
         return;
       }
-
       const link = "/ticketing/dropdown/repair_type";
-
       api
         .get(link)
         .then((response) => {
@@ -141,89 +53,19 @@ export const useCreateTicketStore = defineStore("createTicket", {
           });
         });
     },
-
-    getNextPages(pages) {
-      this.page = pages;
-    },
-
-    changeToPage(perPage, pages) {
-      this.perPage = perPage;
-    },
-
-    goToPage(pages) {
-      if (pages > this.numberOfPages) {
-        this.page = 1;
-        return this.page;
-      }
-
-      this.page = pages;
-    },
-
-    sort(columnName) {
-      this.sortColumn = columnName;
-      this.sortWithoutReverseOrder();
-      this.order = !this.order;
-
-      if (this.order === true) {
-        this.order = true;
-
-        if (this.sortColumn == "serialNumber") {
-          this.iconModelPath = "";
-          this.iconSerialNumberPath = "/src/assets/desc.png";
+    /**
+     * Serial
+     */
+    addSerialList(list){
+      list.forEach(element => {
+        if(this.isSerialNumberUnqiue(element.serialNumber) === true){
+          this.serials.unshift(element);
         }
-
-        if (this.sortColumn == "model") {
-          this.iconModelPath = "/src/assets/desc.png";
-          this.iconSerialNumberPath = "";
-        }
-      } else {
-        this.order = false;
-
-        if (this.sortColumn == "serialNumber") {
-          this.iconModelPath = "";
-          this.iconSerialNumberPath = "/src/assets/asc.png";
-        }
-
-        if (this.sortColumn == "model") {
-          this.iconModelPath = "/src/assets/asc.png";
-          this.iconSerialNumberPath = "";
-        }
-      }
+      });
     },
-
-    sortWithoutReverseOrder() {
-      const columnName = this.sortColumn;
-      if (this.order === false) {
-        this.serials.sort((s1, s2) =>
-          s1[columnName] > s2[columnName]
-            ? 1
-            : s1[columnName] < s2[columnName]
-            ? -1
-            : 0
-        );
-      } else {
-        this.serials.sort((s1, s2) =>
-          s1[columnName] > s2[columnName]
-            ? -1
-            : s1[columnName] < s2[columnName]
-            ? 1
-            : 0
-        );
-      }
-    },
-
     addSerial(serialData) {
-      const newSerial = {
-        ...serialData,
-        cosmetic: false,
-        show: true,
-        loading: false,
-        valid: true,
-        bgColor: null,
-        invoiceAmt: 0,
-      };
       //If the SN is duplicate, show error
-      if (this.isSerialNumberUnqiue(newSerial.serialNumber) === false) {
+      if (this.isSerialNumberUnqiue(serialData.serialNumber) === false) {
         return;
       }
       //go to backend to validate it 
@@ -235,7 +77,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         }
       })
     },
-
     updateSerial(oldSerialNumber, serialData) {
       if(oldSerialNumber != serialData.serialNumber && this.isSerialNumberUnqiue(serialData.serialNumber) === false){
         //If the SN is duplicate, show error
@@ -253,11 +94,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
         }
       })
     },
-
     resetTicket() {
       this.$reset();
     },
-
     removeSerial(serialNumber) {
       const index = this.serials.findIndex(
         (s) => serialNumber === s.serialNumber

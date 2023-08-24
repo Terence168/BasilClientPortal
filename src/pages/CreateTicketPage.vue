@@ -321,6 +321,7 @@ export default {
       "resetTicket",
       "populateOrderTypeOpt",
       "addSerial",
+      "addSerialList",
       "updateSerial",
       "removeSerial",
     ]),
@@ -336,10 +337,7 @@ export default {
       batchSerialNumberQuery(formData)
         .then((serials) => {
           this.file = null;
-
-          serials.forEach((s) => {
-            this.addSerial(s);
-          });
+          this.addSerialList(serials);
         })
         .finally(() => {
           this.fileUploading = false;
@@ -458,12 +456,6 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          console.log("send email success");
-          // const mo_OID = response.data.data.mo_OID;
-          // Notify.create({
-          //   type: "positive",
-          //   message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
-          // });
         })
         .catch((e) => {
           this.$q.notify({
