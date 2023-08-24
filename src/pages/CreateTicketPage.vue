@@ -330,7 +330,7 @@ export default {
       this.showAddressModal = true;
     },
     handleSubmitSerials() {
-      const serials = this.getAllSerials;
+      const serials = this.getSerials;
       if (serials === undefined || serials.length == 0) {
         return;
       }
@@ -353,7 +353,7 @@ export default {
 
       //If user didn't choose order type, don't allow user to submit the ticket
       if (this.orderType === null) {
-        this.$q.notify({
+        Notify.create({
           type: "negative",
           message: "Please Select Order Type before Submitting.",
         });
@@ -361,10 +361,9 @@ export default {
         return;
       }
 
-      //if shipping address is not selected
       for (const serial of serials) {
         if (serial.valid === false) {
-          this.$q.notify({
+          Notify.create({
             type: "negative",
             message: "Please Delete Invalid SN before Submiting",
           });
@@ -373,13 +372,14 @@ export default {
         }
       }
       if (this.address === null) {
-        this.$q.notify({
+        Notify.create({
           type: "negative",
           message: "Please Select Shipping Address before Submitting",
         });
         this.serialsSubmitting = false;
         return;
       }
+      
       const trackingNumbers = [...this.getTrackingNums];
       const payload = {
         orderType: this.orderType,

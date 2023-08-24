@@ -22,6 +22,7 @@
               label="Please select"
               v-model="ticketInfo.typeOfRepair"
               :options="orderTypeOpt"
+              :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
               @filter="populateOrderTypeOpt"
               dense
               emit-value
@@ -122,6 +123,7 @@
             class="col-auto"
             color="primary"
             @click="this.$refs.editTable.handleClickAddUnit()"
+            :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
           >
             Add Serial Number
           </q-btn>
@@ -139,7 +141,7 @@
                 label="Upload Excel File"
                 dense
                 counter
-                :disable="fileUploading"
+                :disable="fileUploading || (ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
               >
                 <template v-slot:prepend>
                   <q-icon name="attach_file" />
@@ -155,6 +157,7 @@
                 color="primary"
                 style="min-width: 150px"
                 :loading="fileUploading"
+                :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
               >
                 <template v-slot:loading>
                   <q-spinner-facebook />
@@ -181,6 +184,7 @@
         <TicketEditTable
           ref="editTable"
           :isFromMaster="ticketInfo.isFromMaster"
+          :containsXrefMaterials="ticketInfo.containsXrefMaterials"
           :orderType="ticketInfo.typeOfRepair"
           :rows="getSerialsByTicketId(ticketId, inputValue)"
           @add-sn="handleAddSN"

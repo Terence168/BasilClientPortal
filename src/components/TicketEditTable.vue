@@ -30,6 +30,7 @@
               <q-checkbox
                 v-model="props.row.cosmetic"
                 @update:model-value="props.row.isUpdate = true"
+                :disable="containsXrefMaterials === null ? false : containsXrefMaterials"
               >
               </q-checkbox>
             </q-td>
@@ -123,7 +124,7 @@ import { parseDateTime, parseDate } from "../utils/timeUtils.js";
 import { api } from "src/boot/axios";
 
 export default {
-  props: ["isFromMaster", "orderType", "rows"],
+  props: ["isFromMaster", "orderType", "rows", "containsXrefMaterials"],
   components: { PopUpBtns, EditModal, BaseModal, TicketDetailForm },
   emits: ["add-sn", "update-sn", "remove-sn"],
   data() {
