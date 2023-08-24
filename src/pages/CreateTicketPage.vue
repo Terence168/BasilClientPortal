@@ -84,7 +84,11 @@
         </div>
 
         <div class="q-my-sm">Shipping Address:</div>
-        <AddressBlock :address="address" @click="showAddressGrid" />
+        <div class="row">
+          <div class="col-auto">
+            <AddressBlock :address="address" @click="showAddressGrid" />
+          </div>
+        </div>
 
         <div class="row q-my-sm items-center">
           <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
@@ -447,7 +451,7 @@ export default {
       this.address = address;
       this.showAddressModal = false;
     },
-    testEmailSerivce(){
+    testEmailSerivce() {
       const actionURL = "/aws/email/test";
       const vm = this;
       this.$api
@@ -462,8 +466,8 @@ export default {
             type: "negative",
             message: e.message,
           });
-        })
-    }
+        });
+    },
   },
 };
 </script>
