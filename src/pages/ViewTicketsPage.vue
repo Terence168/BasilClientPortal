@@ -95,6 +95,7 @@ export default {
             sortable: true,
           },
           { id: "responder", label: "Responder", sortable: true },
+          { id: "ticketEdit", label: "Edit", sortable: false },
         ],
         rows: [],
       },
@@ -124,7 +125,7 @@ export default {
   methods: {
     queryData() {
       const vm = this;
-
+      console.log(window.location.search);
       this.$api
         .get("/ticketing/viewTickets" + window.location.search)
         .then(function (response) {

@@ -2,16 +2,15 @@
   <div class="q-mx-lg">
     <div class="generic-container">
       <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        Create Ticket
+        Edit Ticket {{ ticketId }}
       </div>
     </div>
-
     <div class="q-mt-lg generic-container">
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg text-body1">
         <div class="row q-mb-md text-weight-medium">
           <div class="col">Ticket Status: Open</div>
           <div class="col-auto" @click="resetTicket">
-            <q-btn color="red">Clear Data</q-btn>
+            <q-btn color="red">Refresh Data</q-btn>
           </div>
         </div>
 
@@ -21,7 +20,7 @@
             <q-select
               style="min-width: 200px"
               label="Please select"
-              v-model="orderType"
+              v-model="ticketInfo.typeOfRepair"
               :options="orderTypeOpt"
               @filter="populateOrderTypeOpt"
               dense
@@ -45,37 +44,22 @@
             <q-input style="min-width: 200px" dense v-model="originalRMA" />
           </div>
         </div>
-
-        <!-- Add ticket  -->
-        <div class="row items-center">
-          <div class="col-auto q-mr-sm">Customer Organization:&nbsp;</div>
-          <div class="col-auto">
-            <q-input
-              :model-value="companyName"
-              disable
-              style="min-width: 200px"
-              dense
-            />
-          </div>
-        </div>
-
-        <div class="row items-center">
-          <div class="col-auto q-mr-sm">Customer Email:&nbsp;</div>
-          <div class="col-auto">
-            <q-input
-              :model-value="userEmail"
-              disable
-              style="min-width: 200px"
-              dense
-            />
-          </div>
-        </div>
-
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Ticket Submitter:&nbsp;</div>
           <div class="col-auto">
             <q-input
-              :model-value="userName"
+              :model-value="ticketInfo.submitterName"
+              disable
+              style="min-width: 200px"
+              dense
+            />
+          </div>
+        </div>
+        <div class="row items-center">
+          <div class="col-auto q-mr-sm">Submitter Organization:&nbsp;</div>
+          <div class="col-auto">
+            <q-input
+              :model-value="ticketInfo.submitterOrg"
               disable
               style="min-width: 200px"
               dense
@@ -83,13 +67,20 @@
           </div>
         </div>
 
-        <div class="q-my-sm">Shipping Address:</div>
-        <div class="row">
+        <div class="row items-center">
+          <div class="col-auto q-mr-sm">Submitter Email:&nbsp;</div>
           <div class="col-auto">
-            <AddressBlock :address="address" @click="showAddressGrid" />
+            <q-input
+              :model-value="ticketInfo.submitterEmail"
+              disable
+              style="min-width: 200px"
+              dense
+            />
           </div>
         </div>
-
+        <div class="q-my-sm">Shipping Address:</div>
+        <AddressBlock :address="address" @click="showAddressGrid" />
+        <!-- tracking number section -->
         <div class="row q-my-sm items-center">
           <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
           <div class="col">
@@ -98,37 +89,35 @@
               outline
               rounded
               color="primary"
-              @click="addTrackingNum"
+              @click="addTrackingNum(ticketId)"
             />
           </div>
         </div>
         <div
-          v-for="(trackingNum, index) in trackingNums"
+          v-for="(trackingNum, index) in getTrackingNumsByTicketId(ticketId)"
           :key="index"
           class="row q-mb-sm items-center"
         >
           <q-input
             class="q-mr-sm"
-            v-model="trackingNums[index]"
+            v-model="trackingNum.num"
             style="min-width: 300px"
             dense
             outlined
+            @update:model-value="trackingNum.isUpdate = true"
           />
           <q-btn
             label="Remove"
             outline
             rounded
             color="primary"
-            @click="deleteTrackingNum(index)"
+            @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
-
         <div class="q-py-md text-subtitle1 text-weight-bold">
           Ticket Serial Numbers
         </div>
-
         <div class="row items-start">
-          <!-- Add Serial Number -->
           <q-btn
             class="col-auto"
             color="primary"
@@ -137,7 +126,6 @@
             Add Serial Number
           </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
-          <!-- Upload file -->
           <q-form class="col-auto" @submit="onFileSubmit">
             <div class="row items-start">
               <q-file
@@ -189,12 +177,12 @@
             </div>
           </q-form>
         </div>
-
+        <!-- Ticket serials -->
         <TicketEditTable
           ref="editTable"
-          :isFromMaster="false"
-          :orderType="orderType"
-          :rows="getSerials"
+          :isFromMaster="ticketInfo.isFromMaster"
+          :orderType="ticketInfo.typeOfRepair"
+          :rows="getSerialsByTicketId(ticketId, inputValue)"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -204,26 +192,22 @@
           <q-btn
             class="col-auto"
             color="primary"
-            @click="handleSubmitSerials"
+            @click="handleEditTicket"
             style="min-width: 200px"
-            :loading="serialsSubmitting"
+            :loading="ticketEditing"
           >
             Submit
           </q-btn>
         </div>
-        <!-- Button for test email -->
-        <!-- <div class="row justify-center">
-          <q-btn
-            class="col-auto"
-            color="primary"
-            @click="testEmailSerivce"
-            style="min-width: 200px"
-          >
-            Test Email
-          </q-btn>
-        </div> -->
       </div>
     </div>
+    <MessageBoard
+      :ticketId="ticketId"
+      :comments="comments"
+      @add-comment="addComment"
+      ref="messageBoard"
+    />
+
     <BaseModal
       :show="showAddressModal"
       title="Select Shipping Address"
@@ -236,161 +220,174 @@
 </template>
 
 <script>
-import { useUserStore } from "stores/user";
 import { useCreateTicketStore } from "stores/createTicket";
 import { mapWritableState, mapActions } from "pinia";
-import { mapState } from "pinia";
-import BaseModal from "src/components/BaseModal.vue";
+import { mapState, mapStores } from "pinia";
+import MessageBoard from "src/components/MessageBoard.vue";
 import TicketEditTable from "src/components/TicketEditTable.vue";
-
 import AddressBlock from "src/components/AddressBlock.vue";
 import AddressGrid from "src/components/AddressGrid.vue";
-import { Notify } from "quasar";
-import { batchSerialNumberQuery } from "../utils/ticketUtils.js";
-
-const user = useUserStore();
+import BaseModal from "src/components/BaseModal.vue";
+import { Notify, TouchSwipe } from "quasar";
+import { api } from "src/boot/axios";
+import { useEditTicketStore } from "src/stores/editTicket";
+import { useUserStore } from "stores/user";
+import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 
 export default {
   components: {
-    BaseModal,
+    MessageBoard,
     TicketEditTable,
     AddressBlock,
     AddressGrid,
-    TicketEditTable,
+    BaseModal,
   },
-  data() {
+  data: () => {
     return {
+      ticketInfo: {
+        address: null,
+        typeOfRepair: null,
+        originalRMA: null,
+        isFromMaster: false,
+        orderStatus: null,
+        submitterOrg: null,
+        submitterName: null,
+        submitterEmail: null,
+        serials: [],
+        trackingNumbers: [],
+      },
+      comments: [],
+      editInfo: {
+        updateTrackingNums: [],
+        removeTrackingNums: [],
+        removeSerials: [],
+        updateSerials: [],
+      },
+      isLoading: false,
+      ticketEditing: false,
+
       file: null,
-      showModal: false,
-      showAddressModal: false,
       fileUploading: false,
-      updateOrAddLoading: false, //to control the update/add button's loading
-      serialsSubmitting: false,
+      inputValue: null,
+
+      showAddressModal: false,
     };
   },
+  created() {
+    // watch the params of the route to fetch the data again
+    this.$watch(
+      () => this.$route.params,
+      () => {
+        if (this.$route.name !== "edit-ticket") {
+          return;
+        }
+
+        this.isLoading = true;
+
+        Promise.all([
+          this.getTicket(this.ticketId),
+          this.fetchComments(this.ticketId),
+           //ensure it been populated
+        ])
+          .then((values) => {
+            const ticketInfo = values[0];
+            const comments = values[1];
+            if (ticketInfo != null) {
+              this.ticketInfo = ticketInfo;
+            }
+            if (this.comments != null) {
+              this.comments = comments;
+            }
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      // fetch the data when the view is created and the data is
+      // already being observed
+      { immediate: true }
+    );
+  },
+
+  mounted() {},
 
   computed: {
-    ...mapWritableState(useCreateTicketStore, [
-      "orderType",
-      "trackingNums",
-      "inputValue",
-      "originalRMA",
-      "address",
-    ]),
-    ...mapState(useCreateTicketStore, [
-      "orderTypeOpt",
-      "getSerials",
-      "getAllSerials",
-      "getTrackingNums",
+    // ...mapWritableState(useCreateTicketStore, ["orderType"]),
+    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
+    ...mapWritableState(useEditTicketStore, [
+      "getTrackingNumsByTicketId",
+      "getSerialsByTicketId",
+      "getTicketbyId",
     ]),
     isReRepair() {
-      return this.orderType === 4;
+      return this.ticketInfo.typeOfRepair === 4;
     },
-    userName() {
-      return user.username || "Guest";
+    ticketId() {
+      return this.$route.params.ticketId;
     },
-    userEmail() {
-      return user.email || "N/A";
-    },
-    companyName() {
-      return user.companyName || "";
+    address() {
+      return this.ticketInfo.address;
     },
   },
-  created() {},
   methods: {
-    ...mapActions(useCreateTicketStore, [
+    ...mapActions(useCreateTicketStore, ["populateOrderTypeOpt"]),
+    ...mapActions(useEditTicketStore, [
+      "fetchTicket",
+      "getTicket",
       "addTrackingNum",
       "deleteTrackingNum",
-      "resetTicket",
-      "populateOrderTypeOpt",
-      "addSerial",
-      "addSerialList",
-      "updateSerial",
-      "removeSerial",
+      "getEditInfo",
+      "findEditTrackingNums",
+      "findEditSN",
+      "addSN",
+      "addSnList",
+      "updateSN",
+      "removeSN",
+      "updateAddress",
     ]),
-    onFileSubmit(e) {
-      if (!this.file) {
-        return;
-      }
-      this.fileUploading = true;
-
-      const formData = new FormData(e.target);
-      formData.append("fileName", this.file ? this.file.name : "");
-
-      batchSerialNumberQuery(formData)
-        .then((serials) => {
-          this.file = null;
-          this.addSerialList(serials);
-        })
-        .finally(() => {
-          this.fileUploading = false;
-        });
-    },
-    showAddressGrid() {
-      this.showAddressModal = true;
-    },
-    handleSubmitSerials() {
-      const serials = this.getAllSerials;
-      if (serials === undefined || serials.length == 0) {
-        return;
-      }
-
-      this.serialsSubmitting = true;
-      const actionURL = "/ticketing/submitTicket";
-
-      const sNsInsertionObjects = serials.map((serial) => {
-        const snObject = {};
-        snObject.customerReportedIssueExt = serial.customerReportedIssueExt;
-        snObject.customerTerminalID = serial.customerTerminalID;
-        snObject.serialNumber = serial.serialNumber;
-        snObject.customerRMA = serial.customerRMA;
-        snObject.xmOID = serial.xmOID;
-        snObject.msnOID = serial.msnOID;
-        snObject.cosmetic =
-          serial.cosmetic === null || serial.cosmetic === false ? 891 : 890;
-        return snObject;
-      });
+    handleEditTicket() {
+      //valid serials and update it
+      this.ticketEditing = true;
+      const editTracking = this.findEditTrackingNums(this.ticketId);
+      const editSerial = this.findEditSN(this.ticketId);
 
       //If user didn't choose order type, don't allow user to submit the ticket
-      if (this.orderType === null) {
+      if (this.ticketInfo.orderType === null) {
         this.$q.notify({
           type: "negative",
           message: "Please Select Order Type before Submitting.",
         });
-        this.serialsSubmitting = false;
+        this.ticketEditing = false;
         return;
       }
 
-      //if shipping address is not selected
-      for (const serial of serials) {
+      //if SN isn't found. Don't let customer submit ticket before Remove the record.
+      for (const serial of this.getSerialsByTicketId(this.ticketId)) {
         if (serial.valid === false) {
           this.$q.notify({
             type: "negative",
             message: "Please Delete Invalid SN before Submiting",
           });
-          this.serialsSubmitting = false;
+          this.ticketEditing = false;
           return;
         }
       }
-      if (this.address === null) {
-        this.$q.notify({
-          type: "negative",
-          message: "Please Select Shipping Address before Submitting",
-        });
-        this.serialsSubmitting = false;
-        return;
-      }
-      const trackingNumbers = [...this.getTrackingNums];
+
       const payload = {
-        orderType: this.orderType,
-        trackingNumbers,
-        originalRMA: this.originalRMA,
-        serials: sNsInsertionObjects,
-        xaOID: this.address.xaOid,
+        ...editTracking,
+        ...editSerial,
+        isFromMaster: this.ticketInfo.isFromMaster,
+        orderType: this.ticketInfo.orderType,
+        address: this.ticketInfo.address,
+        typeOfRepair: this.ticketInfo.typeOfRepair,
+        originalRMA: this.ticketInfo.originalRMA,
+        clientGroup: this.clientGroup,
+        mcOID: this.ticketInfo.mcOID,
       };
 
-      const vm = this;
-      this.$api
+      const actionURL = "/ticketing/editTicket/" + this.ticketId;
+      // console.log(payload);
+      api
         .post(actionURL, payload, {
           headers: {
             "Content-Type": "application/json",
@@ -400,55 +397,113 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          const mo_OID = response.data.data.mo_OID;
           Notify.create({
             type: "positive",
-            message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
+            message: "Update Ticket Successfully",
           });
         })
         .catch((e) => {
-          this.$q.notify({
+          Notify.create({
             type: "negative",
             message: e.message,
           });
         })
         .finally(() => {
-          this.serialsSubmitting = false;
-          vm.resetTicket();
+          this.resetTicket();
+          this.ticketEditing = false;
+        });
+    },
+    resetTicket() {
+      this.isLoading = true;
+      this.fetchTicket(this.ticketId)
+        .then((ticket) => {
+          this.ticketInfo = ticket;
+        })
+        .finally(() => {
+          this.isLoading = false;
         });
     },
     handleAddSN({ serial }) {
-      this.addSerial(serial);
+      this.addSN(this.ticketId, serial);
     },
     handleUpdateSN({ oldSN, serial }) {
-      this.updateSerial(oldSN, serial);
+      this.updateSN(this.ticketId, oldSN, serial);
     },
     handleRemoveSN({ sn }) {
-      this.removeSerial(sn);
+      this.removeSN(this.ticketId, sn);
     },
-    selectShippingAddress(address) {
-      this.address = address;
-      this.showAddressModal = false;
+    onFileSubmit(e) {
+      if (!this.file) {
+        return;
+      }
+      this.fileUploading = true;
+      const formData = new FormData(e.target);
+      formData.append("fileName", this.file ? this.file.name : "");
+
+      batchSerialNumberQuery(formData)
+        .then((serials) => {
+          this.file = null;
+          this.addSnList(this.ticketId, serials);
+        })
+        .finally(() => {
+          this.fileUploading = false;
+        });
     },
-    testEmailSerivce() {
-      const actionURL = "/aws/email/test";
+    /**
+     *
+     * For Message board
+     */
+    fetchComments(ticketId) {
       const vm = this;
-      this.$api
-        .get(actionURL)
-        .then(function (response) {
+      const link = "/ticketing/" + ticketId + "/response";
+      return api
+        .get(link)
+        .then((response) => {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
+          return response.data.data;
         })
-        .catch((e) => {
-          this.$q.notify({
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
             type: "negative",
-            message: e.message,
+            message: error.message,
           });
         });
+    },
+    addComment(comment) {
+      const user = useUserStore();
+      const { username } = user;
+      //call backend api to update it
+      const link = `/ticketing/${this.ticketId}/response`;
+      api
+        .post(link, comment)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          const newComment = response.data.data.response;
+          newComment.responseBy = username;
+          this.comments.push(newComment);
+          this.$refs.messageBoard.scrollToBottom();
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    selectShippingAddress(address) {
+      this.updateAddress(address, this.ticketId);
+      this.showAddressModal = false;
+    },
+    showAddressGrid() {
+      this.showAddressModal = true;
     },
   },
 };
 </script>
-
 <style></style>

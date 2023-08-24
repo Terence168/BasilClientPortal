@@ -115,7 +115,6 @@ const routes = [
               permissions: ["rma.status"],
             },
           },
-
           {
             path: "create",
             name: "create-ticket",
@@ -125,6 +124,15 @@ const routes = [
               permissions: ["rma.status"],
             },
           },
+          {
+            path:"edit/:ticketId",
+            name:"edit-ticket",
+            component: () => import("pages/EditTicketPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["rma.status"],
+            },
+          }
         ],
       },
     ],
