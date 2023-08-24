@@ -18,6 +18,7 @@
           <div class="col-auto q-mr-sm">Order Type:&nbsp;</div>
           <div class="col-auto">
             <q-select
+              ref="orderTypeSelect"
               style="min-width: 200px"
               label="Please select"
               v-model="ticketInfo.typeOfRepair"
@@ -291,7 +292,7 @@ export default {
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
-           //ensure it been populated
+          //ensure it been populated
         ])
           .then((values) => {
             const ticketInfo = values[0];
@@ -311,6 +312,8 @@ export default {
       // already being observed
       { immediate: true }
     );
+
+    this.populateOrderTypeOptOnce();
   },
 
   mounted() {},
@@ -334,7 +337,10 @@ export default {
     },
   },
   methods: {
-    ...mapActions(useCreateTicketStore, ["populateOrderTypeOpt"]),
+    ...mapActions(useCreateTicketStore, [
+      "populateOrderTypeOpt",
+      "populateOrderTypeOptOnce",
+    ]),
     ...mapActions(useEditTicketStore, [
       "fetchTicket",
       "getTicket",
