@@ -64,6 +64,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     private InvoiceService invoiceService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public QueryResultArrayDTO ticketQuery(Integer currentPage,
                                            Integer sizePerPage,
@@ -198,11 +199,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO viewTicketDetails(Integer id) {
-        try{
+        try {
             ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
             List<RepairRecord> repairRecords = ticketMapper.getTicketingViewsDetail(id);
 
-            for(RepairRecord repairRecord : repairRecords){
+            for (RepairRecord repairRecord : repairRecords) {
                 //repairRecord.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(repairRecord.getWarrantyEndDate(), repairRecord.getWarrantyVoidedDate(), repairRecord.getOrderDate()));
 
                 Map<String, Object> objectMap = objectMapper.convertValue(repairRecord, Map.class);
@@ -210,7 +211,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
 
             return new QueryResultArrayDTO(resultArray, 1, 0, null);
-        }catch(Exception e) {
+        } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
@@ -353,7 +354,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             Integer companyId;
             if (ticket == null) {
                 ticket = ticketMapper.existingPREPMasterOrder(id); //existing check BASIL_SEC_PRD.PREP_XREF_MATERIALS
-                if(ticket != null) {
+                if (ticket != null) {
                     ticket.setIsFromMaster(false);
                     companyId = ticket.getMcOID();
                     List<SNInfo> prefDevices = ticketMapper.getSecMaterials(id, companyId);
@@ -368,13 +369,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 ticket.setSerials(devices);
             }
 
-            if(ticket != null){
-                if(ticket.getXaOID() != null){
+            if (ticket != null) {
+                if (ticket.getXaOID() != null) {
                     Address address = addressService.findById(ticket.getXaOID());
                     ticket.setAddress(address);
                 }
 
-                if(ticket.getSubmitterID() != null){
+                if (ticket.getSubmitterID() != null) {
                     User user = userMapper.getUserById(ticket.getSubmitterID());
                     String company = userMapper.getCompanyName(user.getCompanyId());
                     ticket.setSubmitterOrg(company);
@@ -388,8 +389,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 Map<String, Object> ticketingViewsMap = objectMapper.convertValue(ticket, Map.class);
 
                 return new QueryResultDTO(ticketingViewsMap, 0, "");
-            }
-            else{
+            } else {
                 return new QueryResultDTO(null, -1, "Ticket Not found");
             }
         } catch (Exception e) {
@@ -402,13 +402,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         CustomUserDetails user = AuthUtil.getUser();
 
         try {
-            if(user!=null) {
+            if (user != null) {
                 ticketResponse.setResponseBy(user.getUserId().toString());
             }
             ticketMapper.insertResponse(ticketResponse);
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("response", ticketResponse);
-            return new QueryResultDTO(resultMap,0, "");
+            return new QueryResultDTO(resultMap, 0, "");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
         }
@@ -417,24 +417,24 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO getResponse(String id) {
-       try{
-           ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        try {
+            ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
 
-           List<TicketResponse> responsesList=ticketMapper.getResponse(id);
+            List<TicketResponse> responsesList = ticketMapper.getResponse(id);
 
-           if (!responsesList.isEmpty()) {
-               for (TicketResponse ticketingResponse : responsesList) {
+            if (!responsesList.isEmpty()) {
+                for (TicketResponse ticketingResponse : responsesList) {
 
-                   Map<String, Object> responsesMap = new HashMap<>();
-                   responsesMap.put("mo_oid", ticketingResponse.getMoOID());
-                   responsesMap.put("response_date", ticketingResponse.getResponseDate());
-                   responsesMap.put("content", ticketingResponse.getContent());
-                   responsesMap.put("responseBy", ticketingResponse.getResponseBy());
+                    Map<String, Object> responsesMap = new HashMap<>();
+                    responsesMap.put("mo_oid", ticketingResponse.getMoOID());
+                    responsesMap.put("response_date", ticketingResponse.getResponseDate());
+                    responsesMap.put("content", ticketingResponse.getContent());
+                    responsesMap.put("responseBy", ticketingResponse.getResponseBy());
 
-                   resultArray.add(responsesMap);
-               }
-           }
-           return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+                    resultArray.add(responsesMap);
+                }
+            }
+            return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
@@ -442,39 +442,37 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO) {
-        try{
+        try {
             //update tracking number part
-            if(ticketEditDTO.isFromMaster()){
+            if (ticketEditDTO.isFromMaster()) {
                 //    void updateMasterOrder(Integer typeOfRepair, String originalRMA, String moOID, String xaOID);
                 Integer xaOID = null;
-                if(ticketEditDTO.getAddress() != null){
+                if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
                 ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
-            }
-            else{
+            } else {
                 Integer xaOID = null;
-                if(ticketEditDTO.getAddress() != null){
+                if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
                 ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
             }
-            if(ticketEditDTO.getUpdateTracking().size() > 0 ){
+            if (ticketEditDTO.getUpdateTracking().size() > 0) {
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());
             }
-            if(ticketEditDTO.getDeleteTracking().size() > 0){
+            if (ticketEditDTO.getDeleteTracking().size() > 0) {
                 ticketMapper.deleteXref_Inbound_Tracking(ticketEditDTO.getDeleteTracking());
             }
-            if(ticketEditDTO.getAddTracking().size() > 0){
-                if(ticketEditDTO.getAddTracking().size() == 1){
+            if (ticketEditDTO.getAddTracking().size() > 0) {
+                if (ticketEditDTO.getAddTracking().size() == 1) {
                     ticketMapper.insertSingleXref_Inbound_Tracking(ticketEditDTO.getAddTracking().get(0));
-                }
-                else{
+                } else {
                     ticketMapper.batchInsertXref_Inbound_Tracking(ticketEditDTO.getAddTracking());
                 }
             }
 
-            if(ticketEditDTO.getDeleteSerial().size() > 0){
+            if (ticketEditDTO.getDeleteSerial().size() > 0) {
                 ticketMapper.deletePrep_Xref_Materials(ticketEditDTO.getDeleteSerial());
                 List<Integer> pxmOIDs = ticketEditDTO.getDeleteSerial().stream().map(Integer::parseInt)
                         .collect(Collectors.toList());
@@ -482,7 +480,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 //ticketMapper.deleteXref_Materials(ticketEditDTO.getDeleteSerial());
             }
             //update serials number part
-            if(ticketEditDTO.getAddSerial().size() > 0){
+            if (ticketEditDTO.getAddSerial().size() > 0) {
                 for (SNsInsertionObject snsObject : ticketEditDTO.getAddSerial()) {
                     snsObject.setMoOID(Integer.valueOf(id));
                 }
@@ -490,15 +488,15 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 List<Integer> pxmOidList = new ArrayList<>();
                 ticketEditDTO.getAddSerial().stream().forEach(s -> pxmOidList.add(s.getXmOID()));
                 invoiceService.insertInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
-        }
-            if(ticketEditDTO.getUpdateSerial().size() > 0){
+            }
+            if (ticketEditDTO.getUpdateSerial().size() > 0) {
                 ticketMapper.updatePrep_Xref_Materials(ticketEditDTO.getUpdateSerial());
                 List<Integer> pxmOidList = ticketEditDTO.getUpdateSerial().stream().map(s -> Integer.valueOf(s.getXmOID())).collect(Collectors.toList());
                 invoiceService.updateInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
                 //ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
             }
-            return new QueryResultArrayDTO(null,0, 0, "");
-        }catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, 0, "");
+        } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
@@ -605,9 +603,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("msnOID", d.getMsnOID());
             batchDeviceInfo.put("model", d.getModel());
             batchDeviceInfo.put("version", d.getVersion());
-            batchDeviceInfo.put("customerReportedIssue", deviceInfoMap.get(curSN)[0]);
+            batchDeviceInfo.put("customerReportedIssueExt", deviceInfoMap.get(curSN)[0]);
             batchDeviceInfo.put("customerRMA", deviceInfoMap.get(curSN)[1]);
-            batchDeviceInfo.put("terminalID", deviceInfoMap.get(curSN)[2]);
+            batchDeviceInfo.put("customerTerminalID", deviceInfoMap.get(curSN)[2]);
             batchDeviceInfo.put("warrantyExpDate", d.getWarrantyExpDate());
             batchDeviceInfo.put("warrantyStatus", d.getWarrantyStatus());
             batchDeviceInfo.put("cosmeticPrice", d.getCosmeticPrice());
@@ -684,25 +682,23 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
             Map<String, Object> result = new HashMap<>();
             result.put("mo_OID", mo_OID);
-            if(invoice > 0d) {
-                Company company = userMapper.getCompanyInfo(companyId);
-                Integer clientGroup = company.getClientGroupId();
-                String content = constructEmail(mo_OID, invoice, clientGroup);
-                String subject = String.format("RMA #%d Confirmation", mo_OID);
-                submitterEmail="success@simulator.amazonses.com";
-                Mono<String> delivery = emailService.sendEmail(submitterEmail, subject, content).map(response ->
-                        response.isSuccess() ? "Success, message ID: " + response.getResponse().messageId()
-                                : response.getException() != null ? response.getException().getMessage()
-                                : "Service Disabled");
-                delivery.subscribe(
-                        value ->{
-                            result.put("emailDeliveryResult", value);
-                        },
-                        error->{
-                            log.error(error.getMessage());
-                        }
-                );
-            }
+            Company company = userMapper.getCompanyInfo(companyId);
+            Integer clientGroup = company.getClientGroupId();
+            String content = constructEmail(mo_OID, invoice, clientGroup);
+            String subject = String.format("RMA #%d Confirmation", mo_OID);
+            submitterEmail = "success@simulator.amazonses.com"; //TODO: When ses move out of sandbox, delete this line
+            Mono<String> delivery = emailService.sendEmail(submitterEmail, subject, content).map(response ->
+                    response.isSuccess() ? "Success, message ID: " + response.getResponse().messageId()
+                            : response.getException() != null ? response.getException().getMessage()
+                            : "Service Disabled");
+            delivery.subscribe(
+                    value -> {
+                        result.put("emailDeliveryResult", value);
+                    },
+                    error -> {
+                        log.error(error.getMessage());
+                    }
+            );
             return new QueryResultDTO(result, 0, "");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
@@ -716,11 +712,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         MustacheFactory mf = new DefaultMustacheFactory();
         Mustache mustache = null;
-        if(clientGroup.equals(458)){
+        if (clientGroup.equals(458) && invoice > 0d) {
             //small client
             mustache = mf.compile("html/email/smallMktRmaEmail.mustache");
 
-        }else {
+        } else {
             mustache = mf.compile("html/email/midLargeRmaEmail.mustache");
         }
         StringWriter writer = new StringWriter();
