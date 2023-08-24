@@ -10,16 +10,22 @@ export const useCreateTicketStore = defineStore("createTicket", {
     address: null,
     trackingNums: [],
     serials: [],
-    inputText:null,
+    inputValue:null,
   }),
 
   getters: {
     getSerials() {
+      if(this.inputValue != null){
+        return this.serials.filter((t) => 
+        (t.serialNumber != null && t.serialNumber.includes(this.inputValue)) ||
+        (t.model != null && t.model.includes(this.inputValue)) ||
+        (t.customerReportedIssueExt!= null && t.customerReportedIssueExt.includes(this.inputValue)))
+      }
       return this.serials;
     },
   },
   reset() {
-    this.$refs.state.inputText.value = "";
+    this.$refs.state.inputValue.value = "";
   },
   actions: {
     /**
