@@ -330,12 +330,49 @@ export default {
       this.showAddressModal = true;
     },
     handleSubmitSerials() {
+      this.serialsSubmitting = true;
       const serials = this.getSerials;
+      //no serial
       if (serials === undefined || serials.length == 0) {
+        Notify.create({
+            type: "negative",
+            message: "Please Add at Least One SN before Submitting.",
+          });
+        this.serialsSubmitting = false;
         return;
       }
+
+      //If user didn't choose order type, don't allow user to submit the ticket
+      if (this.orderType === null) {
+        Notify.create({
+          type: "negative",
+          message: "Please Select Order Type before Submitting.",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
+      //invalid serials
+      for (const serial of serials) {
+        if (serial.valid === false) {
+          Notify.create({
+            type: "negative",
+            message: "Please Delete Invalid SN before Submiting",
+          });
+          this.serialsSubmitting = false;
+          return;
+        }
+      }
+      //no address
+      if (this.address === null) {
+        Notify.create({
+          type: "negative",
+          message: "Please Select Shipping Address before Submitting",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
+
       const trackingNumbers = this.getTrackingNums.filter(t => t!= "" && t.length > 0);
-      this.serialsSubmitting = true;
       const actionURL = "/ticketing/submitTicket";
 
       const sNsInsertionObjects = serials.map((serial) => {
@@ -351,36 +388,6 @@ export default {
         return snObject;
       });
 
-      //If user didn't choose order type, don't allow user to submit the ticket
-      if (this.orderType === null) {
-        Notify.create({
-          type: "negative",
-          message: "Please Select Order Type before Submitting.",
-        });
-        this.serialsSubmitting = false;
-        return;
-      }
-
-      for (const serial of serials) {
-        if (serial.valid === false) {
-          Notify.create({
-            type: "negative",
-            message: "Please Delete Invalid SN before Submiting",
-          });
-          this.serialsSubmitting = false;
-          return;
-        }
-      }
-      if (this.address === null) {
-        Notify.create({
-          type: "negative",
-          message: "Please Select Shipping Address before Submitting",
-        });
-        this.serialsSubmitting = false;
-        return;
-      }
-      
-      
       const payload = {
         orderType: this.orderType,
         trackingNumbers,
