@@ -27,6 +27,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
       }
       return this.serials;
     },
+    getTrackingNums(){
+      return this.trackingNums;
+    }
   },
   reset() {
     this.$refs.state.inputValue.value = "";
