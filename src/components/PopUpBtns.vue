@@ -1,5 +1,10 @@
 <template>
-  <div class="popup-button-group" v-show="withClient" :style="positionStyle" ref="popup-button-group">
+  <div
+    class="popup-button-group"
+    v-show="withClient"
+    :style="positionStyle"
+    ref="popup-button-group"
+  >
     <q-btn
       class="remove-unit"
       size="sm"
@@ -42,8 +47,8 @@ export default {
       );
     },
   },
-  mounted(){
-    window.addEventListener('click', this.handleGlobalClick);
+  mounted() {
+    window.addEventListener("click", this.handleGlobalClick);
   },
   updated() {
     if (this.withClient === true && this.unitWidth == null) {
@@ -107,13 +112,11 @@ export default {
         };
       } else {
         const width =
-        this.unitWidth * this.count + this.spaceInBtnGroup * (this.count - 1);
+          this.unitWidth * this.count + this.spaceInBtnGroup * (this.count - 1);
         this.positionStyle["top"] = this.mouseY - this.unitWidth / 2 + "px";
-        this.positionStyle["left"] = 
-          this.mouseX - (width/2) + "px";
+        this.positionStyle["left"] = this.mouseX - width / 2 + "px";
       }
     },
-    //listen to event
     removePopupBtns() {
       if (this.withClient === true) {
         this.withClient = false;
