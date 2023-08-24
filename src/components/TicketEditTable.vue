@@ -9,15 +9,15 @@
         :rows-per-page-options="[10, 25, 50, 100]"
         id="serials"
       >
-        <template v-slot:bottom-row >
+        <template v-slot:bottom-row>
           <q-tr>
             <q-td colspan="100%">
               <div class="text-h6 text-right">
                 Total Estimated Cost: $ {{ totalInvoice }}
               </div>
             </q-td>
-          </q-tr>
-        </template>d
+          </q-tr> </template
+        >d
         <template v-slot:body="props">
           <q-tr
             v-if="!props.row.errorMsg"
@@ -209,7 +209,7 @@ export default {
     };
   },
   mounted() {
-    window.addEventListener('click', this.handleGlobalClick);
+    window.addEventListener("click", this.handleGlobalClick);
   },
   computed: {
     ...mapWritableState(useEditTicketStore, ["getSerialsByTicketId"]),
@@ -310,7 +310,6 @@ export default {
         .catch(function (error) {
           // handle error
           console.log(error);
-
           Notify.create({
             type: "negative",
             message: error.message,
@@ -319,14 +318,11 @@ export default {
     },
     handleGlobalClick(event) {
       // Handle the global click event here
-      const btns = this.$refs['popupBtns'];
-      if(btns != null){
-
-        // const serials = this.$refs['serials'];
+      const btns = this.$refs["popupBtns"];
+      if (btns != null) {
         const serials = document.getElementById("serials");
         if (serials != null && !serials.contains(event.target)) {
           //click out of serials
-          // console.log("out of serials");
           this.$refs.popupBtns.removePopupBtns();
         }
       }

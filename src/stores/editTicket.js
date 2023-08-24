@@ -31,7 +31,6 @@ export const useEditTicketStore = defineStore("editTicket", {
           }
           return serials;
         }
-
         return [];
       };
     },
@@ -64,6 +63,9 @@ export const useEditTicketStore = defineStore("editTicket", {
   },
   reset() {},
   actions: {
+    /**
+     * Ticket: get, add, remove, fetch
+     */
     addTicket(ticketInfo) {
       const key = ticketInfo.mo_oid;
       const index = this.tickets.findIndex((t) => t.mo_oid === key);
@@ -114,7 +116,6 @@ export const useEditTicketStore = defineStore("editTicket", {
           return ticketInfo;
         });
     },
-
     getTicket(ticketId) {
       const index = this.tickets.findIndex((t) => {
         return parseInt(t.moOID) === parseInt(ticketId);
@@ -125,27 +126,21 @@ export const useEditTicketStore = defineStore("editTicket", {
       return this.fetchTicket(ticketId);
     },
     /**
-     * For serials
+     * Serials
      */
     updateSN(ticketId, oldSN, serial) {
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
       if (index != -1) {
-        const ticket = this.tickets.find(
-          (t) => parseInt(t.moOID) === parseInt(ticketId)
-        );
-        if(serial.serialNumber != oldSN){
-          const sIndex = ticket.serials.findIndex((s) => s.serialNumber === serial.serialNumber);
-          if(sIndex != -1){
-            Notify.create({
-              type: "negative",
-              message: `SN ${serial.serialNumber} Already in the Table.`,
-            })
-            return;
-          }
+        const ticket = this.tickets[index];
+        if (
+          oldSN != serial.serialNumber &&
+          this.isSerialNumberUnqiue(serial.serialNumber) === false
+        ) {
+          //If the SN is duplicate, show error
+          return;
         }
-
         serialNumberUpdateQuery(oldSN, ticket.moOID).then((wrappedSerial) => {
           const oldSerial = ticket.serials.find(
             (s) => s.serialNumber === oldSN
@@ -164,17 +159,17 @@ export const useEditTicketStore = defineStore("editTicket", {
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
       if (index != -1) {
-        const ticket = this.tickets.find(
-          (t) => parseInt(t.moOID) === parseInt(ticketId)
-        );
+        const ticket = this.tickets[index];
         const serials = ticket.serials;
         const sIndex = serials.findIndex((s) => s.serialNumber === sn);
         const serial = serials[sIndex];
-        const xmOID = serial.xmOID;
+        const xmOID = serial.xmOID === null? serial.pxmOID: serial.xmOID;
         if (sIndex != -1) {
           serials.splice(sIndex, 1);
         }
-        ticket.edit.deleteSerial.push(xmOID);
+        if(xmOID != null){
+          ticket.edit.deleteSerial.push(xmOID);
+        }
       }
     },
     addSN(ticketId, serial) {
@@ -182,15 +177,8 @@ export const useEditTicketStore = defineStore("editTicket", {
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
       if (index != -1) {
-        const ticket = this.tickets.find(
-          (t) => parseInt(t.moOID) === parseInt(ticketId)
-        );
-        const sIndex = ticket.serials.findIndex((s) => s.serialNumber === serial.serialNumber);
-        if(sIndex != -1){
-          Notify.create({
-            type: "negative",
-            message: `SN ${serial.serialNumber} Already in the Table.`,
-          })
+        const ticket = this.tickets[index];
+        if (this.isSerialNumberUnqiue(ticket, serial.serialNumber) === false) {
           return;
         }
         serialNumberUpdateQuery(serial.serialNumber, ticket.moOID).then(
@@ -199,13 +187,26 @@ export const useEditTicketStore = defineStore("editTicket", {
               serial.customerReportedIssueExt;
             wrappedSerial.customerTerminalID = serial.customerTerminalID;
             if (wrappedSerial != null) {
+              wrappedSerial.isAdd = true;
               ticket.serials.unshift(wrappedSerial);
             }
           }
         );
       }
     },
-  
+    addSnList(ticketId, list){
+      const index = this.tickets.findIndex(
+        (t) => parseInt(t.moOID) === parseInt(ticketId)
+      );
+      if (index != -1) {
+        const ticket = this.tickets[index];
+        list.forEach((element) => {
+          if (this.isSerialNumberUnqiue(ticket, element.serialNumber) === true) {
+            ticket.serials.unshift(element);
+          }
+        });
+      }
+    },
     findEditSN(ticketId, sn) {
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
@@ -216,12 +217,10 @@ export const useEditTicketStore = defineStore("editTicket", {
         deleteSerial: [],
       };
       if (index != -1) {
-        const ticket = this.tickets.find(
-          (t) => parseInt(t.moOID) === parseInt(ticketId)
-        );
+        const ticket = this.tickets[index];
         result.deleteSerial = ticket.edit.deleteSerial;
         ticket.serials.forEach((s) => {
-          if (s.isUpdate === true) {
+          if (s.isUpdate != null&& s.isUpdate === true) {
             result.updateSerial.push({
               xmOID: s.xmOID === null? s.pxmOID:s.xmOID,
               serialNumber: s.serialNumber,
@@ -233,12 +232,11 @@ export const useEditTicketStore = defineStore("editTicket", {
           }
           //cosmetic: null, 891 -> false, 
           //cosmetic: 890 -> true
-
-
-          if (s.xmOID === null && s.pxmOID === null) {
+          if(s.isAdd != null && s.isAdd === true){
+          // if (s.xmOID === null && s.pxmOID === null) {
             //added serial
             result.addSerial.push({
-              xmOID: s.xmOID,
+              xmOID: s.xmOID === null? s.pxmOID:s.xmOID,
               serialNumber: s.serialNumber,
               customerReportedIssueExt: s.customerReportedIssueExt,
               customerTerminalID: s.customerTerminalID,
@@ -250,17 +248,29 @@ export const useEditTicketStore = defineStore("editTicket", {
         return result;
       }
     },
+    isSerialNumberUnqiue(ticket, serialNumber){
+        const serials = ticket.serials;
+        const index = serials.findIndex(
+          (s) => serialNumber === s.serialNumber
+        );
+        if (index != -1) {
+          Notify.create({
+            type: "negative",
+            message: `SN ${serialNumber} Already in the Table.`,
+          });
+          return false;
+        }
+        return true;
+    },
     /**
-     * For tracking numbers
+     * Tracking numbers
      */
     addTrackingNum(ticketId) {
       const index = this.tickets.findIndex(
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
       if (index != -1) {
-        const ticket = this.tickets.find(
-          (t) => parseInt(t.moOID) === parseInt(ticketId)
-        );
+        const ticket = this.tickets[index];
         ticket.trackingNumbers.push({ num: "", xitOID: null });
       }
     },
@@ -269,9 +279,7 @@ export const useEditTicketStore = defineStore("editTicket", {
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
       if (index != -1) {
-        const ticket = this.tickets.find(
-          (t) => parseInt(t.moOID) === parseInt(ticketId)
-        );
+        const ticket = this.tickets[index];
         const { xitOID } = ticket.trackingNumbers[tIndex];
         ticket.trackingNumbers.splice(tIndex, 1);
         if (xitOID != null) {
@@ -289,9 +297,7 @@ export const useEditTicketStore = defineStore("editTicket", {
         (t) => parseInt(t.moOID) === parseInt(ticketId)
       );
       if (index != -1) {
-        const ticket = this.tickets.find(
-          (t) => parseInt(t.moOID) === parseInt(ticketId)
-        );
+        const ticket = this.tickets[index];
         ticket.trackingNumbers.forEach((element) => {
           if (element.xitOID === null && element.num != null) {
             //find added tracking numbers
@@ -301,8 +307,7 @@ export const useEditTicketStore = defineStore("editTicket", {
               xitOID: null,
             });
           } else if (
-            element.xitOID != null &&
-            element.num != element.oldValue
+            element.xitOID != null && element.isUpdate != null && element.isUpdate === true
           ) {
             //find updated tracking numbers
             result.updateTracking.push({
@@ -317,7 +322,7 @@ export const useEditTicketStore = defineStore("editTicket", {
       return result;
     },
     /**
-     * For address
+     * Address
      */
     updateAddress(newAddress, ticketId) {
       const index = this.tickets.findIndex(

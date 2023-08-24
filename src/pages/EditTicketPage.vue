@@ -104,6 +104,7 @@
             style="min-width: 300px"
             dense
             outlined
+            @update:model-value="trackingNum.isUpdate = true"
           />
           <q-btn
             label="Remove"
@@ -176,12 +177,12 @@
             </div>
           </q-form>
         </div>
-        <!-- ticket serials -->
+        <!-- Ticket serials -->
         <TicketEditTable
           ref="editTable"
           :isFromMaster="ticketInfo.isFromMaster"
           :orderType="ticketInfo.typeOfRepair"
-          :rows="getSerialsByTicketId(this.ticketId, inputValue)"
+          :rows="getSerialsByTicketId(ticketId, inputValue)"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -249,7 +250,6 @@ export default {
         originalRMA: null,
         isFromMaster: false,
         orderStatus: null,
-        //not sure about submitter info
         submitterOrg: null,
         submitterName: null,
         submitterEmail: null,
@@ -287,7 +287,7 @@ export default {
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
-          // this.populateOrderTypeOpt //ensure it been populdate
+           //ensure it been populated
         ])
           .then((values) => {
             const ticketInfo = values[0];
@@ -340,6 +340,7 @@ export default {
       "findEditTrackingNums",
       "findEditSN",
       "addSN",
+      "addSnList",
       "updateSN",
       "removeSN",
       "updateAddress",
@@ -385,7 +386,7 @@ export default {
       };
 
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
-      console.log(payload);
+      // console.log(payload);
       api
         .post(actionURL, payload, {
           headers: {
@@ -442,9 +443,7 @@ export default {
       batchSerialNumberQuery(formData)
         .then((serials) => {
           this.file = null;
-          serials.forEach((s) => {
-            this.addSN(this.ticketId, s);
-          });
+          this.addSnList(this.ticketId, serials);
         })
         .finally(() => {
           this.fileUploading = false;
