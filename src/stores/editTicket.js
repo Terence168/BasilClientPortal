@@ -108,11 +108,16 @@ export const useEditTicketStore = defineStore("editTicket", {
             deleteSerial: [],
             deleteTracking: [],
           };
-          
+          ticketInfo.containsXrefMaterials = false;
+
           this.removeTicket(ticketId);
           this.tickets.push(ticketInfo);
           ticketInfo.serials = ticketInfo.serials.map((s) => validateSerial(s));
-          
+          ticketInfo.serials.forEach(s => {
+            if(s.xmOID != null){
+              ticketInfo.containsXrefMaterials = true;
+            }
+          })
           return ticketInfo;
         });
     },
