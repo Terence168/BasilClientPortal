@@ -195,6 +195,8 @@
           :isFromMaster="false"
           :orderType="orderType"
           :rows="getSerials"
+          :containsXrefMaterials="false"
+          :inputValue="inputValue"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"

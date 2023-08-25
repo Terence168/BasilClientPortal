@@ -14,22 +14,13 @@ export const useEditTicketStore = defineStore("editTicket", {
   }),
   getters: {
     getSerialsByTicketId: (state) => {
-      return (ticketId, query) => {
+      return (ticketId) => {
         const index = state.tickets.findIndex(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
         if (index != -1) {
-          const ticket = state.tickets.find((t) => 
-                (parseInt(t.moOID) === parseInt(ticketId)
-              ));
-          let serials = ticket.serials;
-          if(query != null){
-            serials = ticket.serials.filter((t) => 
-            (t.serialNumber != null && t.serialNumber.includes(query)) ||
-            (t.model != null && t.model.includes(query)) ||
-            (t.customerReportedIssueExt!= null && t.customerReportedIssueExt.includes(query)))
-          }
-          return serials;
+          const ticket = state.tickets[index];
+          return ticket.serials;
         }
         return [];
       };

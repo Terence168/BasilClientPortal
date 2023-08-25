@@ -5,7 +5,7 @@
         title="Ticket Serial Numbers"
         row-key="serialNumber"
         :columns="columns"
-        :rows="rows"
+        :rows="serials"
         :rows-per-page-options="[10, 25, 50, 100]"
         id="serials"
       >
@@ -104,6 +104,7 @@
       :title="modalState.title"
       :btnLable="modalState.btnLable"
       :action="modalState.submitAction"
+      :containsXrefMaterials="containsXrefMaterials"
       @add-serial="handleAddSerial"
       @update-serial="handleUpdateSerial"
     />
@@ -124,7 +125,7 @@ import { parseDateTime, parseDate } from "../utils/timeUtils.js";
 import { api } from "src/boot/axios";
 
 export default {
-  props: ["isFromMaster", "orderType", "rows", "containsXrefMaterials"],
+  props: ["isFromMaster", "orderType", "rows", "containsXrefMaterials", "inputValue"],
   components: { PopUpBtns, EditModal, BaseModal, TicketDetailForm },
   emits: ["add-sn", "update-sn", "remove-sn"],
   data() {
@@ -213,7 +214,16 @@ export default {
     window.addEventListener("click", this.handleGlobalClick);
   },
   computed: {
-    ...mapWritableState(useEditTicketStore, ["getSerialsByTicketId"]),
+    serials(){
+      let serials = this.rows;
+      if(this.inputValue != null){
+            serials = serials.filter((t) => 
+            (t.serialNumber != null && t.serialNumber.includes(this.inputValue)) ||
+            (t.model != null && t.model.includes(this.inputValue)) ||
+            (t.customerReportedIssueExt!= null && t.customerReportedIssueExt.includes(this.inputValue)))
+          }
+      return serials;
+    },
     totalInvoice() {
       const serials = this.rows;
       let amt = 0;
@@ -268,6 +278,9 @@ export default {
         this.showRemoveUnit = true;
         this.showUpdateUnit = true;
         this.showViewUnit = false;
+      }
+      if(this.containsXrefMaterials){
+        this.showRemoveUnit = false;
       }
       this.$refs.popupBtns.addPopupBtns(evt);
       this.modalState.serialData = row;
