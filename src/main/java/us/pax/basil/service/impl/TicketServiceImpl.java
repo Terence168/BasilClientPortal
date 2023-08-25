@@ -539,6 +539,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                         break;
                     }
                     String currSerialNumber = QueryUtils.getCellValue(sheet.getRow(j).getCell(0));
+                    //
                     serialNumbersInFile.add(currSerialNumber);
                     String[] temp = new String[3];
                     temp[0] = QueryUtils.getCellValue(sheet.getRow(j).getCell(1)); //customer reported issue
@@ -687,18 +688,18 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             String content = constructEmail(mo_OID, invoice, clientGroup);
             String subject = String.format("RMA #%d Confirmation", mo_OID);
             submitterEmail = "success@simulator.amazonses.com"; //TODO: When ses move out of sandbox, delete this line
-            Mono<String> delivery = emailService.sendEmail(submitterEmail, subject, content).map(response ->
-                    response.isSuccess() ? "Success, message ID: " + response.getResponse().messageId()
-                            : response.getException() != null ? response.getException().getMessage()
-                            : "Service Disabled");
-            delivery.subscribe(
-                    value -> {
-                        result.put("emailDeliveryResult", value);
-                    },
-                    error -> {
-                        log.error(error.getMessage());
-                    }
-            );
+//            Mono<String> delivery = emailService.sendEmail(submitterEmail, subject, content).map(response ->
+//                    response.isSuccess() ? "Success, message ID: " + response.getResponse().messageId()
+//                            : response.getException() != null ? response.getException().getMessage()
+//                            : "Service Disabled");
+//            delivery.subscribe(
+//                    value -> {
+//                        result.put("emailDeliveryResult", value);
+//                    },
+//                    error -> {
+//                        log.error(error.getMessage());
+//                    }
+//            );
             return new QueryResultDTO(result, 0, "");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
