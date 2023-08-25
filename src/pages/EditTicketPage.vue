@@ -361,7 +361,7 @@ export default {
       this.ticketEditing = true;
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
-
+      
       //If user didn't choose order type, don't allow user to submit the ticket
       if (this.ticketInfo.orderType === null) {
         this.$q.notify({
