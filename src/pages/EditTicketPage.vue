@@ -43,7 +43,7 @@
         <div v-if="isReRepair" class="row items-center">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
-            <q-input style="min-width: 200px" dense v-model="originalRMA" />
+            <q-input style="min-width: 200px" dense v-model="ticketInfo.originalRMA" />
           </div>
         </div>
         <div class="row items-center">
@@ -300,6 +300,7 @@ export default {
             const comments = values[1];
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
+              console.log(this.ticketInfo);
             }
             if (this.comments != null) {
               this.comments = comments;
@@ -361,7 +362,7 @@ export default {
       this.ticketEditing = true;
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
-      
+
       //If user didn't choose order type, don't allow user to submit the ticket
       if (this.ticketInfo.orderType === null) {
         this.$q.notify({
@@ -395,7 +396,9 @@ export default {
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
       };
-
+      if(payload.orderType === 3 || payload.orderType === 7){
+        payload.originalRMA = null;
+      }
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
       // console.log(payload);
       api
