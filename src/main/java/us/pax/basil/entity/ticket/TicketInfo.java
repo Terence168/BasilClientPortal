@@ -27,6 +27,7 @@ public class TicketInfo {
     private String submitterOrg;
     private Integer typeOfRepair;//use mo_oid to query from BASIL_ODS_PRD.MASTER_ORDER and BASIL_SEC_PRD.PREP_MASTER_ORDER
     private Integer xaOID;
+    private Integer originalRMA; //IF the ticket is re-repair ticket, it will have RMA_NUMBER
     private Address address; //use mo_oid to query from BASIL_ODS_PRD.MASTER_ORDER and BASIL_SEC_PRD.PREP_MASTER_ORDER
     private List<TrackingNum> trackingNumbers; //use mo_oid to query from BASIL_SEC_PRD.XREF_INBOUND_TRACKING
     private List<SNInfo> serials; //use mo_oid to query from BASIL_SEC_PRD.PREP_XREF_MATERIALS and BASIL_ODS_PRD.XREF_MATERIALS

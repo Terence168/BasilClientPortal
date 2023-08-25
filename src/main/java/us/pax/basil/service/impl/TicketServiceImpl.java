@@ -456,7 +456,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
+                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
             }
             if (ticketEditDTO.getUpdateTracking().size() > 0) {
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());

@@ -194,7 +194,8 @@
         SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, SUBMITTER_ID as submitterID,
         mo.mc_oid as mcOID,
         client_group as clientGroup,
-        XA_OID as xaOID
+        XA_OID as xaOID,
+        RMA_NUMBER as originalRMA
         from BASIL_ODS_PRD.MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
@@ -208,7 +209,8 @@
         SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, SUBMITTER_ID as submitterID,
         mo.mc_oid as mcOID,
         client_group as clientGroup,
-        XA_OID as xaOID
+        XA_OID as xaOID,
+        RMA_NUMBER as originalRMA
         from BASIL_SEC_PRD.PREP_MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
@@ -812,15 +814,13 @@
             <if test="xaOID != null">
                 XA_OID = #{xaOID},
             </if>
-            <if test="originalRMA != null">
                 RMA_NUMBER = #{originalRMA}
-            </if>
         </set>
         WHERE MO_OID = #{moOID}
     </update>
 
     <update id="updatePrepMasterOrder" >
-        UPDATE BASIL_ODS_PRD.MASTER_ORDER
+        UPDATE BASIL_SEC_PRD.PREP_MASTER_ORDER
         <set>
             <if test="typeOfRepair != null">
                 ORDER_TYPE = #{typeOfRepair},
@@ -828,9 +828,7 @@
             <if test="xaOID != null">
                 XA_OID = #{xaOID},
             </if>
-            <if test="originalRMA != null">
                 RMA_NUMBER = #{originalRMA}
-            </if>
         </set>
         WHERE MO_OID = #{moOID}
     </update>
