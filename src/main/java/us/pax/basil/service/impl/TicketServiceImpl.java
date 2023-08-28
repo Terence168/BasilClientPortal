@@ -500,9 +500,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
             if (ticketEditDTO.getUpdateSerial().size() > 0) {
                 ticketMapper.updatePrep_Xref_Materials(ticketEditDTO.getUpdateSerial());
+                ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
                 List<Integer> pxmOidList = ticketEditDTO.getUpdateSerial().stream().map(s -> Integer.valueOf(s.getXmOID())).collect(Collectors.toList());
                 invoiceService.updateInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
-                //ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
             }
             return new QueryResultArrayDTO(null, 0, 0, "");
         } catch (Exception e) {
@@ -623,6 +623,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             batchDeviceInfo.put("minorPrice", d.getMinorPrice());
             batchDeviceInfo.put("existInAnotherTicket", d.getExistInAnotherTicket());
             batchDeviceInfo.put("moOID", d.getMoOID());
+            batchDeviceInfo.put("keyInjection", d.getKeyInjection());
             resultArray.add(batchDeviceInfo);
         }
         return resultArray;

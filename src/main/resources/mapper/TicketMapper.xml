@@ -510,7 +510,8 @@
         minorPrice,
         existInAnotherTicket,
         moOID,
-        cosmetic
+        cosmetic,
+        keyInjection
         FROM (
             SELECT msn.SERIAL_NUMBER,
             msn.MSN_OID                                                                      as msnOID,
@@ -592,7 +593,7 @@
         COALESCE(rc1.COSMETIC, rc2.COSMETIC)     AS cosmeticPrice,
         COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC) AS diagnosticPrice,
         COALESCE(rc1.MINOR, rc2.MINOR)           AS minorPrice,
-        COALESCE(rc1.KEY_INJECTION, rc2.KEY_INJECTION)           AS keyInjection
+        COALESCE(rc1.KEY_INJECTION, rc2.KEY_INJECTION)           AS keyInjection,
         CASE
         WHEN sn.WARRANTY_END_DATE IS NULL AND sn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
         WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(sn.WARRANTY_VOIDED_DATE, sn.WARRANTY_END_DATE) THEN 'Under Warranty'
@@ -639,7 +640,7 @@
         COALESCE(rc1.COSMETIC, rc2.COSMETIC)     AS cosmeticPrice,
         COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC) AS diagnosticPrice,
         COALESCE(rc1.MINOR, rc2.MINOR)           AS minorPrice,
-        COALESCE(rc1.KEY_INJECTION, rc2.KEY_INJECTION)           AS keyInjection
+        COALESCE(rc1.KEY_INJECTION, rc2.KEY_INJECTION)           AS keyInjection,
         CASE
         WHEN sn.WARRANTY_END_DATE IS NULL AND sn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
         WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(sn.WARRANTY_VOIDED_DATE, sn.WARRANTY_END_DATE) THEN 'Under Warranty'
