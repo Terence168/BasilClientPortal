@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.AddressMapper">
+
+    <resultMap id="AddressResultMap" type="us.pax.basil.entity.customer.Address">
+        <id property="xaOid" column="XA_OID"/>
+        <result property="mcOid" column="MC_OID"/>
+        <result property="attentionTo" column="ATTENTION_TO"/>
+        <result property="shipToCompany" column="SHIP_TO_COMPANY"/>
+        <result property="address" column="ADDRESS"/>
+        <result property="address2" column="ADDRESS2"/>
+        <result property="city" column="CITY"/>
+        <result property="state" column="STATE"/>
+        <result property="zipCode" column="ZIP_CODE"/>
+        <result property="defaultInd" column="DEFAULT_IND"/>
+        <result property="version" column="VERSION"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="AddressResultMap">
+        SELECT * FROM BASIL_SEC_PRD.XREF_ADDRESS
+    </select>
+
+    <select id="findAllByCompanyId" resultMap="AddressResultMap">
+        SELECT * FROM BASIL_SEC_PRD.XREF_ADDRESS WHERE MC_OID = #{companyId}
+    </select>
+
+    <select id="findById" resultMap="AddressResultMap">
+        SELECT * FROM BASIL_SEC_PRD.XREF_ADDRESS WHERE XA_OID = #{xaOid}
+    </select>
+
+    <insert id="insert" parameterType="us.pax.basil.entity.customer.Address">
+        INSERT INTO BASIL_SEC_PRD.XREF_ADDRESS (MC_OID, ATTENTION_TO, SHIP_TO_COMPANY, ADDRESS, ADDRESS2, CITY, STATE,
+        ZIP_CODE, DEFAULT_IND)
+        VALUES (#{mcOid}, #{attentionTo}, #{shipToCompany}, #{address}, #{address2}, #{city}, #{state}, #{zipCode},
+        #{defaultInd})
+    </insert>
+
+    <update id="update" parameterType="us.pax.basil.entity.customer.Address">
+        UPDATE BASIL_SEC_PRD.XREF_ADDRESS
+        SET MC_OID = #{mcOid},
+        ATTENTION_TO = #{attentionTo},
+        SHIP_TO_COMPANY = #{shipToCompany},
+        ADDRESS = #{address},
+        ADDRESS2 = #{address2},
+        CITY = #{city},
+        STATE = #{state},
+        ZIP_CODE = #{zipCode},
+        DEFAULT_IND = #{defaultInd}
+        WHERE XA_OID = #{xaOid}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM BASIL_SEC_PRD.XREF_ADDRESS WHERE XA_OID = #{xaOid}
+    </delete>
+
+</mapper>

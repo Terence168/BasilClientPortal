@@ -16,6 +16,7 @@ package us.pax.basil.controller;
  */
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,7 +67,7 @@ public class PrivilegeController {
 
     // QueryCustomer() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    @PreAuthorize("hasAuthority('privilege.role-type')")
+    @PreAuthorize("hasAuthority('privilege.role-type.view')")
     @GetMapping("/role-type/query")
     public QueryResultArrayDTO queryRoleType(HttpServletRequest request) {
         return privilegeService.queryRoleType(entityManager, PrivilegeConstant.queryColumnMapping, request);
@@ -99,7 +100,7 @@ public class PrivilegeController {
     @PreAuthorize("hasAuthority('privilege.role')")
     @GetMapping("/role/view/query")
     public QueryResultArrayDTO roleViewQuery(HttpServletRequest request, @RequestParam Integer id) {
-//    	request.getSession().invalidate();
+    	// request.getSession().invalidate();
         return privilegeService.ViewQueryRole(request, id);
     }
 
@@ -111,6 +112,18 @@ public class PrivilegeController {
     @GetMapping("/user/all-roles")
     public QueryResultArrayDTO queryAllRoles() {
         return privilegeService.queryAllRoles();
+    }
+
+    @PreAuthorize("hasAuthority('privilege')")
+    @GetMapping("/all-privileges/query")
+    public QueryResultArrayDTO queryAllPrivileges(HttpServletRequest request) {
+        return privilegeService.queryAllPrivileges(request);
+    }
+
+    @PreAuthorize("hasAuthority('privilege.role')")
+    @GetMapping("/tree")
+    public QueryResultArrayDTO queryUserPrivileges(HttpServletRequest request) {
+    	return privilegeService.queryUserPrivileges(request);
     }
 
     /**

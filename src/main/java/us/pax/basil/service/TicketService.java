@@ -1,14 +1,11 @@
 package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import us.pax.basil.dto.output.QueryResultArrayDTO;
+import io.swagger.models.auth.In;
+import org.springframework.web.bind.annotation.RequestParam;
+import us.pax.basil.dto.output.*;
 import org.springframework.web.multipart.MultipartFile;
-import us.pax.basil.dto.output.SqlResultDTO;
-import us.pax.basil.dto.output.SubmitTicketDTO;
-import us.pax.basil.entity.ticket.SNsInsertionObject;
-import us.pax.basil.entity.ticket.SubmittingTicket;
-import us.pax.basil.entity.ticket.TicketInsertion;
-import us.pax.basil.entity.ticket.TicketInsertionObject;
+import us.pax.basil.entity.ticket.*;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -39,7 +36,23 @@ public interface TicketService extends IService<Integer>{
                                      Integer type,
                                      String createdDate,
                                      String serialNumber,
-                                     String customerId);
+                                     String customerOrganization);
+
+    QueryResultArrayDTO ticketQueryViews(Integer currentPage,
+                                    Integer sizePerPage,
+                                    String sortColumns,
+                                    String ticketId,
+                                    Integer department,
+                                    String responder,
+                                    Integer status,
+                                    Integer type,
+                                    String createdDate,
+                                    String lastResponse,
+                                    String serialNumber,
+                                    String customerOrganization,String customerId);
+
+
+    QueryResultArrayDTO viewTicketDetails(Integer id);
     QueryResultArrayDTO queryDepartment();
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();
@@ -47,7 +60,9 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
     QueryResultArrayDTO serialNumberQuery(String serialNumber);
     int insertTicketToPMO(TicketInsertionObject tio);
-
-//    SqlResultDTO submitTicket(List<SNsInsertionObject> sNsInsertionObjectList);
-    SubmitTicketDTO submitTicket(TicketInsertion ticketInsertion);
+    QueryResultDTO submitTicket(TicketInsertion ticketInsertion);
+    QueryResultDTO viewEditTicket(String id);
+    QueryResultDTO insertResponse(TicketResponse ticketResponse);
+    QueryResultArrayDTO getResponse(String id);
+    QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO);
 }

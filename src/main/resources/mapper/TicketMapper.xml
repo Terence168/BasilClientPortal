@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="us.pax.basil.mapper.TicketMapper">
-    <select id = "getTicketingTotal" resultType = "Integer">
+    <select id="getTicketingTotal" resultType="Integer">
         SELECT
-            count(*)
+        count(*)
         FROM
-            BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
-            JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
-            JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
-            LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
-            LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
-            LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
-            LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
-            LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+        JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
         <where>
-            <if test = "id !=null">
+            <if test="id !=null">
                 AND mc.MC_OID = #{id}
             </if>
-            <if test = "ticketId != null">
+            <if test="ticketId != null">
                 AND
                 <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
                     #{item}
                 </foreach>
             </if>
-            <if test = "department != null">
+            <if test="department != null">
                 AND scavdept.SCV_OID = #{department}
             </if>
-            <if test = "type != null">
+            <if test="type != null">
                 AND scavtype.SCV_OID = #{type}
             </if>
-            <if test = "status != null">
+            <if test="status != null">
                 AND scavstatus.SCV_OID = #{status}
             </if>
             <if test="serialNumber != null">
@@ -47,75 +47,75 @@
                 )
                 )
             </if>
-            <if test = "responder != null">
+            <if test="responder != null">
                 AND user.NAME = #{responder} OR user.NAME IS NULL
             </if>
-            <if test = "createdFromDate != null and createdToDate">
+            <if test="createdFromDate != null and createdToDate">
                 AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
             </if>
         </where>
     </select>
 
-    <select id = "getTicketing" resultType = "us.pax.basil.entity.ticket.TicketingQueue">
-            SELECT
-                pmo.MO_OID as ticketId,
-                scavstatus.VALUE as status,
-                scavdept.VALUE as department,
-                scavtype.VALUE as type,
-                mc.CUSTOMER_ORGANIZATION as customerOrganization,
-                pmo.ORDER_DATE as createdDate,
-                user.NAME as responder
-            FROM
-                BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
-                JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
-                JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
-                LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
-                LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+    <select id="getTicketing" resultType="us.pax.basil.entity.ticket.TicketingQueue">
+        SELECT
+        pmo.MO_OID as ticketId,
+        scavstatus.VALUE as status,
+        scavdept.VALUE as department,
+        scavtype.VALUE as type,
+        mc.CUSTOMER_ORGANIZATION as customerOrganization,
+        pmo.ORDER_DATE as createdDate,
+        user.NAME as responder
+        FROM
+        BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+        JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
 
-                LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
-                LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
-                LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
 
         <where>
             pmo.ACKNOWLEDGED = 0
-            <if test = "id !=null">
+            <if test="id !=null">
                 AND mc.MC_OID = #{id}
             </if>
-            <if test = "ticketId != null">
+            <if test="ticketId != null">
                 AND
                 <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
                     #{item}
                 </foreach>
             </if>
-            <if test = "department != null">
+            <if test="department != null">
                 AND scavdept.SCV_OID = #{department}
             </if>
-            <if test = "type != null">
+            <if test="type != null">
                 AND scavtype.SCV_OID = #{type}
             </if>
-            <if test = "status != null">
+            <if test="status != null">
                 AND scavstatus.SCV_OID = #{status}
             </if>
             <if test="serialNumber != null">
                 AND
                 pmo.MO_OID IN (
-                    SELECT pxm.MO_OID
-                    FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
-                    WHERE pxm.MSN_OID IN (
-                        SELECT msn.MSN_OID
-                        FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
-                        WHERE msn.SERIAL_NUMBER IN
-                        <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
-                            #{item}
-                        </foreach>
-                    )
+                SELECT pxm.MO_OID
+                FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
+                WHERE pxm.MSN_OID IN (
+                SELECT msn.MSN_OID
+                FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
+                WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
                 )
             </if>
 
-            <if test = "responder != null">
-                    AND LOWER(user.NAME) LIKE CONCAT ('%', LOWER(#{responder}), '%')
+            <if test="responder != null">
+                AND LOWER(user.NAME) LIKE CONCAT ('%', LOWER(#{responder}), '%')
             </if>
-            <if test = "createdFromDate != null and createdToDate">
+            <if test="createdFromDate != null and createdToDate">
                 AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
             </if>
         </where>
@@ -125,62 +125,346 @@
         LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
     </select>
 
-    <select id = "queryDepartmentList" resultType="us.pax.basil.entity.ticket.Department">
+    <select id="getTicketingViewsDetail" resultType="us.pax.basil.entity.ticket.RepairRecord">
+        SELECT xm.XM_OID AS id,
+        mo.MO_OID AS rmaNumber,
+
+        (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.status) as status,
+
+        xm.RECEIVED_DATE as receivedDate,
+        (SELECT MAX(QA_QC_DATE) from BASIL_ODS_PRD.XREF_QA xq where xq.XM_OID = xm.XM_OID) as quarantineDate,
+        xm.SCHEDULED_DATE as scheduledDate,
+        part.PART_NUMBER_LONG as partNumber,
+        msn.SERIAL_NUMBER as serialNumber,
+        part.VERSION_NUMBER as versionNumber,
+
+        part2.PART_NUMBER_LONG as partNumber2,
+        msn2.SERIAL_NUMBER as serialNumber,
+        part2.VERSION_NUMBER as versionNumber2,
+
+        xm.REPAIR_DATE as completedDate,
+        (SELECT VALUE
+        FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES
+        WHERE SAV_OID = xm.CUSTOMER_REPORTED_ISSUE) as customerReportedIssue,
+        (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.ESD_KIT) as esdKit,
+        (SELECT VALUE
+        FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES
+        WHERE SAV_OID = xm.PHYSICAL_DAMAGE_PRESENT) as physicalDamagePresent,
+        (SELECT VALUE
+        FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES
+        WHERE SAV_OID = xm.CUSTOMER_ISSUE_REPRODUCED) as customerIssueReproduced,
+        xm.CUSTOMER_REPORTED_ISSUE_EXT as reportedIssueExt,
+        xm.TAMPER_LOG_INTERPRETATION as tamperLog,
+        (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.ERROR_MESSAGE) as errorMessage,
+        (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.BATTERY_VOLTAGE) as batteryVoltage,
+        xm.REPAIR_DATE as repairDate,
+        (SELECT VALUE FROM BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES WHERE SAV_OID = xm.DEPARTMENT) as department,
+        (SELECT TRACKING_NUMBER FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID = xm.BOX_OID) as  trackingNumber,
+        (SELECT CUSTOMER_ORGANIZATION FROM BASIL_ODS_PRD.MASTER_CUSTOMER mc WHERE mc.MC_OID = mo.MC_OID) as customerName,
+
+        emp.NAME as assignee,
+        xm.TECH_NOTES as techNotes,
+
+        msn.WARRANTY_END_DATE as warrantyEndDate,
+        msn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
+        (SELECT SHIP_DATE FROM BASIL_ODS_PRD.XREF_SHIP xs WHERE xs.BOX_OID = xm.BOX_OID) as shipDate,
+        DATE(mo.ORDER_DATE) as orderDate,
+        CASE
+        WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+        WHEN mo.ORDER_DATE <![CDATA[<]]>
+        COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        ELSE 'Out Of Warranty'
+        END                                  AS                           warrantyStatus
+        FROM MASTER_ORDER mo
+        INNER JOIN XREF_MATERIALS xm ON xm.MO_OID = mo.MO_OID
+        INNER JOIN MASTER_SERIAL_NUMBER msn ON msn.MSN_OID = xm.MSN_OID
+        INNER JOIN MASTER_PART part ON part.PART_OID = msn.PART_OID
+        LEFT JOIN XREF_TECHNICIAN xt ON xt.XT_OID = xm.TECHNICIAN
+        LEFT JOIN EMPLOYEE_MASTER emp ON emp.EMP_OID = xt.EMP_OID
+        LEFT JOIN MASTER_SERIAL_NUMBER msn2 ON msn2.MSN_OID = xm.MSN_OID2
+        LEFT JOIN MASTER_PART part2 ON part2.PART_OID = msn2.PART_OID
+        <where>
+            <if test="id != null">
+                xm.XM_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="existingMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, SUBMITTER_ID as submitterID,
+        mo.mc_oid as mcOID,
+        client_group as clientGroup,
+        XA_OID as xaOID,
+        RMA_NUMBER as originalRMA
+        from BASIL_ODS_PRD.MASTER_ORDER as mo
+        left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
+        <where>
+            <if test="id !=null">
+                mo.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="existingPREPMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, SUBMITTER_ID as submitterID,
+        mo.mc_oid as mcOID,
+        client_group as clientGroup,
+        XA_OID as xaOID,
+        RMA_NUMBER as originalRMA
+        from BASIL_SEC_PRD.PREP_MASTER_ORDER as mo
+        left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
+        <where>
+            <if test="id !=null">
+                mo.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <select id="getTrackingNumber" resultType="us.pax.basil.entity.ticket.TrackingNum">
+        select tr.TRACKING_NUMBER as num, tr.XIT_OID as xitOID
+        from BASIL_SEC_PRD.XREF_INBOUND_TRACKING as tr
+        <where>
+            <if test="id !=null">
+                tr.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getResponse" resultType="us.pax.basil.entity.ticket.TicketResponse">
+        select res.MO_OID as moOID ,res.RESPONSE_DATE as responseDate,res.CONTENT as content, users.NAME as responseBy
+        from BASIL_SEC_PRD.XREF_RESPONSE as res
+        left join BASIL_SEC_PRD.USERS as users on users.U_OID=res.RESPONSE_BY
+        <where>
+            <if test="id !=null">
+                res.MO_OID = #{id}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertResponse" parameterType="us.pax.basil.entity.ticket.TicketResponse" useGeneratedKeys="true">
+        INSERT INTO BASIL_SEC_PRD.XREF_RESPONSE(MO_OID, RESPONSE_DATE,RESPONSE_BY,CONTENT)
+        VALUES (#{moOID}, now(), #{responseBy}, #{content});
+        <selectKey keyColumn="RSP_OID" resultType="Integer" keyProperty="rsp_oid" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+
+    <select id="getTicketingViewsTotal" resultType="Integer">
         SELECT
-            scav.SCV_OID as id,
-            scav.VALUE as department
+        count(*)
         FROM
-            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+        JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        LEFT JOIN (
+        select response.* from ( select response.*,row_number() over (partition by mo_oid order by response_date desc)
+        rn from BASIL_SEC_PRD.XREF_RESPONSE as response ) AS response where response.rn=1 ) AS res on
+        res.MO_OID=pmo.MO_OID
+        <where>
+            <if test="id !=null">
+                AND mc.MC_OID = #{id}
+            </if>
+            <if test="ticketId != null">
+                AND
+                <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="department != null">
+                AND scavdept.SCV_OID = #{department}
+            </if>
+            <if test="type != null">
+                AND scavtype.SCV_OID = #{type}
+            </if>
+            <if test="status != null">
+                AND scavstatus.SCV_OID = #{status}
+            </if>
+
+
+            <if test="lastResponse != null">
+                AND resp.RESPONSE_DATE = #{lastResponse}
+            </if>
+
+            <if test="customerOrganization != null">
+                AND mc.CUSTOMER_ORGANIZATION = #{customerOrganization}
+            </if>
+
+            <if test="customerId != null">
+                AND mc.MC_OID = #{customerId}
+            </if>
+
+            <if test="serialNumber != null">
+                AND
+                pmo.MO_OID IN (
+                SELECT pxm.MO_OID
+                FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
+                WHERE pxm.MSN_OID IN (
+                SELECT msn.MSN_OID
+                FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
+                WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                )
+            </if>
+            <if test="responder != null">
+                AND user.NAME = #{responder} OR user.NAME IS NULL
+            </if>
+            <if test="createdFromDate != null and createdToDate">
+                AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="getTicketingViews" resultType="us.pax.basil.entity.ticket.TicketView">
+        SELECT
+        pmo.MO_OID as ticketId,
+        scavstatus.VALUE as status,
+        scavdept.VALUE as department,
+        scavtype.VALUE as type,
+        mc.CUSTOMER_ORGANIZATION as customerOrganization,
+        pmo.ORDER_DATE as createdDate,
+        resp.RESPONSE_DATE as lastResponse,
+        user.NAME as responder
+
+        FROM
+        BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+        JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
+        JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
+        LEFT JOIN (
+        select response.* from ( select response.*,row_number() over (partition by mo_oid order by response_date desc)
+        rn from BASIL_SEC_PRD.XREF_RESPONSE as response ) AS response where response.rn=1 ) AS res on
+        res.MO_OID=pmo.MO_OID
+        <where>
+            <if test="id !=null">
+                AND mc.MC_OID = #{id}
+            </if>
+            <if test="ticketId != null">
+                AND
+                <foreach item="item" index="index" collection="ticketId" open="pmo.MO_OID in (" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="department != null">
+                AND scavdept.SCV_OID = #{department}
+            </if>
+            <if test="type != null">
+                AND scavtype.SCV_OID = #{type}
+            </if>
+            <if test="status != null">
+                AND scavstatus.SCV_OID = #{status}
+            </if>
+
+            <if test="customerOrganization != null">
+                AND mc.CUSTOMER_ORGANIZATION = #{customerOrganization}
+            </if>
+
+            <if test="lastResponse != null">
+                AND resp.RESPONSE_DATE = #{lastResponse}
+            </if>
+
+            <if test="customerId != null">
+                AND mc.MC_OID = #{customerId}
+            </if>
+
+            <if test="serialNumber != null">
+                AND
+                pmo.MO_OID IN (
+                SELECT pxm.MO_OID
+                FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS AS pxm
+                WHERE pxm.MSN_OID IN (
+                SELECT msn.MSN_OID
+                FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER AS msn
+                WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="serialNumber" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
+                )
+            </if>
+
+            <if test="responder != null">
+                AND LOWER(user.NAME) LIKE CONCAT ('%', LOWER(#{responder}), '%')
+            </if>
+            <if test="createdFromDate != null and createdToDate">
+                AND pmo.ORDER_DATE BETWEEN #{createdFromDate} AND #{createdToDate}
+            </if>
+        </where>
+        <if test="sortColumns != null and sortColumns != ''">
+            ORDER BY ${sortColumns}
+        </if>
+        LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
+    <select id="queryDepartmentList" resultType="us.pax.basil.entity.ticket.Department">
+        SELECT
+        scav.SCV_OID as id,
+        scav.VALUE as department
+        FROM
+        BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
         WHERE
-            scav.SC_OID = 2
+        scav.SC_OID = 2
         ORDER BY
-            scav.SORT_ORDER ASC
+        scav.SORT_ORDER ASC
 
     </select>
 
-    <select id = "queryOrderTypeList" resultType="us.pax.basil.entity.ticket.OrderType">
+    <select id="queryOrderTypeList" resultType="us.pax.basil.entity.ticket.OrderType">
         SELECT
-            scav.SCV_OID as id,
-            scav.VALUE as orderType
+        scav.SCV_OID as id,
+        scav.VALUE as orderType
         FROM
-            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
         WHERE
-            scav.SC_OID = 1
+        scav.SC_OID = 1
         ORDER BY
-            scav.SORT_ORDER ASC
+        scav.SORT_ORDER ASC
     </select>
 
-    <select id = "queryStatusList" resultType="us.pax.basil.entity.ticket.Status">
+    <select id="queryStatusList" resultType="us.pax.basil.entity.ticket.Status">
         SELECT
-            scav.SCV_OID as id,
-            scav.VALUE as status
+        scav.SCV_OID as id,
+        scav.VALUE as status
         FROM
-            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
         WHERE
-            scav.SC_OID = 3
+        scav.SC_OID = 3
         ORDER BY
-            scav.SORT_ORDER ASC
+        scav.SORT_ORDER ASC
     </select>
 
-    <select id = "queryRepairTypeList" resultType="us.pax.basil.entity.ticket.RepairType">
+    <select id="queryRepairTypeList" resultType="us.pax.basil.entity.ticket.RepairType">
         SELECT
-            scav.SCV_OID as id,
-            scav.VALUE as repairType
+        scav.SCV_OID as id,
+        scav.VALUE as repairType
         FROM
-            BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
         WHERE
-            scav.SC_OID = 1 AND scav.DEPARTMENT=100
+        scav.SC_OID = 1 AND scav.DEPARTMENT=100
         ORDER BY
-            scav.SORT_ORDER ASC
+        scav.SORT_ORDER ASC
     </select>
 
-    <select id = "queryDevice" resultType = "us.pax.basil.entity.ticket.Device">
+    <select id="queryDevice" resultType="us.pax.basil.entity.ticket.Device">
         SELECT
-            msn.WARRANTY_END_DATE as warrantyExpDate,
-            msn.WARRANTY_VOIDED_DATE as voidDate,
-            msn.SERIAL_NUMBER as serialNumber
+        msn.WARRANTY_END_DATE as warrantyExpDate,
+        msn.WARRANTY_VOIDED_DATE as voidDate,
+        msn.SERIAL_NUMBER as serialNumber
         FROM
-            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
+        BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as msn
         <where>
             <if test="serialNumber != null">
                 msn.SERIAL_NUMBER = #{serialNumber}
@@ -212,42 +496,11 @@
         </where>
     </select>
 
-
-
-    <select id="queryDeviceInfo" resultType = "us.pax.basil.entity.ticket.Device">
-        SELECT
-            hpcf.SN as serialNumber,
-            hpcf.`Full_PN#` as model,
-            hpcf.`Version_#` as version,
-            msn.WARRANTY_END_DATE as warrantyExpDate,
-            rc.PART_NUMBER_SHORT,
-            rc.CUSTOMER AS COMPANY,
-            rc.COSMETIC as cosmeticPrice,
-            rc.DIAGNOSTIC as diagnosticPrice,
-            rc.MINOR as minorPrice
-        FROM
-            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
-            JOIN BASIL_SBX_PRD.HIST_PREP_CHINA_FILE hpcf ON hpcf.SN = msn.SERIAL_NUMBER
-            JOIN BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(hpcf.`Full_PN#`, LOCATE('-', hpcf.`Full_PN#`) - 1) = rc.PART_NUMBER_SHORT
-        <where>
-            <if test="serialNumber != null">
-                msn.SERIAL_NUMBER = #{serialNumber}
-            </if>
-            <if test="companyId != null">
-                AND (rc.CUSTOMER = #{companyId} OR rc.CUSTOMER IS NULL)
-            </if>
-        </where>
-        <if test="companyId != null">
-            ORDER BY rc.CUSTOMER DESC
-        </if>
-        LIMIT 1;
-    </select>
-
     <select id="getDeviceInfos" parameterType="java.util.List" resultType="us.pax.basil.entity.ticket.Device">
-        SELECT
-        SERIAL_NUMBER as serialNumber,
+        SELECT SERIAL_NUMBER as serialNumber,
         msnOID,
         xmOID,
+        pxmOID,
         warrantyExpDate,
         warrantyStatus,
         model,
@@ -255,63 +508,51 @@
         cosmeticPrice,
         diagnosticPrice,
         minorPrice,
-        existInAnotherTicket
-        FROM(
-        SELECT
-        msn.SERIAL_NUMBER,
-        msn.MSN_OID as msnOID,
-        CASE
-        WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN msn.WARRANTY_VOIDED_DATE
-        ELSE msn.WARRANTY_END_DATE
-        END AS warrantyExpDate,
-        CASE
-        WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
-        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE (msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
-        ELSE 'Out Of Warranty'
-        END AS warrantyStatus,
-        mp.PART_NUMBER_LONG AS model,
-        mp.VERSION_NUMBER AS version,
-        rc.COSMETIC AS cosmeticPrice,
-        rc.DIAGNOSTIC AS diagnosticPrice,
-        rc.MINOR AS minorPrice,
-        xm.XM_OID as xmOID,
-        IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE)  AS existInAnotherTicket,
-        ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE) DESC) AS RN
-        FROM
-        BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
-        LEFT JOIN
-        BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
-        LEFT JOIN
-        BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
-        LEFT JOIN
-        BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
-        LEFT JOIN
-        BASIL_SBX_PRD.REPAIR_COST rc ON LEFT(mp.PART_NUMBER_LONG, LOCATE('-', mp.PART_NUMBER_LONG) - 1) = rc.PART_NUMBER_SHORT
-        <where>
-            msn.SERIAL_NUMBER IN
-            <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
-                #{item, jdbcType=INTEGER}
-            </foreach>
-            AND (
-            rc.CUSTOMER = #{companyId} OR
-            (
-            rc.CUSTOMER IS NULL AND
-            NOT EXISTS (
-            SELECT 1
-            FROM BASIL_SBX_PRD.REPAIR_COST rc2
-            WHERE rc2.PART_NUMBER_SHORT = rc.PART_NUMBER_SHORT
-            <if test="companyId != null">
-                AND rc2.CUSTOMER = #{companyId}
-            </if>
-            )
-            )
-            )
-        </where>
-        ) AS CTE
-        <where>
-            (existInAnotherTicket = 1) OR
-            (existInAnotherTicket = 0 AND RN = 1);
-        </where>
+        existInAnotherTicket,
+        moOID,
+        cosmetic
+        FROM (
+            SELECT msn.SERIAL_NUMBER,
+            msn.MSN_OID                                                                      as msnOID,
+            xm.XM_OID                                                                        as xmOID,
+            pxm.XM_OID                                                                        as pxmOID,
+            COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE)                        AS warrantyExpDate,
+            CASE
+            WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+            WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) THEN 'Under Warranty'
+            ELSE 'Out Of Warranty'
+            END                                                                          AS warrantyStatus,
+            mp.PART_NUMBER_LONG                                                              AS model,
+            mp.VERSION_NUMBER                                                                AS version,
+            COALESCE(rc1.COSMETIC, rc2.COSMETIC)                                             AS cosmeticPrice,
+            COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC)                                         AS diagnosticPrice,
+            COALESCE(rc1.MINOR, rc2.MINOR)                                                   AS minorPrice,
+            IF((xm.XM_OID IS NULL OR xm.STATUS = 113) AND (pxm.XM_OID is null), FALSE, TRUE) AS existInAnotherTicket,
+            ROW_NUMBER() OVER (PARTITION BY msn.SERIAL_NUMBER ORDER BY IF(xm.XM_OID IS NULL OR xm.STATUS = 113, FALSE, TRUE)
+            DESC)                                                                        AS RN,
+            IF(xm.XM_OID is not null, xm.MO_OID, pxm.MO_OID)                                 as moOID,
+            COALESCE(xm.COSMETIC, pxm.COSMETIC)                                              AS cosmetic
+            FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
+            LEFT JOIN
+            BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
+            LEFT JOIN
+            BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
+            LEFT JOIN
+            BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
+            LEFT JOIN
+            BASIL_SEC_PRD.REPAIR_COST rc1 ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+            LEFT JOIN
+            BASIL_SEC_PRD.REPAIR_COST rc2
+            ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+            WHERE msn.SERIAL_NUMBER IN
+                <foreach item="item" index="index" collection="usBasedDevices" open="(" separator="," close=")">
+                    #{item, jdbcType=INTEGER}
+                </foreach>
+            ) AS CTE
+            <where>
+                (existInAnotherTicket = 1)
+                OR (existInAnotherTicket = 0 AND RN = 1)
+            </where>
     </select>
 
 
@@ -324,17 +565,118 @@
         </foreach>
     </select>
 
-    <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject" useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber})
+    <select id="getSecMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
+        SELECT t1.*,
+        CASE
+        WHEN orderType = 3 THEN
+        IF(warrantyStatus = 'Under Warranty',
+        IF(cosmetic = 890, cosmeticPrice, 0),
+        minorPrice + IF(cosmetic = 890, cosmeticPrice, 0))
+        WHEN orderType = 4 THEN 0
+        WHEN orderType = 7 THEN diagnosticPrice
+        ELSE 0
+        END AS unitInvoice
+        FROM (SELECT sn.SERIAL_NUMBER                         as serialNumber,
+        xma.MSN_OID                              as msnOID,
+        xma.CUSTOMER_RMA                         as customerRMA,
+        xma.CUSTOMER_TERMINAL_ID                 as customerTerminalID,
+        xma.CUSTOMER_REPORTED_ISSUE_EXT          as customerReportedIssueExt,
+        xma.XM_OID                               as pxmOID,
+        xma.COSMETIC                             as cosmetic,
+        sn.WARRANTY_END_DATE                     as warrantyExpDate,
+        sn.WARRANTY_VOIDED_DATE                  as warrantyVoidedDate,
+        xs.SHIP_DATE                             as shipDate,
+        mp.PART_NUMBER_LONG                      as model,
+        mp.VERSION_NUMBER                        as version,
+        COALESCE(rc1.COSMETIC, rc2.COSMETIC)     AS cosmeticPrice,
+        COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC) AS diagnosticPrice,
+        COALESCE(rc1.MINOR, rc2.MINOR)           AS minorPrice,
+
+        CASE
+        WHEN sn.WARRANTY_END_DATE IS NULL AND sn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(sn.WARRANTY_VOIDED_DATE, sn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        ELSE 'Out Of Warranty'
+        END                                  AS warrantyStatus,
+
+        mo.ORDER_TYPE                            as orderType
+
+        FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS as xma
+        LEFT JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn ON sn.MSN_OID = xma.MSN_OID
+        LEFT JOIN BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc1
+        ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc2
+        ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+        LEFT JOIN BASIL_ODS_PRD.XREF_SHIP xs ON xs.BOX_OID = xma.BOX_OID
+        LEFT JOIN BASIL_SEC_PRD.PREP_MASTER_ORDER mo ON xma.MO_OID = mo.MO_OID
+        WHERE xma.MO_OID = #{id}) t1
+    </select>
+
+    <select id="getOdsMaterials" resultType="us.pax.basil.entity.ticket.SNInfo">
+        SELECT t1.*,
+        CASE
+        WHEN orderType = 3 THEN
+        IF(warrantyStatus = 'Under Warranty',
+        IF(cosmetic = 890, cosmeticPrice, 0),
+        minorPrice + IF(cosmetic = 890, cosmeticPrice, 0))
+        WHEN orderType = 4 THEN 0
+        WHEN orderType = 7 THEN diagnosticPrice
+        ELSE 0
+        END AS unitInvoice
+        FROM (SELECT sn.SERIAL_NUMBER                         as serialNumber,
+        xm.MSN_OID                               as msnOID,
+        xm.CUSTOMER_RMA                          as customerRMA,
+        xm.CUSTOMER_TERMINAL_ID                  as customerTerminalID,
+        xm.CUSTOMER_REPORTED_ISSUE_EXT           as customerReportedIssueExt,
+        xm.XM_OID                                as xmOID,
+        xm.COSMETIC                              as cosmetic,
+        sn.WARRANTY_END_DATE                     as warrantyExpDate,
+        sn.WARRANTY_VOIDED_DATE                  as warrantyVoidedDate,
+        xs.SHIP_DATE                             as shipDate,
+        mp.PART_NUMBER_LONG                      as model,
+        mp.VERSION_NUMBER                        as version,
+        COALESCE(rc1.COSMETIC, rc2.COSMETIC)     AS cosmeticPrice,
+        COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC) AS diagnosticPrice,
+        COALESCE(rc1.MINOR, rc2.MINOR)           AS minorPrice,
+
+        CASE
+        WHEN sn.WARRANTY_END_DATE IS NULL AND sn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
+        WHEN CURRENT_DATE <![CDATA[<]]> COALESCE(sn.WARRANTY_VOIDED_DATE, sn.WARRANTY_END_DATE) THEN 'Under Warranty'
+        ELSE 'Out Of Warranty'
+        END                                  AS warrantyStatus,
+
+        COALESCE(mo1.ORDER_TYPE, mo2.ORDER_TYPE)                            as orderType
+
+        FROM BASIL_ODS_PRD.XREF_MATERIALS as xm
+        LEFT JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER as sn ON sn.MSN_OID = xm.MSN_OID
+        LEFT JOIN BASIL_ODS_PRD.MASTER_PART mp ON sn.PART_OID = mp.PART_OID
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc1
+        ON mp.PART_NUMBER_SHORT = rc1.PART_NUMBER_SHORT AND rc1.customer = #{companyId}
+        LEFT JOIN BASIL_SEC_PRD.REPAIR_COST rc2
+        ON mp.PART_NUMBER_SHORT = rc2.PART_NUMBER_SHORT AND rc2.customer IS NULL AND rc1.RC_OID IS NULL
+        LEFT JOIN BASIL_ODS_PRD.XREF_SHIP xs ON xs.BOX_OID = xm.BOX_OID
+        LEFT JOIN BASIL_ODS_PRD.MASTER_ORDER mo1 ON xm.MO_OID = mo1.MO_OID
+        LEFT JOIN BASIL_SEC_PRD.PREP_MASTER_ORDER mo2 ON xm.MO_OID = mo2.MO_OID
+        WHERE xm.MO_OID = #{id}) t1
+    </select>
+
+    <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
+            useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER, SUBMITTER_ID, XA_OID)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID}, #{xaOID})
     </insert>
 
-    <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="false" >
-        INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, XM_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID, CUSTOMER_REPORTED_ISSUE_EXT)
-        VALUES
-        <foreach item="item" collection="list" separator=",">
-            (#{item.moOID}, #{item.xmOID}, #{item.msnOID}, #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt})
-        </foreach>
+    <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="xmOID"
+            keyColumn="XM_OID">
+        <if test ="list!= null and list.size() > 0">
+            INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,
+            CUSTOMER_REPORTED_ISSUE_EXT, COSMETIC)
+            VALUES
+            <foreach item="item" collection="list" separator=",">
+                (#{item.moOID}, #{item.msnOID},
+                #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt}, #{item.cosmetic})
+            </foreach>
+        </if>
     </insert>
 
     <insert id="insertXref_Inbound_Tracking" useGeneratedKeys="true" keyColumn="XIT_OID">
@@ -344,6 +686,168 @@
             (#{item}, #{mo_OID})
         </foreach>
     </insert>
+
+<!--    Edit Ticket -->
+    <update id="updateXref_Inbound_Tracking" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            <foreach collection="list" item="item" separator=";">
+                UPDATE BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                <set>
+                    <if test="item.num != null">
+                        TRACKING_NUMBER = #{item.num}
+                    </if>
+                </set>
+                WHERE XIT_OID = #{item.xitOID}
+            </foreach>
+        </if>
+    </update>
+
+    <delete id="deleteXref_Inbound_Tracking" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            DELETE FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+            WHERE XIT_OID IN
+            <foreach collection="list" item="item" open="(" separator="," close=")" >
+                #{item}
+            </foreach>
+        </if>
+    </delete>
+
+    <insert id="batchInsertXref_Inbound_Tracking" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 1">
+            INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID)
+            <foreach collection="list" item="item" open="("  separator="union" close=")" >
+                SELECT distinct #{item.num} AS TRACKING_NUMBER, #{item.moOID} AS MO_OID
+                FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                    WHERE TRACKING_NUMBER = #{item.num} AND MO_OID = #{item.moOID}
+                )
+            </foreach>
+        </if>
+    </insert>
+
+    <insert id="insertSingleXref_Inbound_Tracking" parameterType="us.pax.basil.entity.ticket.TrackingNum">
+            INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID) (
+                SELECT distinct #{num} AS TRACKING_NUMBER, #{moOID} AS MO_OID
+                FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                WHERE NOT EXISTS (
+                SELECT 1 FROM BASIL_SEC_PRD.XREF_INBOUND_TRACKING
+                WHERE TRACKING_NUMBER =  #{num} AND MO_OID = #{moOID}
+                )
+            )
+    </insert>
+
+    <insert id="InsertXref_Inbound_Tracking">
+            INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID) values
+            ({item.num}, #{item.moOID})
+    </insert>
+
+    <delete id="deletePrep_Xref_Materials" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            DELETE FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS
+            WHERE XM_OID IN
+            <foreach collection="list" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
+
+    <delete id="deleteXref_Materials" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            DELETE FROM BASIL_ODS_PRD.XREF_MATERIALS
+            WHERE XM_OID IN
+            <foreach collection="list" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
+
+    <update id="updatePrep_Xref_Materials" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            <foreach collection="list" item="item" separator=";">
+                UPDATE BASIL_SEC_PRD.PREP_XREF_MATERIALS
+                <set>
+                    <if test = "item.customerReportedIssueExt != null">
+                        CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
+                    </if>
+                    <if test="item.customerTerminalID != null">
+                        CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
+                    </if>
+                    <if test="item.msnOID!= null">
+                        MSN_OID = #{item.msnOID},
+                    </if>
+                    <if test="item.cosmetic != null">
+                        COSMETIC = #{item.cosmetic}
+                    </if>
+                </set>
+                WHERE XM_OID = #{item.xmOID}
+            </foreach>
+        </if>
+    </update>
+
+    <update id="updateXref_Materials" parameterType="java.util.List">
+        <if test ="list!= null and list.size() > 0">
+            <foreach collection="list" item="item" separator=";">
+                UPDATE BASIL_ODS_PRD.XREF_MATERIALS
+                <set>
+                    <if test = "item.customerReportedIssueExt != null">
+                        CUSTOMER_REPORTED_ISSUE_EXT = #{item.customerReportedIssueExt},
+                    </if>
+                    <if test="item.customerTerminalID != null">
+                        CUSTOMER_TERMINAL_ID =#{item.customerTerminalID},
+                    </if>
+                    <if test="item.msnOID!= null">
+                        MSN_OID = #{item.msnOID}
+                    </if>
+                </set>
+                WHERE XM_OID = #{item.xmOID}
+            </foreach>
+        </if>
+    </update>
+
+    <update id="updateMasterOrder" >
+        UPDATE BASIL_ODS_PRD.MASTER_ORDER
+        <set>
+            <if test="typeOfRepair != null">
+                ORDER_TYPE = #{typeOfRepair},
+            </if>
+            <if test="xaOID != null">
+                XA_OID = #{xaOID},
+            </if>
+                RMA_NUMBER = #{originalRMA}
+        </set>
+        WHERE MO_OID = #{moOID}
+    </update>
+
+    <update id="updatePrepMasterOrder" >
+        UPDATE BASIL_SEC_PRD.PREP_MASTER_ORDER
+        <set>
+            <if test="typeOfRepair != null">
+                ORDER_TYPE = #{typeOfRepair},
+            </if>
+            <if test="xaOID != null">
+                XA_OID = #{xaOID},
+            </if>
+                RMA_NUMBER = #{originalRMA}
+        </set>
+        WHERE MO_OID = #{moOID}
+    </update>
+
+    <select id="getAllXmOid" resultType="Integer">
+        select xm_oid from BASIL_SEC_PRD.PREP_XREF_MATERIALS
+        <where>
+            <if test="moOID != null">
+                MO_OID = #{moOID}
+            </if>
+        </where>
+        union
+        select xm_oid from BASIL_ODS_PRD.XREF_MATERIALS
+        <where>
+            <if test="moOID != null">
+                MO_OID = #{moOID}
+            </if>
+        </where>
+    </select>
 </mapper>
 
 
