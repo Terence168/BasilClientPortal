@@ -23,7 +23,7 @@
               label="Please select"
               v-model="ticketInfo.typeOfRepair"
               :options="orderTypeOpt"
-              :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
+              :disable="true"
               @filter="populateOrderTypeOpt"
               dense
               emit-value
@@ -43,7 +43,7 @@
         <div v-if="isReRepair" class="row items-center">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
-            <q-input style="min-width: 200px" dense v-model="originalRMA" />
+            <q-input style="min-width: 200px" dense v-model="ticketInfo.originalRMA" />
           </div>
         </div>
         <div class="row items-center">
@@ -68,7 +68,6 @@
             />
           </div>
         </div>
-
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Submitter Email:&nbsp;</div>
           <div class="col-auto">
@@ -80,6 +79,35 @@
             />
           </div>
         </div>
+        <!-- <div class="row items-center">
+          Encrypt:&nbsp;
+          <input type="radio" v-model="ticketInfo.encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
+          <input type="radio" v-model="ticketInfo.encrypt" value="no">&nbsp;No&nbsp;
+        </div>
+        <div class="row items-center" v-show="isEncrypted">
+          <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
+          <div class="col-auto">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="ticketInfo.testKeyType"
+              :options="testKeyTypeOpt"
+              @filter="populateTestKeyTypeOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+        </div> -->
         <div class="q-my-sm">Shipping Address:</div>
         <AddressBlock :address="address" @click="showAddressGrid" />
         <!-- tracking number section -->
@@ -116,17 +144,17 @@
             @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
-        <div class="q-py-md text-subtitle1 text-weight-bold">
+        <!-- <div class="q-py-md text-subtitle1 text-weight-bold">
           Ticket Serial Numbers
         </div>
         <div class="row items-start">
-          <q-btn
+           <q-btn
             class="col-auto"
             color="primary"
             @click="this.$refs.editTable.handleClickAddUnit()"
             :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-          >
-            Add Serial Number
+          > 
+             Add Serial Number
           </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
           <q-form class="col-auto" @submit="onFileSubmit">
@@ -149,9 +177,9 @@
                 </template>
 
                 <template v-slot:hint> Allowed file format: .xlsx </template>
-              </q-file>
+              </q-file> 
 
-              <q-btn
+               <q-btn
                 class="col"
                 type="submit"
                 label="Upload"
@@ -159,11 +187,11 @@
                 style="min-width: 150px"
                 :loading="fileUploading"
                 :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-              >
+              > 
                 <template v-slot:loading>
                   <q-spinner-facebook />
                 </template>
-              </q-btn>
+              </q-btn> 
 
               <q-input
                 clearable
@@ -180,14 +208,15 @@
               </q-input>
             </div>
           </q-form>
-        </div>
+        </div> -->
         <!-- Ticket serials -->
         <TicketEditTable
           ref="editTable"
           :isFromMaster="ticketInfo.isFromMaster"
           :containsXrefMaterials="ticketInfo.containsXrefMaterials"
           :orderType="ticketInfo.typeOfRepair"
-          :rows="getSerialsByTicketId(ticketId, inputValue)"
+          :rows="getSerialsByTicketId(ticketId)"
+          :inputValue="inputValue"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -260,6 +289,9 @@ export default {
         submitterEmail: null,
         serials: [],
         trackingNumbers: [],
+        encrypt:null,
+        testKeyType:null,
+
       },
       comments: [],
       editInfo: {
@@ -299,6 +331,7 @@ export default {
             const comments = values[1];
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
+              console.log(this.ticketInfo);
             }
             if (this.comments != null) {
               this.comments = comments;
@@ -320,7 +353,7 @@ export default {
 
   computed: {
     // ...mapWritableState(useCreateTicketStore, ["orderType"]),
-    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
+    ...mapState(useCreateTicketStore, ["orderTypeOpt", "testKeyTypeOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
@@ -335,11 +368,15 @@ export default {
     address() {
       return this.ticketInfo.address;
     },
+    isEncrypted(){
+      return this.ticketInfo.encrypt === "yes";
+    }
   },
   methods: {
     ...mapActions(useCreateTicketStore, [
       "populateOrderTypeOpt",
       "populateOrderTypeOptOnce",
+      "populateTestKeyTypeOpt",
     ]),
     ...mapActions(useEditTicketStore, [
       "fetchTicket",
@@ -394,7 +431,9 @@ export default {
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
       };
-
+      if(payload.orderType === 3 || payload.orderType === 7){
+        payload.originalRMA = null;
+      }
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
       // console.log(payload);
       api

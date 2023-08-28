@@ -11,24 +11,30 @@ export const useCreateTicketStore = defineStore("createTicket", {
     trackingNums: [],
     serials: [],
     inputValue: null,
+    testKeyType:null,
+    testKeyTypeOpt:null,
+    encrypt:null,
   }),
 
   getters: {
     getSerials() {
-      if (this.inputValue != null) {
-        return this.serials.filter(
-          (t) =>
-            (t.serialNumber != null &&
-              t.serialNumber.includes(this.inputValue)) ||
-            (t.model != null && t.model.includes(this.inputValue)) ||
-            (t.customerReportedIssueExt != null &&
-              t.customerReportedIssueExt.includes(this.inputValue))
-        );
-      }
+      // if (this.inputValue != null) {
+      //   return this.serials.filter(
+      //     (t) =>
+      //       (t.serialNumber != null &&
+      //         t.serialNumber.includes(this.inputValue)) ||
+      //       (t.model != null && t.model.includes(this.inputValue)) ||
+      //       (t.customerReportedIssueExt != null &&
+      //         t.customerReportedIssueExt.includes(this.inputValue))
+      //   );
+      // }
       return this.serials;
     },
     getTrackingNums(){
       return this.trackingNums;
+    },
+    getAllSerials(){
+      return this.serials;
     }
   },
   reset() {
@@ -43,6 +49,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
     deleteTrackingNum(index) {
       this.trackingNums.splice(index, 1);
+    },
+    populateTestKeyTypeOpt(_, update){
+
     },
     populateOrderTypeOpt(_, update) {
       if (this.orderTypeOpt) {

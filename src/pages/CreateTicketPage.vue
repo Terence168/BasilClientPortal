@@ -82,7 +82,35 @@
             />
           </div>
         </div>
-
+        <!-- <div class="row items-center">
+          Encrypt:&nbsp;
+          <input type="radio" v-model="encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
+          <input type="radio" v-model="encrypt" value="no">&nbsp;No&nbsp;
+        </div>
+        <div class="row items-center" v-show="isEncrypted">
+          <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
+          <div class="col-auto">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="testKeyType"
+              :options="testKeyTypeOpt"
+              @filter="populateTestKeyTypeOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+        </div> -->
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">
           <div class="col-auto">
@@ -195,6 +223,8 @@
           :isFromMaster="false"
           :orderType="orderType"
           :rows="getSerials"
+          :containsXrefMaterials="false"
+          :inputValue="inputValue"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -265,24 +295,30 @@ export default {
       showAddressModal: false,
       fileUploading: false,
       updateOrAddLoading: false, //to control the update/add button's loading
-      serialsSubmitting: false,
+      serialsSubmitting: false,      
     };
   },
 
   computed: {
     ...mapWritableState(useCreateTicketStore, [
       "orderType",
+      "testKeyType",
       "trackingNums",
       "inputValue",
       "originalRMA",
       "address",
+      "encrypt"
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
+      "testKeyTypeOpt",
       "getSerials",
       "getAllSerials",
       "getTrackingNums",
     ]),
+    isEncrypted(){
+      return this.encrypt === "yes";
+    },
     isReRepair() {
       return this.orderType === 4;
     },
@@ -303,6 +339,7 @@ export default {
       "deleteTrackingNum",
       "resetTicket",
       "populateOrderTypeOpt",
+      "populateTestKeyTypeOpt",
       "addSerial",
       "addSerialList",
       "updateSerial",

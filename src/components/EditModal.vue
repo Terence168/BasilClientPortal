@@ -11,6 +11,7 @@
           :rules="[
             (val) => (val && val.length > 0) || 'Serial Number cannot be empty',
           ]"
+          :disable="containsXrefMaterials === null ? false : containsXrefMaterials"
         />
         <q-input
           class="col q-mt-sm q-mb-sm"
@@ -69,7 +70,7 @@ import BaseModal from "src/components/BaseModal.vue";
 
 export default {
   components: { BaseModal },
-  props: ["serial", "title", "btnLable", "action"],
+  props: ["serial", "title", "btnLable", "action", "containsXrefMaterials"],
   data() {
     return {
       newSerial: {

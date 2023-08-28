@@ -11,25 +11,17 @@ const capacity = 10;
 export const useEditTicketStore = defineStore("editTicket", {
   state: () => ({
     tickets: [],
+    testKeyTypeOpt:["1", "2", "3"],
   }),
   getters: {
     getSerialsByTicketId: (state) => {
-      return (ticketId, query) => {
+      return (ticketId) => {
         const index = state.tickets.findIndex(
           (t) => parseInt(t.moOID) === parseInt(ticketId)
         );
         if (index != -1) {
-          const ticket = state.tickets.find((t) => 
-                (parseInt(t.moOID) === parseInt(ticketId)
-              ));
-          let serials = ticket.serials;
-          if(query != null){
-            serials = ticket.serials.filter((t) => 
-            (t.serialNumber != null && t.serialNumber.includes(query)) ||
-            (t.model != null && t.model.includes(query)) ||
-            (t.customerReportedIssueExt!= null && t.customerReportedIssueExt.includes(query)))
-          }
-          return serials;
+          const ticket = state.tickets[index];
+          return ticket.serials;
         }
         return [];
       };
@@ -60,20 +52,26 @@ export const useEditTicketStore = defineStore("editTicket", {
         return null;
       };
     },
+    // testKeyTypeOpt(){
+    //   return ["1", "2", "3"];
+    // },
   },
   reset() {},
   actions: {
+    populateTestKeyTypeOpt(_, update){
+      // this.testKeyTypeOpt = ["1", "2", "3"];
+    },
     /**
      * Ticket: get, add, remove, fetch
      */
     addTicket(ticketInfo) {
       const key = ticketInfo.mo_oid;
-      const index = this.tickets.findIndex((t) => t.mo_oid === key);
+      const index = this.tickets.findIndex((t) => parseInt(t.mo_oid) === parseInt(key));
       if (index === -1) {
         if (this.tickets.length === capacity) {
           //remove the least recently used
           this.tickets.sort((t1, t2) => t1.timeStamp < t2.timeStamp);
-          this.tickets.pop();
+          this.tickets.shift();
         }
         ticketInfo.timeStamp = new Date();
         this.tickets.push(ticketInfo);
@@ -89,6 +87,8 @@ export const useEditTicketStore = defineStore("editTicket", {
     },
     fetchTicket(ticketId) {
       //fetch it from the backend
+      console.log(this.tickets.map(t => t.moOID));
+
       const actionURL = "/ticketing/" + ticketId;
 
       return api
@@ -108,16 +108,12 @@ export const useEditTicketStore = defineStore("editTicket", {
             deleteSerial: [],
             deleteTracking: [],
           };
-          ticketInfo.containsXrefMaterials = false;
+          ticketInfo.containsXrefMaterials = true;
 
           this.removeTicket(ticketId);
-          this.tickets.push(ticketInfo);
+          this.addTicket(ticketInfo);
+
           ticketInfo.serials = ticketInfo.serials.map((s) => validateSerial(s));
-          ticketInfo.serials.forEach(s => {
-            if(s.xmOID != null){
-              ticketInfo.containsXrefMaterials = true;
-            }
-          })
           return ticketInfo;
         });
     },
