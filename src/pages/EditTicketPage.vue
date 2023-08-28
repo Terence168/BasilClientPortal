@@ -23,7 +23,7 @@
               label="Please select"
               v-model="ticketInfo.typeOfRepair"
               :options="orderTypeOpt"
-              :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
+              :disable="true"
               @filter="populateOrderTypeOpt"
               dense
               emit-value
@@ -116,17 +116,17 @@
             @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
-        <div class="q-py-md text-subtitle1 text-weight-bold">
+        <!-- <div class="q-py-md text-subtitle1 text-weight-bold">
           Ticket Serial Numbers
         </div>
         <div class="row items-start">
-          <q-btn
+           <q-btn
             class="col-auto"
             color="primary"
             @click="this.$refs.editTable.handleClickAddUnit()"
             :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-          >
-            Add Serial Number
+          > 
+             Add Serial Number
           </q-btn>
           <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
           <q-form class="col-auto" @submit="onFileSubmit">
@@ -149,9 +149,9 @@
                 </template>
 
                 <template v-slot:hint> Allowed file format: .xlsx </template>
-              </q-file>
+              </q-file> 
 
-              <q-btn
+               <q-btn
                 class="col"
                 type="submit"
                 label="Upload"
@@ -159,11 +159,11 @@
                 style="min-width: 150px"
                 :loading="fileUploading"
                 :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-              >
+              > 
                 <template v-slot:loading>
                   <q-spinner-facebook />
                 </template>
-              </q-btn>
+              </q-btn> 
 
               <q-input
                 clearable
@@ -180,7 +180,7 @@
               </q-input>
             </div>
           </q-form>
-        </div>
+        </div> -->
         <!-- Ticket serials -->
         <TicketEditTable
           ref="editTable"
