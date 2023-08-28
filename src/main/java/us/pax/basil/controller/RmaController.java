@@ -22,6 +22,7 @@ import org.apache.poi.ss.util.AreaReference;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -45,7 +46,7 @@ public class RmaController {
     @Autowired
     private RmaService rmaService;
 
-    // @PreAuthorize("hasAuthority('admin.user.delete')")
+    @PreAuthorize("hasAuthority('status')")
     @GetMapping("/status")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                        @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -62,7 +63,8 @@ public class RmaController {
         }
         return rmaService.statusQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber);
     }
-
+    
+    @PreAuthorize("hasAuthority('status')")
     @GetMapping("/status/tier1")
     public QueryResultArrayDTO statusTier1(@RequestParam(value = "partNumber", required = false) String partNumber,
                                            @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
@@ -70,7 +72,8 @@ public class RmaController {
                                            @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier1(partNumber, rmaNumber, serialNumber, customerId);
     }
-
+    
+    @PreAuthorize("hasAuthority('status')")
     @GetMapping("/status/tier2")
     public QueryResultArrayDTO statusTier2(@RequestParam(value = "partNumber", required = true) String partNumber,
                                            @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
@@ -78,7 +81,8 @@ public class RmaController {
                                            @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier2(partNumber, rmaNumber, serialNumber, customerId);
     }
-
+    
+    @PreAuthorize("hasAuthority('status')")
     @GetMapping("/status/tier3")
     public QueryResultArrayDTO statusTier3(@RequestParam(value = "rmaNumber", required = true) String rmaNumber,
                                            @RequestParam(value = "partNumber", required = true) String partNumber,
@@ -86,13 +90,14 @@ public class RmaController {
                                            @RequestParam(value = "customerId", required = false) String customerId) {
         return rmaService.statusTier3(rmaNumber, partNumber, serialNumber, customerId);
     }
-
+    
+    @PreAuthorize("hasAuthority('status')")
     @GetMapping("/status/tier4")
     public QueryResultArrayDTO statusTier4(@RequestParam(value = "id", required = true) Integer id) {
         return rmaService.statusTier4(id);
     }
 
-    // @PreAuthorize("hasAuthority('admin.user.delete')")
+    @PreAuthorize("hasAuthority('shipping')")
     @GetMapping("/shipped")
     public QueryResultArrayDTO shipped (@RequestParam(value = "page", required = false) Integer currentPage,
                                          @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -112,7 +117,7 @@ public class RmaController {
         return rmaService.shippedQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber, shipDate, customerId);
     }
 
-    // @PreAuthorize("hasAuthority('admin.user.delete')")
+    @PreAuthorize("hasAuthority('quarantine')")
     @GetMapping("/quarantine")
     public QueryResultArrayDTO quarantine(@RequestParam(value = "page", required = false) Integer currentPage,
                                            @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -138,18 +143,8 @@ public class RmaController {
                                             customerId,
                                             contact);
     }
-
-    private void writeWorkbook(OutputStream out) throws IOException {
-        try (Workbook workBook = new XSSFWorkbook()) {
-            Sheet sheet = workBook.createSheet("My Sheet");
-            sheet.setColumnWidth(0, 4000);
-            sheet.setColumnWidth(1, 6000);
-            Row row = sheet.createRow(0);
-            row.createCell(0).setCellValue("test");
-            workBook.write(out);
-        }
-    }
-
+    
+    @PreAuthorize("hasAuthority('shipping')")
     @GetMapping(path = "/excel-export/shipping")
     public void shippingExcelExport(@RequestParam(value = "sort", required = false) String sortColumns,
                                      @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
@@ -236,6 +231,7 @@ public class RmaController {
         }
     }
 
+    @PreAuthorize("hasAuthority('quarantine')")
     @GetMapping(path = "/excel-export/quarantine")
     public void quarantineExcelExport(@RequestParam(value = "sort", required = false) String sortColumns,
                                       @RequestParam(value = "rmaNumber", required = false) String rmaNumber,
@@ -318,6 +314,7 @@ public class RmaController {
         }
     }
 
+    @PreAuthorize("hasAuthority('status')")
     @GetMapping(path = "/excel-export/status")
     public void statusExcelExport(@RequestParam(value = "partNumber", required = false) String partNumber,
                                   @RequestParam(value = "rmaNumber", required = false) String rmaNumber,

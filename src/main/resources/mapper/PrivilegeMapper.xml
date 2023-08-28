@@ -18,8 +18,8 @@
         select ROLE_ID, TITLE from BASIL_ODS_PRD.USER_ROLES where RT_ID=#{roleTypeId,jdbcType=INTEGER}
     </select>
 
-	<select id="queryPrivilege" resultType="java.util.HashMap">
-		SELECT P_OID, NAME, PARENT_OID FROM BASIL_SEC_PRD.PRIVILEGES
+	<select id="queryAllPrivileges" resultType="java.util.HashMap">
+		SELECT P_OID, NAME, PARENT_OID, ACCESS_CONTROL FROM BASIL_SEC_PRD.PRIVILEGES
 	</select>
 
     <select id="getRoleIdAndTitle" resultType="java.util.HashMap">
@@ -36,11 +36,11 @@
         	LEFT JOIN BASIL_SEC_PRD.XREF_USER_ROLE xur USING (U_OID)
 		WHERE R_OID = #{role_id}
     </select>
-    
+
     <select id="getTitleRtIdPrivId" resultType="java.util.HashMap">
         	SELECT
-    		r.NAME, 
-            r.RT_OID, 
+    		r.NAME,
+            r.RT_OID,
             P_OID
 		FROM
     		BASIL_SEC_PRD.ROLES r
@@ -48,7 +48,7 @@
         	LEFT JOIN BASIL_SEC_PRD.PRIVILEGES USING (P_OID)
 		WHERE R_OID = #{role_id} AND LEVEL = 4;
     </select>
-    
+
     <update id= "updateRoleType">
     	UPDATE BASIL_SEC_PRD.ROLE_TYPES rt
     		SET
@@ -56,11 +56,11 @@
         	rt.MODIFIED = NOW()
     	WHERE rt.RT_OID =#{id,jdbcType=INTEGER}
     </update>
-    
+
     <update id="updateRole">
-    	UPDATE BASIL_SEC_PRD.ROLES 
-    	SET 
-    		NAME=#{role_name}, 
+    	UPDATE BASIL_SEC_PRD.ROLES
+    	SET
+    		NAME=#{role_name},
     		RT_OID=#{role_type_id},
         	MODIFIED = NOW()
     	where R_OID=#{role_id};
@@ -70,14 +70,14 @@
     	INSERT INTO BASIL_SEC_PRD.ROLES (RT_OID, NAME, CREATED, CREATOR, MODIFIED, MODIFIER)
     	VALUES (#{roleTypeID}, #{roleName}, NOW(), #{creator}, NOW(), #{creator});
     </insert>
-    
+
     <insert id="addRolePermission">
     	INSERT INTO BASIL_SEC_PRD.XREF_ROLE_PRIVILEGE (P_OID, R_OID)
     	VALUES (#{permission_id}, #{role_id});
 	</insert>
-	
+
 	<delete id="deleteRolePermissions">
-		DELETE FROM BASIL_SEC_PRD.XREF_ROLE_PRIVILEGE 
+		DELETE FROM BASIL_SEC_PRD.XREF_ROLE_PRIVILEGE
 			WHERE R_OID = #{role_id};
 	</delete>
 
@@ -96,7 +96,7 @@
 			BASIL_ODS_PRD.EMPLOYEE_MASTER
 		WHERE EMP_OID=#{id,jdbcType=INTEGER};
 	</select>
-	
+
 	<select id="getUsers" resultType="us.pax.basil.entity.privilege.UserQuery">
 		SELECT
 			EMP_OID,
@@ -135,9 +135,9 @@
 	</insert>
 
 	<select id="getUserRoles" resultType="int">
-    	SELECT 
-    		R_OID 
-    	FROM  
+    	SELECT
+    		R_OID
+    	FROM
     		BASIL_SEC_PRD.XREF_USER_ROLE
 		WHERE U_OID = #{id};
 	</select>
@@ -163,8 +163,8 @@
 
     <update id="updateUser" parameterType="us.pax.basil.entity.privilege.UserAddUpdate">
     	UPDATE BASIL_ODS_PRD.EMPLOYEE_MASTER
-    	SET 
-    		NAME=#{userName,jdbcType=VARCHAR}, 
+    	SET
+    		NAME=#{userName,jdbcType=VARCHAR},
     		EMAIL=#{email,jdbcType=VARCHAR},
 			DIVISION=#{division,jdbcType=INTEGER},
 			TITLE=#{title,jdbcType=INTEGER},
@@ -175,8 +175,8 @@
 
     <update id="changePassword" >
     	UPDATE BASIL_ODS_PRD.EMPLOYEE_MASTER
-    	SET 
-    		PASSWORD=#{newPassword,jdbcType=VARCHAR} 
+    	SET
+    		PASSWORD=#{newPassword,jdbcType=VARCHAR}
    		WHERE EMP_OID=#{id,jdbcType=INTEGER};
     </update>
 </mapper>

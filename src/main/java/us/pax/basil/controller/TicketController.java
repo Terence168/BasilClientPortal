@@ -17,28 +17,22 @@ package us.pax.basil.controller;
  */
 
 import io.swagger.annotations.Api;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import us.pax.basil.dto.output.QueryResultArrayDTO;
-import us.pax.basil.dto.output.SqlResultDTO;
 
-import us.pax.basil.dto.output.SubmitTicketDTO;
-import us.pax.basil.entity.ticket.SNsInsertionObject;
-import us.pax.basil.entity.ticket.SubmittingTicket;
-import us.pax.basil.entity.ticket.TicketInsertion;
+import us.pax.basil.dto.output.*;
+
+import us.pax.basil.entity.ticket.*;
 import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.Arrays;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-
 
 @Api(tags = "Basil API Interface")
 @RestController
 @RequestMapping("/ticketing")
-
-
 public class TicketController {
 
     @Autowired
@@ -56,11 +50,55 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25
+    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25viewEditTicket?id=189
     //submit the ticket
-    public SubmitTicketDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
+    public QueryResultDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
         return ticketService.submitTicket(ticketInsertion);
     }
+
+    //get ticket
+    @GetMapping("/{ticketId}")
+    public QueryResultDTO viewEditTicket(@PathVariable(value = "ticketId", required = true) String id){
+        return ticketService.viewEditTicket(id);
+    }
+
+    @GetMapping("/viewDetails")//BCP-28 view details, id is xm_oid
+    public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) Integer id){
+        return ticketService.viewTicketDetails(id);
+    }
+
+    @PostMapping("/editTicket/{ticketId}")
+    public QueryResultArrayDTO updateTicketDetails(@PathVariable("ticketId") String id, @RequestBody TicketEditDTO ticketEditDTO){
+        return ticketService.editTicket(id, ticketEditDTO);
+    }
+
+    // bcp 26
+    @GetMapping("/viewTickets")
+    public QueryResultArrayDTO viewTickets(@RequestParam(value = "page", required = false) Integer currentPage,
+                                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
+                                                       @RequestParam(value = "sort", required = false) String sortColumns,
+                                                       @RequestParam(value = "ticketId", required = false) String ticketId,
+                                                       @RequestParam(value = "department", required = false) Integer department,
+                                                       @RequestParam(value = "responder", required = false) String responder,
+                                                       @RequestParam(value = "status", required = false) Integer status,
+                                                       @RequestParam(value = "type", required = false) Integer type,
+                                                       @RequestParam(value = "createdDate", required = false) String createdDate,
+                                                       @RequestParam(value = "lastResponse", required = false) String lastResponse,
+                                                       @RequestParam(value = "serialNumber", required = false) String serialNumber,
+                                                       @RequestParam(value = "customerOrganization", required = false) String customerOrganization,
+                                                       @RequestParam(value = "customerId", required = false) String customerId){
+
+        if (null == currentPage || 0 == currentPage) {
+            currentPage = 1; // show the first page by default
+        }
+
+        if(null == sizePerPage){
+            sizePerPage = 10;
+        }
+
+        return ticketService.ticketQueryViews(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate,lastResponse, serialNumber,customerOrganization,customerId);
+    }
+
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -85,6 +123,17 @@ public class TicketController {
         return ticketService.ticketQuery(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate, serialNumber, customerId);
     }
 
+    @GetMapping("/{ticketId}/response")
+    public QueryResultArrayDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId) {
+        return ticketService.getResponse(String.valueOf(ticketId));
+    }
+
+    @PostMapping("/{ticketId}/response")
+    public QueryResultDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId, @RequestBody TicketResponse response) {
+        return ticketService.insertResponse(response);
+    }
+
+
     @GetMapping("/dropdown/department")
     public QueryResultArrayDTO departmentDropDown(){
         return ticketService.queryDepartment();
@@ -101,4 +150,5 @@ public class TicketController {
     public QueryResultArrayDTO repairTypeDropDown(){
         return ticketService.queryRepairType();
     }
+
 }

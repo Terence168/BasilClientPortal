@@ -77,7 +77,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     //
     @Override
     public SqlResultDTO AddRoleType(RoleType roleType) {
-        
+
         try {
             CustomUserDetails userDetails = AuthUtil.getUser();
             assert userDetails != null;
@@ -95,7 +95,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     //
     @Override
     public SqlResultDTO UpdateRoleType(RoleType roleType) {
-        
+
         try {
             privilegeMapper.updateRoleType(roleType.getId(), roleType.getName());
 
@@ -114,9 +114,9 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     public QueryResultArrayDTO queryRoleType(EntityManager entityManager, Map<String, ColumnMapping> columnMapping, HttpServletRequest request) {
         ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
         try {
-            QueryAttributes queryAttributes = QueryUtils.executeSql(entityManager, 
-                                                                PrivilegeConstant.SQL_QUERY_ROLE_TYPE, 
-                                                                columnMapping, 
+            QueryAttributes queryAttributes = QueryUtils.executeSql(entityManager,
+                                                                PrivilegeConstant.SQL_QUERY_ROLE_TYPE,
+                                                                columnMapping,
                                                                 request.getParameterMap());
 
             int startIndex = queryAttributes.getStartIndex();
@@ -129,7 +129,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 ++roleTypeCount;
                 if (pageCount >= startIndex && pageCount < endIndex) {
                     Map<String, Object> roleTypeMap = new HashMap<>();
-                    
+
                     roleTypeMap.put(PrivilegeConstant.ID, o[0]);
                     roleTypeMap.put(PrivilegeConstant.ROLE_TYPE, o[1]);
 
@@ -150,7 +150,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     public SqlResultDTO AddRole(Role role) {
         try {
             CustomUserDetails userDetails = AuthUtil.getUser();
-            
+
             if (userDetails == null) {
                 log.info("PrivilegeServiceImpl::AddRole(): *** User not logged in");
                 return new SqlResultDTO(-1, "User not logged in.");
@@ -161,7 +161,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             privilegeMapper.addRole(role);
 
             Integer role_id = role.getId();
-            
+
             for(Integer permission_id: role.getPermissions()) {
                 privilegeMapper.addRolePermission(permission_id, role_id);
             }
@@ -184,7 +184,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             for(Integer permission_id: role.getPermissions()) {
                 privilegeMapper.addRolePermission(permission_id, role.getId());
             }
-            
+
             return new SqlResultDTO(0, "");
         } catch(Exception e) {
             log.info("PrivilegeServiceImpl::DeleteRole(): ***exception: {}", e.getCause().getMessage());
@@ -202,16 +202,16 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 Map<String, Object> roleMap = new HashMap<>();
                 roleMap.put(PrivilegeConstant.ID, roleTitle.get("R_OID"));
                 roleMap.put(PrivilegeConstant.NAME, roleTitle.get("NAME"));
-    
+
                 ArrayList<Map<String, Object>> userArray = new ArrayList<>();
-    
+
                 List<Map<String, Object>> namesEmails = privilegeMapper.getUserNameEmail((Integer)roleTitle.get("R_OID"));
                 for (Map<String, Object> nameEmail: namesEmails) {
                     Map<String, Object> userMap = new HashMap<>();
                     userMap.put(PrivilegeConstant.ID, nameEmail.get("U_OID"));
                     userMap.put(PrivilegeConstant.USERNAME, nameEmail.get("NAME"));
                     userMap.put(PrivilegeConstant.EMAIL, nameEmail.get("EMAIL"));
-                
+
                     userArray.add(userMap);
                 }
                 roleMap.put(PrivilegeConstant.USERS, userArray);
@@ -294,12 +294,12 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     //
     @Override
     public SqlResultDTO addUser(User user) {
-        try { 
+        try {
             CustomUserDetails userDetails = AuthUtil.getUser();
             assert userDetails != null;
             user.setCreator(userDetails.getUsername());
             userMapper.addUser(user);
-            
+
             for (Integer i: user.getRoles()) {
                 privilegeMapper.addUserRole(user.getId(), i);
             }
@@ -346,7 +346,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
 
             ArrayList<Integer> roleList = new ArrayList<>(roles);
             m.put(PrivilegeConstant.ROLES, roleList);
-            
+
             returnArray.add(m);
 
             return new QueryResultArrayDTO(returnArray, returnArray.size(), 0, "");
@@ -362,7 +362,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     public SqlResultDTO updateUser(User user) {
     	CustomUserDetails currentUser = AuthUtil.getUser();
 
-        try { 
+        try {
             HistoryUtil.setHistorySessionInfo(userMapper, "PrivilegeMapper.xml:updateUser","User Update");
 
             if (user.getStatus() == null)
@@ -374,7 +374,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             userMapper.updateUser(user);
 
             privilegeMapper.deleteUserRoles(user.getId());
-            
+
             for (Integer i: user.getRoles()) {
                 privilegeMapper.addUserRole(user.getId(), i);
             }
@@ -417,13 +417,13 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         }
     }
 
-    // generate privilege list
+    // generate all privileges list
     @Override
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public QueryResultArrayDTO queryPrivilege(HttpServletRequest request) {
+    public QueryResultArrayDTO queryAllPrivileges(HttpServletRequest request) {
         ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
         try {
-            List<Map<String, Object>> privileges = privilegeMapper.queryPrivilege();
+            List<Map<String, Object>> privileges = privilegeMapper.queryAllPrivileges();
             Privilege privilege_root = new Privilege(0, "All Permissions", null);
             for (Map<String, Object> privilege : privileges) {
                 int id = (int) privilege.get("P_OID");
@@ -437,6 +437,40 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             }
             returnArray.add(privilege_root.toMap());
             return new QueryResultArrayDTO(returnArray, privileges.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    // generate user's privileges list
+    @Override
+    public QueryResultArrayDTO queryUserPrivileges(HttpServletRequest request) {
+        ArrayList<Map<String, Object>> returnArray = new ArrayList<>();
+        try {
+            List<Map<String, Object>> privileges = privilegeMapper.queryAllPrivileges();
+            CustomUserDetails user = AuthUtil.getUser();
+            Privilege privilege_root = new Privilege(0, "All Permissions", null);
+            int cnt = 1;
+            for (Map<String, Object> privilege : privileges) {
+                int id = (int) privilege.get("P_OID");
+                int parentId = (int) privilege.get("PARENT_OID");
+                String name = (String) privilege.get("NAME");
+                int access_control = (int) privilege.get("ACCESS_CONTROL");
+                Privilege privilege_child = new Privilege(id, name, null);
+                Privilege privilege_parent = privilege_root.findPrivilege(parentId);
+                if (privilege_parent != null) {
+                    assert user != null;
+                    if ((access_control & 1) != 0 && user.isClientUser()) {
+                        privilege_parent.addChild(privilege_child);
+                        ++cnt;
+                    } else if ((access_control & 2) != 0 && !user.isClientUser()) {
+                        privilege_parent.addChild(privilege_child);
+                        ++cnt;
+                    }
+                }
+            }
+            returnArray.add(privilege_root.toMap());
+            return new QueryResultArrayDTO(returnArray, cnt, 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }

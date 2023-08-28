@@ -67,7 +67,7 @@ public class PrivilegeController {
 
     // QueryCustomer() - Retrieve customer information based on the parameters passed in.
     //                   The parameters can be dynamic, therefore, need to use HttpServletRequest.
-    @PreAuthorize("hasAuthority('privilege.role-type')")
+    @PreAuthorize("hasAuthority('privilege.role-type.view')")
     @GetMapping("/role-type/query")
     public QueryResultArrayDTO queryRoleType(HttpServletRequest request) {
         return privilegeService.queryRoleType(entityManager, PrivilegeConstant.queryColumnMapping, request);
@@ -100,7 +100,7 @@ public class PrivilegeController {
     @PreAuthorize("hasAuthority('privilege.role')")
     @GetMapping("/role/view/query")
     public QueryResultArrayDTO roleViewQuery(HttpServletRequest request, @RequestParam Integer id) {
-//    	request.getSession().invalidate();
+    	// request.getSession().invalidate();
         return privilegeService.ViewQueryRole(request, id);
     }
 
@@ -115,9 +115,15 @@ public class PrivilegeController {
     }
 
     @PreAuthorize("hasAuthority('privilege')")
-    @GetMapping("/privilege/query")
-    public QueryResultArrayDTO queryPrivilege(HttpServletRequest request) {
-        return privilegeService.queryPrivilege(request);
+    @GetMapping("/all-privileges/query")
+    public QueryResultArrayDTO queryAllPrivileges(HttpServletRequest request) {
+        return privilegeService.queryAllPrivileges(request);
+    }
+
+    @PreAuthorize("hasAuthority('privilege.role')")
+    @GetMapping("/tree")
+    public QueryResultArrayDTO queryUserPrivileges(HttpServletRequest request) {
+    	return privilegeService.queryUserPrivileges(request);
     }
 
     /**

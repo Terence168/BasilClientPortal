@@ -14,7 +14,8 @@ import java.util.List;
 public class AddressServiceImpl implements AddressService {
     @Autowired
     private AddressMapper addressMapper;
-    
+
+    //TODO: Need to validate if user in the session == submitter.
     public List<Address> findAll() {
         CustomUserDetails user = AuthUtil.getUser();
         assert user != null;

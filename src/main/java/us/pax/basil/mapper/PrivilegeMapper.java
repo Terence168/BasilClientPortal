@@ -28,7 +28,7 @@ public interface PrivilegeMapper extends BaseMapper<RoleType> {
     void addRoleType(String name, String creator);
     void updateRoleType(Integer id, String name);
     List<Map<String, Object>> queryRoleType();
-    List<Map<String, Object>> queryPrivilege();
+    List<Map<String, Object>> queryAllPrivileges();
 
     void addRole(Role role);
     void addRolePermission(Integer permission_id, Integer role_id);
@@ -37,10 +37,10 @@ public interface PrivilegeMapper extends BaseMapper<RoleType> {
     List<Map<String, Object>> getRoleIdAndTitle();
     List<Map<String, Object>> getUserNameEmail(Integer role_id);
     List<Map<String, Object>> getTitleRtIdPrivId(Integer role_id);
-    
+
     List<Map<String, Object>> getRoleTypeIdsNames();
     List<Map<String, Object>> getRoleIdsNames(Integer roleTypeId);
-    
+
     User getUser(Integer id);
 
     List<String> getPrivilegeListByUserId(Integer userId);
