@@ -22,11 +22,12 @@
           <q-tr
             v-if="!props.row.errorMsg"
             :props="props"
-            :class="props.row.bgColor"
+            :class="{ 'verified-unit': props.row.xmOID != null, [props.row.bgColor]:true}"
             @click="handleRowClick($event, props.row)"
             :key="props.row.serialNumber"
           >
-            <q-td key="cosmetic" :props="props">
+            <q-td key="cosmetic" :props="props" 
+  >
               <q-checkbox
                 v-model="props.row.cosmetic"
                 @update:model-value="props.row.isUpdate = true"
@@ -453,4 +454,14 @@ ul > li {
 
   transform: translateY(-50%);
 }
+
+
+tr td:first-child {
+    border-left: white 5px solid;
+}
+
+.verified-unit > td:first-child{
+  border-left: 5px solid green
+}
+
 </style>

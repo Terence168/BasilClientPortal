@@ -198,4 +198,9 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.verified-unit{
+  border-left: 5px solid green
+}
+
+</style>

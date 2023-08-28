@@ -11,6 +11,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     trackingNums: [],
     serials: [],
     inputValue: null,
+    testKeyType:null,
+    testKeyTypeOpt:null,
+    encrypt:null,
   }),
 
   getters: {
@@ -46,6 +49,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
     deleteTrackingNum(index) {
       this.trackingNums.splice(index, 1);
+    },
+    populateTestKeyTypeOpt(_, update){
+
     },
     populateOrderTypeOpt(_, update) {
       if (this.orderTypeOpt) {

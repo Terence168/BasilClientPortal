@@ -11,6 +11,7 @@ const capacity = 10;
 export const useEditTicketStore = defineStore("editTicket", {
   state: () => ({
     tickets: [],
+    testKeyTypeOpt:["1", "2", "3"],
   }),
   getters: {
     getSerialsByTicketId: (state) => {
@@ -51,9 +52,15 @@ export const useEditTicketStore = defineStore("editTicket", {
         return null;
       };
     },
+    // testKeyTypeOpt(){
+    //   return ["1", "2", "3"];
+    // },
   },
   reset() {},
   actions: {
+    populateTestKeyTypeOpt(_, update){
+      // this.testKeyTypeOpt = ["1", "2", "3"];
+    },
     /**
      * Ticket: get, add, remove, fetch
      */

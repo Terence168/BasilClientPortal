@@ -68,7 +68,6 @@
             />
           </div>
         </div>
-
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Submitter Email:&nbsp;</div>
           <div class="col-auto">
@@ -80,6 +79,35 @@
             />
           </div>
         </div>
+        <!-- <div class="row items-center">
+          Encrypt:&nbsp;
+          <input type="radio" v-model="ticketInfo.encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
+          <input type="radio" v-model="ticketInfo.encrypt" value="no">&nbsp;No&nbsp;
+        </div>
+        <div class="row items-center" v-show="isEncrypted">
+          <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
+          <div class="col-auto">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="ticketInfo.testKeyType"
+              :options="testKeyTypeOpt"
+              @filter="populateTestKeyTypeOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+        </div> -->
         <div class="q-my-sm">Shipping Address:</div>
         <AddressBlock :address="address" @click="showAddressGrid" />
         <!-- tracking number section -->
@@ -261,6 +289,9 @@ export default {
         submitterEmail: null,
         serials: [],
         trackingNumbers: [],
+        encrypt:null,
+        testKeyType:null,
+
       },
       comments: [],
       editInfo: {
@@ -322,7 +353,7 @@ export default {
 
   computed: {
     // ...mapWritableState(useCreateTicketStore, ["orderType"]),
-    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
+    ...mapState(useCreateTicketStore, ["orderTypeOpt", "testKeyTypeOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
@@ -337,11 +368,15 @@ export default {
     address() {
       return this.ticketInfo.address;
     },
+    isEncrypted(){
+      return this.ticketInfo.encrypt === "yes";
+    }
   },
   methods: {
     ...mapActions(useCreateTicketStore, [
       "populateOrderTypeOpt",
       "populateOrderTypeOptOnce",
+      "populateTestKeyTypeOpt",
     ]),
     ...mapActions(useEditTicketStore, [
       "fetchTicket",
