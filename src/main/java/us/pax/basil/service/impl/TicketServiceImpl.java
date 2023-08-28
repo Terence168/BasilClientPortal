@@ -359,8 +359,17 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     companyId = ticket.getMcOID();
                     List<SNInfo> prefDevices = ticketMapper.getSecMaterials(id, companyId);
                     List<SNInfo> xrefDevices = ticketMapper.getOdsMaterials(id, companyId);
-                    prefDevices.addAll(xrefDevices);
-                    ticket.setSerials(prefDevices);
+
+                    Map<String, SNInfo> devicesMap = new HashMap<>();
+                    for (SNInfo prefDevice : prefDevices) {
+                        devicesMap.put(prefDevice.getSerialNumber(), prefDevice);
+                    }
+                    for (SNInfo xrefDevice : xrefDevices) {
+                        devicesMap.put(xrefDevice.getSerialNumber(), xrefDevice);
+                    }
+
+                    List<SNInfo> serials = devicesMap.entrySet().stream().map((e) -> e.getValue()).collect(Collectors.toList());
+                    ticket.setSerials(serials);
                 }
             } else {
                 ticket.setIsFromMaster(true);
