@@ -29,4 +29,5 @@ public class Device {
     private Integer msnOID;
     private Integer moOID;
     private Integer cosmetic;
+    private Integer keyInjection;
 }

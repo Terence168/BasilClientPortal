@@ -34,7 +34,7 @@ public class SNInfo {
     private Integer cosmeticPrice;
     private Integer diagnosticPrice;
     private Integer minorPrice;
-    
+    private Integer keyInjection;
     private Integer unitInvoice;
 
     private String model;
