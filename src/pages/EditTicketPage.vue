@@ -331,7 +331,6 @@ export default {
             const comments = values[1];
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
-              console.log(this.ticketInfo);
             }
             if (this.comments != null) {
               this.comments = comments;
@@ -435,7 +434,7 @@ export default {
         payload.originalRMA = null;
       }
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
-      // console.log(payload);
+
       api
         .post(actionURL, payload, {
           headers: {

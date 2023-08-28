@@ -244,10 +244,18 @@ export default {
           }
         });
       }
+      if(this.orderType === 65){
+        //decommissioned
+        serials.forEach((s) => {
+          if (s.valid === true) {
+            amt = amt + (s.keyInjection == null ? 0 : s.keyInjection);
+          }
+        });
+      }
       serials.forEach((s) => {
         {
           //cosmetic
-          if (s.valid === true && s.cosmetic === true) {
+          if (s.valid === true && s.cosmetic === true && this.orderType != 65) {
             amt = amt + s.cosmeticPrice;
           }
         }
