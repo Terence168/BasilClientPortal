@@ -236,6 +236,8 @@ export default {
           }
         });
       }
+      console.log(amt);
+      console.log(this.orderType);
       if (this.orderType === 7) {
         //diagnostic
         serials.forEach((s) => {
