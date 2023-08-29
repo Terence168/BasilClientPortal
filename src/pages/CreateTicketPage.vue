@@ -376,7 +376,7 @@ export default {
       "updateSerial",
       "removeSerial",
     ]),
-    openBlankTemplate(){
+    downloadBlankTemplate(){
       window.open('../public/blankFile.xlsx', '_self');
     },
     downloadSampleFile(){
