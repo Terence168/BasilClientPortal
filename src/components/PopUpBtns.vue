@@ -128,8 +128,8 @@ export default {
     handleClickOnRemoveUnit(){
       this.$q
         .dialog({
-          title: "Remove Address",
-          message: "Are you sure you want to remove this address?",
+          title: "Remove Device",
+          message: "Are you sure you want to remove this device?",
           cancel: true,
           persistent: true,
         })

@@ -87,7 +87,6 @@ export const useEditTicketStore = defineStore("editTicket", {
     },
     fetchTicket(ticketId) {
       //fetch it from the backend
-      console.log(this.tickets.map(t => t.moOID));
 
       const actionURL = "/ticketing/" + ticketId;
 

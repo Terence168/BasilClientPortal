@@ -214,8 +214,24 @@
                   <q-icon name="search" />
                 </template>
               </q-input>
+
             </div>
           </q-form>
+          <q-btn
+            class="col-auto q-ml-sm"
+            color="primary"
+            @click="downloadBlankTemplate"
+          >
+            Blank Template
+          </q-btn>
+          <q-btn
+            class="q-ml-sm"
+            color="primary"
+            round
+            icon="info"
+            size="sm"
+            @click="handleClickHelpUnit"
+          />
         </div>
 
         <TicketEditTable
@@ -232,7 +248,7 @@
         <!-- Button for submit ticket -->
         <div class="row justify-center">
           <q-btn
-            class="col-auto"
+            class="col-auto "
             color="primary"
             @click="handleSubmitSerials"
             style="min-width: 200px"
@@ -261,6 +277,20 @@
       @update:show="showAddressModal = false"
     >
       <AddressGrid @selectShippingAddress="selectShippingAddress" />
+    </BaseModal>
+    
+    <BaseModal :show="showHelpModal" title = "Mass Upoad Template" :width="500" @update:show="showHelpModal = false">
+      <div class="row justify-center q-mt-md">
+        <p class="text-center">
+          <strong> Please populate as many fields as applicable.<br><br>
+            Note that not all devices have a 2nd device SNs and it may
+            not be applicable to all devices. If the Customer ID field does
+            not apply to your company, please leave it blank.<br><br>
+            Here is a sample file if you'd like an example: 
+          </strong>
+        </p>
+        <q-btn color="primary" @click="downloadSampleFile">Download Sample</q-btn>
+      </div>
     </BaseModal>
   </div>
 </template>
@@ -295,7 +325,8 @@ export default {
       showAddressModal: false,
       fileUploading: false,
       updateOrAddLoading: false, //to control the update/add button's loading
-      serialsSubmitting: false,      
+      serialsSubmitting: false,   
+      showHelpModal:false,   
     };
   },
 
@@ -345,6 +376,12 @@ export default {
       "updateSerial",
       "removeSerial",
     ]),
+    downloadBlankTemplate(){
+      window.open('../public/blankFile.xlsx', '_self');
+    },
+    downloadSampleFile(){
+      window.open('../public/sampleFile.xlsx', '_self');
+    },
     onFileSubmit(e) {
       if (!this.file) {
         return;
@@ -365,6 +402,9 @@ export default {
     },
     showAddressGrid() {
       this.showAddressModal = true;
+    },
+    handleClickHelpUnit(){
+      this.showHelpModal = true;
     },
     handleSubmitSerials() {
       this.serialsSubmitting = true;
