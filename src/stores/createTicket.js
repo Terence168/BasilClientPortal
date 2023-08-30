@@ -11,23 +11,13 @@ export const useCreateTicketStore = defineStore("createTicket", {
     trackingNums: [],
     serials: [],
     inputValue: null,
-    testKeyType:null,
-    testKeyTypeOpt:null,
+    keyType:null,
+    keyTypeOpt:null,
     encrypt:null,
   }),
 
   getters: {
     getSerials() {
-      // if (this.inputValue != null) {
-      //   return this.serials.filter(
-      //     (t) =>
-      //       (t.serialNumber != null &&
-      //         t.serialNumber.includes(this.inputValue)) ||
-      //       (t.model != null && t.model.includes(this.inputValue)) ||
-      //       (t.customerReportedIssueExt != null &&
-      //         t.customerReportedIssueExt.includes(this.inputValue))
-      //   );
-      // }
       return this.serials;
     },
     getTrackingNums(){
@@ -50,8 +40,29 @@ export const useCreateTicketStore = defineStore("createTicket", {
     deleteTrackingNum(index) {
       this.trackingNums.splice(index, 1);
     },
-    populateTestKeyTypeOpt(_, update){
-
+    populateKeyTypeOpt(_, update){
+      if (this.keyTypeOpt) {
+        update();
+        return;
+      }
+      const link = "/ticketing/dropdown/key_type";
+      api
+        .get(link)
+        .then((response) => {
+          update(() => {
+            console.log(this.keyTypeOpt);
+            this.keyTypeOpt = response.data.data;
+            // console.log(this.keyTypeOpt);
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Order Type Dropdown cannot be populated",
+          });
+        });
     },
     populateOrderTypeOpt(_, update) {
       if (this.orderTypeOpt) {

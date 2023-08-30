@@ -82,7 +82,7 @@
             />
           </div>
         </div>
-        <!-- <div class="row items-center">
+        <div class="row items-center">
           Encrypt:&nbsp;
           <input type="radio" v-model="encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
           <input type="radio" v-model="encrypt" value="no">&nbsp;No&nbsp;
@@ -94,9 +94,9 @@
               ref="testKeyTypeSelect"
               style="min-width: 200px"
               label="Please select"
-              v-model="testKeyType"
-              :options="testKeyTypeOpt"
-              @filter="populateTestKeyTypeOpt"
+              v-model="keyType"
+              :options="keyTypeOpt"
+              @filter="populateKeyTypeOpt"
               dense
               emit-value
               map-options
@@ -110,7 +110,7 @@
               </template>
             </q-select>
           </div>
-        </div> -->
+        </div>
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">
           <div class="col-auto">
@@ -333,7 +333,7 @@ export default {
   computed: {
     ...mapWritableState(useCreateTicketStore, [
       "orderType",
-      "testKeyType",
+      "keyType",
       "trackingNums",
       "inputValue",
       "originalRMA",
@@ -342,7 +342,7 @@ export default {
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
-      "testKeyTypeOpt",
+      "keyTypeOpt",
       "getSerials",
       "getAllSerials",
       "getTrackingNums",
@@ -370,11 +370,12 @@ export default {
       "deleteTrackingNum",
       "resetTicket",
       "populateOrderTypeOpt",
-      "populateTestKeyTypeOpt",
+      "populateKeyTypeOpt",
       "addSerial",
       "addSerialList",
       "updateSerial",
       "removeSerial",
+
     ]),
     downloadBlankTemplate(){
       window.open('../public/blankFile.xlsx', '_self');
