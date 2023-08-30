@@ -151,4 +151,9 @@ public class TicketController {
         return ticketService.queryRepairType();
     }
 
+    @GetMapping("/dropdown/key_type") //BCP-25
+    public QueryResultArrayDTO keyTypeDropDown(){
+        return ticketService.queryKeyType();
+    }
+
 }

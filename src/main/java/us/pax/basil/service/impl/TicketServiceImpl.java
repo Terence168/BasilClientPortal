@@ -347,6 +347,23 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
+    @Override
+    public QueryResultArrayDTO queryKeyType() {
+        try {
+            List<String> keyTypeList = ticketMapper.getAllKeyType();
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+            for(int i = 0; i < keyTypeList.size(); ++i){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, i);
+                mm.put(DropDownConstant.DROPDOWN_LABEL, keyTypeList.get(i));
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
 
     public QueryResultDTO viewEditTicket(String id) {
         try {
@@ -428,19 +445,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     public QueryResultArrayDTO getResponse(String id) {
         try {
             ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-
             List<TicketResponse> responsesList = ticketMapper.getResponse(id);
 
             if (!responsesList.isEmpty()) {
                 for (TicketResponse ticketingResponse : responsesList) {
 
-                    Map<String, Object> responsesMap = new HashMap<>();
-                    responsesMap.put("mo_oid", ticketingResponse.getMoOID());
-                    responsesMap.put("response_date", ticketingResponse.getResponseDate());
-                    responsesMap.put("content", ticketingResponse.getContent());
-                    responsesMap.put("responseBy", ticketingResponse.getResponseBy());
-
-                    resultArray.add(responsesMap);
+                    Map<String, Object> objectMap = objectMapper.convertValue(ticketingResponse, Map.class);
+                    resultArray.add(objectMap);
                 }
             }
             return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
@@ -459,13 +470,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
+                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, ticketEditDTO.getTestKeyType());
             } else {
                 Integer xaOID = null;
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
+                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, ticketEditDTO.getTestKeyType());
             }
             if (ticketEditDTO.getUpdateTracking().size() > 0) {
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());
@@ -603,26 +614,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         List<Device> getDevice = ticketMapper.getDeviceInfos(usBasedDevices, companyId);
 
         for (Device d : getDevice) {
-            Map<String, Object> batchDeviceInfo = new HashMap<>();
-//            String errorMsg = "";
-            String curSN = d.getSerialNumber();
-            batchDeviceInfo.put("serialNumber", curSN);
-            batchDeviceInfo.put("xmOID", d.getXmOID());
-            batchDeviceInfo.put("pxmOID", d.getPxmOID());
-            batchDeviceInfo.put("cosmetic", d.getCosmetic());
-            batchDeviceInfo.put("msnOID", d.getMsnOID());
-            batchDeviceInfo.put("model", d.getModel());
-            batchDeviceInfo.put("version", d.getVersion());
-            batchDeviceInfo.put("customerReportedIssueExt", deviceInfoMap.get(curSN)[0]);
-            batchDeviceInfo.put("customerRMA", deviceInfoMap.get(curSN)[1]);
-            batchDeviceInfo.put("customerTerminalID", deviceInfoMap.get(curSN)[2]);
-            batchDeviceInfo.put("warrantyExpDate", d.getWarrantyExpDate());
-            batchDeviceInfo.put("warrantyStatus", d.getWarrantyStatus());
-            batchDeviceInfo.put("cosmeticPrice", d.getCosmeticPrice());
-            batchDeviceInfo.put("diagnosticPrice", d.getDiagnosticPrice());
-            batchDeviceInfo.put("minorPrice", d.getMinorPrice());
-            batchDeviceInfo.put("existInAnotherTicket", d.getExistInAnotherTicket());
-            batchDeviceInfo.put("moOID", d.getMoOID());
+            Map<String, Object> batchDeviceInfo = objectMapper.convertValue(d, Map.class);
             resultArray.add(batchDeviceInfo);
         }
         return resultArray;
@@ -675,6 +667,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         tio.setRmaNumber(originalRMA);
         tio.setSubmitterID(submitterId);
         tio.setXaOID(xaOId);
+        tio.setEncrypt(ticketInsertion.getEncrypt());
+        tio.setTestKeyType(ticketInsertion.getTestKeyType());
 
         int mo_OID = insertTicketToPMO(tio);
 

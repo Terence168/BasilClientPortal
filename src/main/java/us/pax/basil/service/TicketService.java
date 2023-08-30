@@ -57,6 +57,7 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO queryOrderType();
     QueryResultArrayDTO queryStatus();
     QueryResultArrayDTO queryRepairType();
+    QueryResultArrayDTO queryKeyType();
     QueryResultArrayDTO batchSerialNumberQuery(EntityManager entityManager, MultipartFile file, String fileName);
     QueryResultArrayDTO serialNumberQuery(String serialNumber);
     int insertTicketToPMO(TicketInsertionObject tio);
@@ -65,4 +66,5 @@ public interface TicketService extends IService<Integer>{
     QueryResultDTO insertResponse(TicketResponse ticketResponse);
     QueryResultArrayDTO getResponse(String id);
     QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO);
+
 }

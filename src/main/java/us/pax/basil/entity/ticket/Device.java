@@ -16,6 +16,7 @@ public class Device {
     private Date warrantyExpDate;
     private String model;
     private String version;
+    private Integer cosmetic;
     private String customerReportedIssue;
     private String warrantyStatus;
     private Integer cosmeticPrice;
@@ -25,9 +26,8 @@ public class Device {
 
     private Integer xmOID;
     private Integer pxmOID;
-
     private Integer msnOID;
     private Integer moOID;
-    private Integer cosmetic;
+
     private Integer keyInjection;
 }

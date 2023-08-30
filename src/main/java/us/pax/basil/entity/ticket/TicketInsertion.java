@@ -18,4 +18,6 @@ public class TicketInsertion {
     private String originalRMA;  //optional, exits if re-repair
     private Integer xaOID; //address id
     private Boolean cosmetic;//if user choose cosmetic, true
+    private String encrypt;
+    private String testKeyType;
 }

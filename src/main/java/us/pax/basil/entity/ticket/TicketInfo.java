@@ -31,4 +31,6 @@ public class TicketInfo {
     private Address address; //use mo_oid to query from BASIL_ODS_PRD.MASTER_ORDER and BASIL_SEC_PRD.PREP_MASTER_ORDER
     private List<TrackingNum> trackingNumbers; //use mo_oid to query from BASIL_SEC_PRD.XREF_INBOUND_TRACKING
     private List<SNInfo> serials; //use mo_oid to query from BASIL_SEC_PRD.PREP_XREF_MATERIALS and BASIL_ODS_PRD.XREF_MATERIALS
+    private String encrypt;
+    private String testKeyType;
 }
