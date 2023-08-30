@@ -241,6 +241,7 @@
           :rows="getSerials"
           :containsXrefMaterials="false"
           :inputValue="inputValue"
+          :encrypt="encrypt"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -375,7 +376,6 @@ export default {
       "addSerialList",
       "updateSerial",
       "removeSerial",
-
     ]),
     downloadBlankTemplate(){
       window.open('../public/blankFile.xlsx', '_self');
@@ -408,6 +408,7 @@ export default {
       this.showHelpModal = true;
     },
     handleSubmitSerials() {
+    
       this.serialsSubmitting = true;
       const serials = this.getSerials;
       //no serial
@@ -465,9 +466,12 @@ export default {
           serial.cosmetic === null || serial.cosmetic === false ? 891 : 890;
         return snObject;
       });
+      
 
       const payload = {
+        encrypt:this.encrypt,
         orderType: this.orderType,
+        testKeyType:this.keyTypeOpt[this.keyType].label,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
@@ -475,6 +479,7 @@ export default {
       };
 
       const vm = this;
+      console.log(payload);
       this.$api
         .post(actionURL, payload, {
           headers: {

@@ -79,10 +79,10 @@
             />
           </div>
         </div>
-        <!-- <div class="row items-center">
+        <div class="row items-center">
           Encrypt:&nbsp;
-          <input type="radio" v-model="ticketInfo.encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
-          <input type="radio" v-model="ticketInfo.encrypt" value="no">&nbsp;No&nbsp;
+          <input type="radio" v-model="ticketInfo.encrypt" value="yes" disabled>&nbsp;Yes&nbsp;&nbsp;
+          <input type="radio" v-model="ticketInfo.encrypt" value="no" disabled>&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
           <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
@@ -92,8 +92,8 @@
               style="min-width: 200px"
               label="Please select"
               v-model="ticketInfo.testKeyType"
-              :options="testKeyTypeOpt"
-              @filter="populateTestKeyTypeOpt"
+              :options="keyTypeOpt"
+              @filter="populateKeyTypeOpt"
               dense
               emit-value
               map-options
@@ -107,7 +107,7 @@
               </template>
             </q-select>
           </div>
-        </div> -->
+        </div>
         <div class="q-my-sm">Shipping Address:</div>
         <AddressBlock :address="address" @click="showAddressGrid" />
         <!-- tracking number section -->
@@ -217,6 +217,7 @@
           :orderType="ticketInfo.typeOfRepair"
           :rows="getSerialsByTicketId(ticketId)"
           :inputValue="inputValue"
+          :encrypt="ticketInfo.encrypt"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -291,7 +292,6 @@ export default {
         trackingNumbers: [],
         encrypt:null,
         testKeyType:null,
-
       },
       comments: [],
       editInfo: {
@@ -346,18 +346,19 @@ export default {
     );
 
     this.populateOrderTypeOptOnce();
+    this.populateKeyTypeOptOnce();
   },
-
   mounted() {},
-
   computed: {
-    // ...mapWritableState(useCreateTicketStore, ["orderType"]),
-    ...mapState(useCreateTicketStore, ["orderTypeOpt", "testKeyTypeOpt"]),
+    ...mapState(useCreateTicketStore, ["orderTypeOpt", "keyTypeOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
       "getTicketbyId",
     ]),
+    isEncrypted(){
+      return this.ticketInfo.encrypt === "yes";
+    },
     isReRepair() {
       return this.ticketInfo.typeOfRepair === 4;
     },
@@ -367,15 +368,13 @@ export default {
     address() {
       return this.ticketInfo.address;
     },
-    isEncrypted(){
-      return this.ticketInfo.encrypt === "yes";
-    }
   },
   methods: {
     ...mapActions(useCreateTicketStore, [
       "populateOrderTypeOpt",
       "populateOrderTypeOptOnce",
-      "populateTestKeyTypeOpt",
+      "populateKeyTypeOpt",
+      "populateKeyTypeOptOnce",
     ]),
     ...mapActions(useEditTicketStore, [
       "fetchTicket",
@@ -418,7 +417,7 @@ export default {
           return;
         }
       }
-
+      
       const payload = {
         ...editTracking,
         ...editSerial,
@@ -429,6 +428,8 @@ export default {
         originalRMA: this.ticketInfo.originalRMA,
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
+        encrypt:this.ticketInfo.encrypt,
+        testKeyType:this.keyTypeOpt[this.ticketInfo.testKeyType].label,
       };
       if(payload.orderType === 3 || payload.orderType === 7){
         payload.originalRMA = null;

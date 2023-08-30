@@ -24,7 +24,7 @@
             </q-item-section>
             <q-item-section side top>
               <q-item-label caption>{{
-                this.getTimeAgo(comment.response_date)
+                this.getTimeAgo(comment.responseDate)
               }}</q-item-label>
             </q-item-section>
           </q-item>

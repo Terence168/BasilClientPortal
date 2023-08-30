@@ -124,9 +124,10 @@ import { Notify } from "quasar";
 import { parseDateTime, parseDate } from "../utils/timeUtils.js";
 
 import { api } from "src/boot/axios";
+import { useCreateTicketStore } from "src/stores/createTicket";
 
 export default {
-  props: ["isFromMaster", "orderType", "rows", "containsXrefMaterials", "inputValue"],
+  props: ["isFromMaster", "orderType", "rows", "containsXrefMaterials", "inputValue", "encrypt"],
   components: { PopUpBtns, EditModal, BaseModal, TicketDetailForm },
   emits: ["add-sn", "update-sn", "remove-sn"],
   data() {
@@ -236,8 +237,6 @@ export default {
           }
         });
       }
-      console.log(amt);
-      console.log(this.orderType);
       if (this.orderType === 7) {
         //diagnostic
         serials.forEach((s) => {
@@ -246,7 +245,7 @@ export default {
           }
         });
       }
-      if(this.orderType === 65){
+      if(this.orderType === 65 && this.encrypt != null && this.encrypt === "yes"){
         //decommissioned
         serials.forEach((s) => {
           if (s.valid === true) {
@@ -266,6 +265,7 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useCreateTicketStore, ["populateKeyTypeOpt"]),
     ...mapActions(useEditTicketStore, [
       "removeTicket",
       "addTicket",

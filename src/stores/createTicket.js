@@ -50,9 +50,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .get(link)
         .then((response) => {
           update(() => {
-            console.log(this.keyTypeOpt);
             this.keyTypeOpt = response.data.data;
-            // console.log(this.keyTypeOpt);
           });
         })
         .catch(function (error) {
@@ -60,7 +58,23 @@ export const useCreateTicketStore = defineStore("createTicket", {
           // handle error
           Notify.create({
             type: "negative",
-            message: "Order Type Dropdown cannot be populated",
+            message: "Key Type Dropdown cannot be populated",
+          });
+        });
+    },
+    populateKeyTypeOptOnce(){
+      const link = "/ticketing/dropdown/key_type";
+      api
+        .get(link)
+        .then((response) => {
+            this.keyTypeOpt = response.data.data;
+        })
+        .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Key Type Dropdown cannot be populated",
           });
         });
     },
@@ -75,7 +89,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .then((response) => {
           update(() => {
             this.orderTypeOpt = response.data.data;
-            // console.log(this.orderTypeOpt);
           });
         })
         .catch(function (error) {
@@ -93,7 +106,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .get(link)
         .then((response) => {
           this.orderTypeOpt = response.data.data;
-          // console.log(this.orderTypeOpt);
         })
         .catch(function (error) {
           console.log(error);
