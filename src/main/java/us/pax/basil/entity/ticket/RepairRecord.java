@@ -51,4 +51,5 @@ public class RepairRecord {
     private String warrantyStatus; //compute by ship_date, warranty_voided_date, warranty_end_date
     private Date warrantyVoidedDate; //msn.WARRANTY_VOIDED_DATE
     private Date warrantyEndDate;//msn.WARRANTY_END_DATE
+
 }

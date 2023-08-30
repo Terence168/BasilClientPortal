@@ -195,7 +195,9 @@
         mo.mc_oid as mcOID,
         client_group as clientGroup,
         XA_OID as xaOID,
-        RMA_NUMBER as originalRMA
+        RMA_NUMBER as originalRMA,
+        ZOHO_ENCRYPT as encrypt,
+        TEST_KEY_TYPE as testKeyType
         from BASIL_ODS_PRD.MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
@@ -210,7 +212,9 @@
         mo.mc_oid as mcOID,
         client_group as clientGroup,
         XA_OID as xaOID,
-        RMA_NUMBER as originalRMA
+        RMA_NUMBER as originalRMA,
+        ZOHO_ENCRYPT as encrypt,
+        TEST_KEY_TYPE as testKeyType
         from BASIL_SEC_PRD.PREP_MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
@@ -534,6 +538,7 @@
             DESC)                                                                        AS RN,
             IF(xm.XM_OID is not null, xm.MO_OID, pxm.MO_OID)                                 as moOID,
             COALESCE(xm.COSMETIC, pxm.COSMETIC)                                              AS cosmetic
+
             FROM BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn
             LEFT JOIN
             BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
@@ -664,8 +669,8 @@
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
             useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER, SUBMITTER_ID, XA_OID)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID}, #{xaOID})
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER, SUBMITTER_ID, XA_OID, TEST_KEY_TYPE, ZOHO_ENCRYPT)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID}, #{xaOID}, #{testKeyType}, #{encrypt})
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="xmOID"
@@ -816,7 +821,8 @@
             <if test="xaOID != null">
                 XA_OID = #{xaOID},
             </if>
-                RMA_NUMBER = #{originalRMA}
+                RMA_NUMBER = #{originalRMA},
+                TEST_KEY_TYPE = #{testKeyType}
         </set>
         WHERE MO_OID = #{moOID}
     </update>
@@ -830,26 +836,17 @@
             <if test="xaOID != null">
                 XA_OID = #{xaOID},
             </if>
-                RMA_NUMBER = #{originalRMA}
+                RMA_NUMBER = #{originalRMA},
+                TEST_KEY_TYPE = #{testKeyType}
         </set>
         WHERE MO_OID = #{moOID}
     </update>
 
-    <select id="getAllXmOid" resultType="Integer">
-        select xm_oid from BASIL_SEC_PRD.PREP_XREF_MATERIALS
-        <where>
-            <if test="moOID != null">
-                MO_OID = #{moOID}
-            </if>
-        </where>
-        union
-        select xm_oid from BASIL_ODS_PRD.XREF_MATERIALS
-        <where>
-            <if test="moOID != null">
-                MO_OID = #{moOID}
-            </if>
-        </where>
+
+    <select id="getAllKeyType" resultType="String">
+        select distinct KEY_TYPE from BASIL_SEC_PRD.MASTER_KEY
     </select>
+
 </mapper>
 
 
