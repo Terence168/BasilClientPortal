@@ -9,18 +9,22 @@
       <q-list style="width: 95%" separator>
         <div v-for="(comment, index) in this.comments" :key="index">
           <q-item
-            class="bg-grey-3"
+            :class="comment.hasOwnProperty('bgColor') ? comment.bgColor : 'bg-grey-3'"
             style="border-style: solid; max-width: 100%"
           >
             <q-item-section>
               <q-item-label
                 class="text-weight-bold"
                 style="text-decoration-line: underline"
-                >{{ comment.responseBy }} :</q-item-label
+                >{{ comment.responseBy}} :</q-item-label
+                
               >
-              <q-item-label caption lines="2">{{
-                comment.content
-              }}</q-item-label>
+              <q-item-label caption lines="2" :id="`el${index}`" > 
+                <span v-html="comment.content"></span>
+              </q-item-label>
+              <!-- <q-item class="bg-green-2">
+                {{comment.hasOwnProperty('bgColor') ? "has " : "not has"}}
+              </q-item> -->
             </q-item-section>
             <q-item-section side top>
               <q-item-label caption>{{
@@ -88,11 +92,10 @@ export default {
       const comment = {
         responseDate:date,
         content:this.editor,
-        moOID:this.ticketId
+        moOID:this.ticketId,
       }
       this.$emit("add-comment", comment);
     },
-    //todo:not working??
     scrollToBottom() {
       const scrollArea = this.$refs.chatScroll;
       const scrollTarget = scrollArea.getScrollTarget();

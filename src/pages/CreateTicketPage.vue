@@ -251,7 +251,7 @@
           <q-btn
             class="col-auto "
             color="primary"
-            @click="handleSubmitSerials"
+            @click="submitTicket"
             style="min-width: 200px"
             :loading="serialsSubmitting"
           >
@@ -349,7 +349,7 @@ export default {
       "getTrackingNums",
     ]),
     isEncrypted(){
-      return this.encrypt === "yes";
+      return this.encrypt != null && this.encrypt === "yes";
     },
     isReRepair() {
       return this.orderType === 4;
@@ -407,8 +407,7 @@ export default {
     handleClickHelpUnit(){
       this.showHelpModal = true;
     },
-    handleSubmitSerials() {
-    
+    submitTicket() {
       this.serialsSubmitting = true;
       const serials = this.getSerials;
       //no serial
@@ -469,7 +468,7 @@ export default {
       
 
       const payload = {
-        encrypt:this.encrypt,
+        encrypt: this.encrypt,
         orderType: this.orderType,
         testKeyType:this.isEncrypted? this.keyTypeOpt[this.keyType].label:null,
         trackingNumbers,

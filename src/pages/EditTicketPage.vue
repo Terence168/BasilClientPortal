@@ -43,7 +43,11 @@
         <div v-if="isReRepair" class="row items-center">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
-            <q-input style="min-width: 200px" dense v-model="ticketInfo.originalRMA" />
+            <q-input
+              style="min-width: 200px"
+              dense
+              v-model="ticketInfo.originalRMA"
+            />
           </div>
         </div>
         <div class="row items-center">
@@ -81,8 +85,18 @@
         </div>
         <div class="row items-center">
           Encrypt:&nbsp;
-          <input type="radio" v-model="ticketInfo.encrypt" value="yes" disabled>&nbsp;Yes&nbsp;&nbsp;
-          <input type="radio" v-model="ticketInfo.encrypt" value="no" disabled>&nbsp;No&nbsp;
+          <input
+            type="radio"
+            v-model="ticketInfo.encrypt"
+            value="yes"
+            disabled
+          />&nbsp;Yes&nbsp;&nbsp;
+          <input
+            type="radio"
+            v-model="ticketInfo.encrypt"
+            value="no"
+            disabled
+          />&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
           <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
@@ -290,8 +304,8 @@ export default {
         submitterEmail: null,
         serials: [],
         trackingNumbers: [],
-        encrypt:null,
-        testKeyType:null,
+        encrypt: null,
+        testKeyType: null,
       },
       comments: [],
       editInfo: {
@@ -332,9 +346,16 @@ export default {
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
             }
-            if (this.comments != null) {
+            if (comments != null) {
               this.comments = comments;
             }
+            this.comments.forEach((c) => {
+              if (c.email == this.email) {
+                c.bgColor = "bg-green-3";
+              }
+            });
+
+            this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
           })
           .finally(() => {
             this.isLoading = false;
@@ -350,14 +371,17 @@ export default {
   },
   mounted() {},
   computed: {
+    ...mapState(useUserStore, ["email"]),
     ...mapState(useCreateTicketStore, ["orderTypeOpt", "keyTypeOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
       "getTicketbyId",
     ]),
-    isEncrypted(){
-      return this.ticketInfo.encrypt === "yes";
+    isEncrypted() {
+      return (
+        this.ticketInfo.encrypt != null && this.ticketInfo.encrypt === "yes"
+      );
     },
     isReRepair() {
       return this.ticketInfo.typeOfRepair === 4;
@@ -392,7 +416,6 @@ export default {
     ]),
     handleEditTicket() {
       //valid serials and update it
-      console.log(this.keyTypeOpt);
       this.ticketEditing = true;
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
@@ -428,10 +451,12 @@ export default {
         originalRMA: this.ticketInfo.originalRMA,
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
-        encrypt:this.ticketInfo.encrypt,
-        testKeyType:this.isEncrypted? this.keyTypeOpt[this.ticketInfo.testKeyType].label : null,
+        encrypt: this.ticketInfo.encrypt,
+        testKeyType: this.isEncrypted
+          ? this.keyTypeOpt[this.ticketInfo.testKeyType].label
+          : null,
       };
-      if(payload.orderType === 3 || payload.orderType === 7){
+      if (payload.orderType === 3 || payload.orderType === 7) {
         payload.originalRMA = null;
       }
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
@@ -534,8 +559,9 @@ export default {
           }
           const newComment = response.data.data.response;
           newComment.responseBy = username;
+          newComment.bgColor = "bg-green-3";
           this.comments.push(newComment);
-          this.$refs.messageBoard.scrollToBottom();
+          this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
         })
         .catch((error) => {
           console.log(error);
