@@ -392,6 +392,7 @@ export default {
     ]),
     handleEditTicket() {
       //valid serials and update it
+      console.log(this.keyTypeOpt);
       this.ticketEditing = true;
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
@@ -417,7 +418,6 @@ export default {
           return;
         }
       }
-      
       const payload = {
         ...editTracking,
         ...editSerial,
@@ -429,7 +429,7 @@ export default {
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
         encrypt:this.ticketInfo.encrypt,
-        testKeyType:this.keyTypeOpt[this.ticketInfo.testKeyType].label,
+        testKeyType:this.isEncrypted? this.keyTypeOpt[this.ticketInfo.testKeyType].label : null,
       };
       if(payload.orderType === 3 || payload.orderType === 7){
         payload.originalRMA = null;

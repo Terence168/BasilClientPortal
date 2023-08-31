@@ -471,7 +471,7 @@ export default {
       const payload = {
         encrypt:this.encrypt,
         orderType: this.orderType,
-        testKeyType:this.keyTypeOpt[this.keyType].label,
+        testKeyType:this.isEncrypted? this.keyTypeOpt[this.keyType].label:null,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
