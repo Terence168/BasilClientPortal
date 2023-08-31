@@ -347,6 +347,22 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
+    @Override
+    public QueryResultArrayDTO queryKeyType() {
+        try {
+            List<String> keyTypeList = ticketMapper.getAllKeyType();
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+            for(int i = 0; i < keyTypeList.size(); ++i){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, i);
+                mm.put(DropDownConstant.DROPDOWN_LABEL, keyTypeList.get(i));
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
 
     public QueryResultDTO viewEditTicket(String id) {
         try {
@@ -357,6 +373,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if (ticket != null) {
                     ticket.setIsFromMaster(false);
                     companyId = ticket.getMcOID();
+                    if(ticket.getEncrypt()== null){
+                        ticket.setEncrypt("no");
+                    }
                     List<SNInfo> prefDevices = ticketMapper.getSecMaterials(id, companyId);
                     List<SNInfo> xrefDevices = ticketMapper.getOdsMaterials(id, companyId);
 
@@ -459,13 +478,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
+                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, ticketEditDTO.getTestKeyType());
             } else {
                 Integer xaOID = null;
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID);
+                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, ticketEditDTO.getTestKeyType());
             }
             if (ticketEditDTO.getUpdateTracking().size() > 0) {
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());
@@ -676,7 +695,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         tio.setRmaNumber(originalRMA);
         tio.setSubmitterID(submitterId);
         tio.setXaOID(xaOId);
-
+        tio.setTestKeyType(ticketInsertion.getTestKeyType());
+        tio.setEncrypt(ticketInsertion.getEncrypt());
         int mo_OID = insertTicketToPMO(tio);
 
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
