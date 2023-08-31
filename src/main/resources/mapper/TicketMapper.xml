@@ -236,7 +236,7 @@
 
 
     <select id="getResponse" resultType="us.pax.basil.entity.ticket.TicketResponse">
-        select res.MO_OID as moOID ,res.RESPONSE_DATE as responseDate,res.CONTENT as content, users.NAME as responseBy
+        select res.MO_OID as moOID ,res.RESPONSE_DATE as responseDate,res.CONTENT as content, users.NAME as responseBy, users.EMAIL
         from BASIL_SEC_PRD.XREF_RESPONSE as res
         left join BASIL_SEC_PRD.USERS as users on users.U_OID=res.RESPONSE_BY
         <where>

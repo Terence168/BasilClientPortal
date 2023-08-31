@@ -453,12 +453,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if (!responsesList.isEmpty()) {
                 for (TicketResponse ticketingResponse : responsesList) {
 
-                    Map<String, Object> responsesMap = new HashMap<>();
-                    responsesMap.put("mo_oid", ticketingResponse.getMoOID());
-                    responsesMap.put("response_date", ticketingResponse.getResponseDate());
-                    responsesMap.put("content", ticketingResponse.getContent());
-                    responsesMap.put("responseBy", ticketingResponse.getResponseBy());
-
+                    Map<String, Object> responsesMap = objectMapper.convertValue(ticketingResponse, Map.class);
                     resultArray.add(responsesMap);
                 }
             }

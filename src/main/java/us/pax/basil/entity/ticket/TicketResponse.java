@@ -17,4 +17,5 @@ public class TicketResponse {
     private String responseBy;
     private Date responseDate;
     private String content;
+    private String email;
 }
