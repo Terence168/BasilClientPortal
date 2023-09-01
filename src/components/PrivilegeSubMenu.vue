@@ -29,7 +29,6 @@
     </q-item>
 
     <q-item
-      v-if="checkPermission('privilege.user')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'user' }"

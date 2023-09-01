@@ -1,30 +1,23 @@
 <template>
-  <span
-    class="text-weight-bold text-subtitle1"
-    style="text-decoration-line: underline"
-    >Comments</span
-  >
   <div class="q-pa-md row bg-grey-5" style="border-style: double">
     <q-scroll-area style="width: 100%; height: 500px" ref="chatScroll">
       <q-list style="width: 95%" separator>
         <div v-for="(comment, index) in this.comments" :key="index">
           <q-item
-            :class="comment.hasOwnProperty('bgColor') ? comment.bgColor : 'bg-grey-3'"
+            :class="
+              comment.hasOwnProperty('bgColor') ? comment.bgColor : 'bg-grey-3'
+            "
             style="border-style: solid; max-width: 100%"
           >
             <q-item-section>
               <q-item-label
                 class="text-weight-bold"
                 style="text-decoration-line: underline"
-                >{{ comment.responseBy}} :</q-item-label
-                
+                >{{ comment.responseBy }} :</q-item-label
               >
-              <q-item-label caption lines="2" :id="`el${index}`" > 
+              <q-item-label caption lines="2" :id="`el${index}`">
                 <span v-html="comment.content"></span>
               </q-item-label>
-              <!-- <q-item class="bg-green-2">
-                {{comment.hasOwnProperty('bgColor') ? "has " : "not has"}}
-              </q-item> -->
             </q-item-section>
             <q-item-section side top>
               <q-item-label caption>{{
@@ -63,17 +56,19 @@
 
 <script>
 import moment from "moment";
-import { DateTime } from 'luxon';
+import { DateTime } from "luxon";
+import { useUserStore } from "src/stores/user";
 
 export default {
   props: ["ticketId", "comments"],
-  emits:["add-comment"],
+  emits: ["add-comment", 'ack-comment', 'unack-comment'],
   data: () => {
     return {
-      editor: ""
+      editor: "",
+      ack:null,
     };
   },
-  computed:{
+  computed: {
   },
   mounted() {
     this.scrollToBottom();
@@ -90,11 +85,14 @@ export default {
     handleSendComment() {
       const date = new Date().toISOString();
       const comment = {
-        responseDate:date,
-        content:this.editor,
-        moOID:this.ticketId,
-      }
+        responseDate: date,
+        content: this.editor,
+        moOID: this.ticketId,
+      };
       this.$emit("add-comment", comment);
+    },
+    checkAckPermission() {
+      return useUserStore().checkPermission("ticketing.edit.acknowledge");
     },
     scrollToBottom() {
       const scrollArea = this.$refs.chatScroll;

@@ -250,13 +250,23 @@
         </div>
       </div>
     </div>
+    <div class="row justify-between">
+    <div class="col-auto text-weight-bold text-subtitle1"
+      style="text-decoration-line: underline"
+      >Comments: {{this.ticketInfo.acknowledged}}</div
+    >
+    <div class="col-auto text-weight-bold">
+      Acknowledged:&nbsp;&nbsp;
+      <q-radio v-model="ticketInfo.acknowledged" val="1" lable="Yes" @update:model-value="ackComment()" :disable="!checkAckPermission()">Yes</q-radio>
+      <q-radio v-model="ticketInfo.acknowledged" val="0" lable="No"  @update:model-value="unackComment()" :disable="!checkAckPermission()">No</q-radio>
+    </div>
+  </div>
     <MessageBoard
       :ticketId="ticketId"
       :comments="comments"
       @add-comment="addComment"
       ref="messageBoard"
     />
-
     <BaseModal
       :show="showAddressModal"
       title="Select Shipping Address"
@@ -306,6 +316,7 @@ export default {
         trackingNumbers: [],
         encrypt: null,
         testKeyType: null,
+        acknowledged:null,
       },
       comments: [],
       editInfo: {
@@ -561,7 +572,55 @@ export default {
           newComment.responseBy = username;
           newComment.bgColor = "bg-green-3";
           this.comments.push(newComment);
+          if(this.checkAckPermission()){
+            //rma clerk
+            this.ackComment();
+            this.ticketInfo.acknowledged = "1";
+          }
+          else{
+            //customer
+            this.unackComment();
+            this.ticketInfo.acknowledged = "0";
+          }
           this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    ackComment(){
+      //can backend to ack the ticket
+      const link = `/ticketing/${this.ticketId}/acknowledged`;
+      const vm = this;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    unackComment(){
+      //can backend to unack the ticket
+      const link = `/ticketing/${this.ticketId}/unacknowledged`;
+      const vm = this;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -577,6 +636,9 @@ export default {
     },
     showAddressGrid() {
       this.showAddressModal = true;
+    },
+    checkAckPermission() {
+      return useUserStore().checkPermission("ticketing.edit.acknowledge");
     },
   },
 };
