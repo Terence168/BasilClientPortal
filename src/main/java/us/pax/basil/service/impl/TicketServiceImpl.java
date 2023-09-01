@@ -751,4 +751,23 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         return emailBody;
     }
 
+    public QueryResultDTO ackTicket(Long moOID){
+        try{
+            ticketMapper.ackMasterTicket(moOID);
+            ticketMapper.ackPrepMasterTicket(moOID);
+            return new QueryResultDTO(null, 0, null);
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    public QueryResultDTO unAckTicket(Long moOID){
+        try{
+            ticketMapper.ackMasterTicket(moOID);
+            ticketMapper.ackPrepMasterTicket(moOID);
+            return new QueryResultDTO(null, 0, null);
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
 }

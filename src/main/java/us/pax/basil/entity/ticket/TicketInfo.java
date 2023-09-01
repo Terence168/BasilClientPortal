@@ -33,4 +33,5 @@ public class TicketInfo {
     private List<SNInfo> serials; //use mo_oid to query from BASIL_SEC_PRD.PREP_XREF_MATERIALS and BASIL_ODS_PRD.XREF_MATERIALS
     private String encrypt;
     private String testKeyType;
+    private Integer acknowledged;
 }

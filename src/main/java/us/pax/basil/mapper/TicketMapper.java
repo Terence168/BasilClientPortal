@@ -108,4 +108,9 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void updatePrepMasterOrder(Integer typeOfRepair, String originalRMA,  String moOID, Integer xaOID, String testKeyType);
 
     List<String> getAllKeyType();
+
+    void ackMasterTicket(Long moOID);
+    void unAckMasterTicket(Long moOID);
+    void ackPrepMasterTicket(Long moOID);
+    void unAckPrepMasterTicket(Long moOID);
 }

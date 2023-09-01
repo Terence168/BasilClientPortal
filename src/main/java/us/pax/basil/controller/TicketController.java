@@ -133,6 +133,15 @@ public class TicketController {
         return ticketService.insertResponse(response);
     }
 
+    @PutMapping("/{ticketId}/acknowledged")
+    public QueryResultDTO acknowledgeTicket(@PathVariable("ticketId")Long ticketId){
+        return ticketService.ackTicket(ticketId);
+    }
+
+    @PutMapping("/{ticketId}/unacknowledged")
+    public QueryResultDTO unacknowledgeTicket(@PathVariable("ticketId")Long ticketId){
+        return ticketService.unAckTicket(ticketId);
+    }
 
     @GetMapping("/dropdown/department")
     public QueryResultArrayDTO departmentDropDown(){

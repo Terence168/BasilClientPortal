@@ -197,7 +197,8 @@
         XA_OID as xaOID,
         RMA_NUMBER as originalRMA,
         ZOHO_ENCRYPT as encrypt,
-        TEST_KEY_TYPE as testKeyType
+        TEST_KEY_TYPE as testKeyType,
+        ACKNOWLEDGED as acknowledged
         from BASIL_ODS_PRD.MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
@@ -214,7 +215,8 @@
         XA_OID as xaOID,
         RMA_NUMBER as originalRMA,
         ZOHO_ENCRYPT as encrypt,
-        TEST_KEY_TYPE as testKeyType
+        TEST_KEY_TYPE as testKeyType,
+        ACKNOWLEDGED as acknowledged
         from BASIL_SEC_PRD.PREP_MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
         <where>
@@ -847,6 +849,25 @@
         select distinct KEY_TYPE from BASIL_SEC_PRD.MASTER_KEY
     </select>
 
+    <update id="ackPrepMasterTicket">
+        update BASIL_SEC_PRD.PREP_MASTER_ORDER
+        <set> ACKNOWLEDGED = 1</set>;
+    </update>
+
+    <update id="unAckPrepMasterTicket">
+        update BASIL_SEC_PRD.PREP_MASTER_ORDER
+        <set> ACKNOWLEDGED = 0</set>
+    </update>
+
+    <update id="ackMasterTicket">
+        update BASIL_SEC_PRD.PREP_MASTER_ORDER
+        <set> ACKNOWLEDGED = 1</set>;
+    </update>
+
+    <update id="unAckMasterTicket">
+        update BASIL_SEC_PRD.PREP_MASTER_ORDER
+        <set> ACKNOWLEDGED = 0</set>
+    </update>
 </mapper>
 
 
