@@ -22,16 +22,20 @@
           <q-tr
             v-if="!props.row.errorMsg"
             :props="props"
-            :class="{ 'verified-unit': props.row.xmOID != null, [props.row.bgColor]:true}"
+            :class="{
+              'verified-unit': props.row.xmOID != null,
+              [props.row.bgColor]: true,
+            }"
             @click="handleRowClick($event, props.row)"
             :key="props.row.serialNumber"
           >
-            <q-td key="cosmetic" :props="props" 
-  >
+            <q-td key="cosmetic" :props="props">
               <q-checkbox
                 v-model="props.row.cosmetic"
                 @update:model-value="props.row.isUpdate = true"
-                :disable="containsXrefMaterials === null ? false : containsXrefMaterials"
+                :disable="
+                  containsXrefMaterials === null ? false : containsXrefMaterials
+                "
               >
               </q-checkbox>
             </q-td>
@@ -127,7 +131,14 @@ import { api } from "src/boot/axios";
 import { useCreateTicketStore } from "src/stores/createTicket";
 
 export default {
-  props: ["isFromMaster", "orderType", "rows", "containsXrefMaterials", "inputValue", "encrypt"],
+  props: [
+    "isFromMaster",
+    "orderType",
+    "rows",
+    "containsXrefMaterials",
+    "inputValue",
+    "encrypt",
+  ],
   components: { PopUpBtns, EditModal, BaseModal, TicketDetailForm },
   emits: ["add-sn", "update-sn", "remove-sn"],
   data() {
@@ -216,14 +227,18 @@ export default {
     window.addEventListener("click", this.handleGlobalClick);
   },
   computed: {
-    serials(){
+    serials() {
       let serials = this.rows;
-      if(this.inputValue != null){
-            serials = serials.filter((t) => 
-            (t.serialNumber != null && t.serialNumber.includes(this.inputValue)) ||
+      if (this.inputValue != null) {
+        serials = serials.filter(
+          (t) =>
+            (t.serialNumber != null &&
+              t.serialNumber.includes(this.inputValue)) ||
             (t.model != null && t.model.includes(this.inputValue)) ||
-            (t.customerReportedIssueExt!= null && t.customerReportedIssueExt.includes(this.inputValue)))
-          }
+            (t.customerReportedIssueExt != null &&
+              t.customerReportedIssueExt.includes(this.inputValue))
+        );
+      }
       return serials;
     },
     totalInvoice() {
@@ -245,7 +260,11 @@ export default {
           }
         });
       }
-      if(this.orderType === 65 && this.encrypt != null && this.encrypt === "yes"){
+      if (
+        this.orderType === 65 &&
+        this.encrypt != null &&
+        this.encrypt === "yes"
+      ) {
         //decommissioned
         serials.forEach((s) => {
           if (s.valid === true) {
@@ -274,23 +293,17 @@ export default {
       "addSN",
     ]),
     handleRowClick(evt, row) {
-      if (this.isFromMaster === true) {
-        if (row.pxmOID === null && row.xmOID === null) {
-          this.showRemoveUnit = true;
-          this.showUpdateUnit = true;
-          this.showViewUnit = false;
-        } else {
-          this.showRemoveUnit = false;
-          this.showUpdateUnit = false;
-          this.showViewUnit = true;
-        }
-      } else {
-        //from pre_xref_material
+      if (row.pxmOID === null && row.xmOID === null) {
+        //in create ticket page
         this.showRemoveUnit = true;
         this.showUpdateUnit = true;
         this.showViewUnit = false;
+      } else {
+        this.showRemoveUnit = false;
+        this.showUpdateUnit = true;
+        this.showViewUnit = true;
       }
-      if(this.containsXrefMaterials){
+      if (this.containsXrefMaterials) {
         this.showRemoveUnit = false;
       }
       this.$refs.popupBtns.addPopupBtns(evt);
@@ -319,17 +332,18 @@ export default {
       this.$emit("remove-sn", { sn });
     },
     handleClickViewUnit() {
-      const { xmOID } = this.modalState.serialData;
-      const link = "/ticketing/viewDetails?id=" + xmOID;
+      const { xmOID, pxmOID } = this.modalState.serialData;
+      const id = xmOID === null ? pxmOID : xmOID;
+      const link = "/ticketing/viewDetails?id=" + id;
       api
         .get(link)
         .then((response) => {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
+          // console.log(response.data.data);
           this.details = response.data.data[0];
-
-          this.computeStatusItem();
+            this.computeStatusItem();
           this.showDetailModal = true;
         })
         .catch(function (error) {
@@ -374,32 +388,34 @@ export default {
 
       const statusItems = [];
       statusItems.push({
-        completed: receive < now,
+        completed: receive.invalid != null? false : receive < now,
         completeTime: this.details.receivedDate,
       });
 
       statusItems.push({
-        completed: repair < now,
+        completed: repair.invalid != null ? false:repair < now,
         completeTime: this.details.repairDate,
       });
 
       statusItems.push(
         (statusItems[1] = {
-          completed: complete < now,
+          completed: complete.invalid != null? false: complete < now,
           completeTime: this.details.completedDate,
         })
       );
       statusItems.push({
-        completed: qa < now,
+        completed: qa.invalid != null ? false: qa < now,
         completeTime: this.details.quarantineDate,
       });
 
       statusItems.push({
-        completed: ship < now,
+        completed: ship.invalid != null ? false: ship < now,
         completeTime: this.details.shipDate,
       });
+      
 
       this.details.statusItems = statusItems;
+      console.log(this.details.statusItems);
     },
     getParseDate(timeStr) {
       return parseDate(timeStr);
@@ -465,13 +481,11 @@ ul > li {
   transform: translateY(-50%);
 }
 
-
 tr td:first-child {
-    border-left: white 5px solid;
+  border-left: white 5px solid;
 }
 
-.verified-unit > td:first-child{
-  border-left: 5px solid green
+.verified-unit > td:first-child {
+  border-left: 5px solid green;
 }
-
 </style>

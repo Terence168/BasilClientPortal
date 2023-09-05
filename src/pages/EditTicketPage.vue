@@ -253,7 +253,7 @@
     <div class="row justify-between">
     <div class="col-auto text-weight-bold text-subtitle1"
       style="text-decoration-line: underline"
-      >Comments: {{this.ticketInfo.acknowledged}}</div
+      >Comments</div
     >
     <div class="col-auto text-weight-bold">
       Acknowledged:&nbsp;&nbsp;
@@ -345,7 +345,6 @@ export default {
         }
 
         this.isLoading = true;
-
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
