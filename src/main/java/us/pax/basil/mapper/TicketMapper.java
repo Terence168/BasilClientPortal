@@ -63,7 +63,8 @@ public interface TicketMapper extends BaseMapper<Integer> {
     );
 
 
-    List<RepairRecord> getTicketingViewsDetail(Integer id);
+    List<RepairRecord> getRepairDetail(Integer id);
+    List<RepairRecord> getPrepRepairDetail(Integer id);
     /*
     queryDeviceBase is used to query if this device is U.S. based. If not, alert the front-end, otherwise, check if within warranty or another ticket.
      */

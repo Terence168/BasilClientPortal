@@ -201,16 +201,17 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     public QueryResultArrayDTO viewTicketDetails(Integer id) {
         try {
             ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
-            List<RepairRecord> repairRecords = ticketMapper.getTicketingViewsDetail(id);
-
+            List<RepairRecord> repairRecords = ticketMapper.getRepairDetail(id);
+            if(repairRecords.size() == 0){
+                repairRecords = ticketMapper.getPrepRepairDetail(id);
+            }
             for (RepairRecord repairRecord : repairRecords) {
                 //repairRecord.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(repairRecord.getWarrantyEndDate(), repairRecord.getWarrantyVoidedDate(), repairRecord.getOrderDate()));
-
                 Map<String, Object> objectMap = objectMapper.convertValue(repairRecord, Map.class);
                 resultArray.add(objectMap);
             }
 
-            return new QueryResultArrayDTO(resultArray, 1, 0, null);
+            return new QueryResultArrayDTO(resultArray, repairRecords.size(), 0, null);
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
