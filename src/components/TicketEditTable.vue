@@ -341,7 +341,6 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          // console.log(response.data.data);
           this.details = response.data.data[0];
             this.computeStatusItem();
           this.showDetailModal = true;
@@ -415,7 +414,6 @@ export default {
       
 
       this.details.statusItems = statusItems;
-      console.log(this.details.statusItems);
     },
     getParseDate(timeStr) {
       return parseDate(timeStr);

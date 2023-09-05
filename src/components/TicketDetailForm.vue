@@ -70,7 +70,7 @@
         </li>
       </ul>
     </div>
-    <div>
+    
     <div class="row q-col-gutter-x-md text-body1">
       <div class="col-6 q-gutter-y-md">
         <div class="row">
@@ -204,7 +204,6 @@
     <div class="row q-mt-md text-body1">
       <div class="text-grey-6">Technician Notes:&nbsp;</div>
       <div>{{ details.techNotes }}</div>
-    </div>
     </div>
     <div class="row justify-center q-mt-md">
       <div class="col-auto">

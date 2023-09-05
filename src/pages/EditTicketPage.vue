@@ -158,71 +158,6 @@
             @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
-        <!-- <div class="q-py-md text-subtitle1 text-weight-bold">
-          Ticket Serial Numbers
-        </div>
-        <div class="row items-start">
-           <q-btn
-            class="col-auto"
-            color="primary"
-            @click="this.$refs.editTable.handleClickAddUnit()"
-            :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-          > 
-             Add Serial Number
-          </q-btn>
-          <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
-          <q-form class="col-auto" @submit="onFileSubmit">
-            <div class="row items-start">
-              <q-file
-                style="min-width: 250px"
-                name="file"
-                class="col q-mr-sm"
-                clearable
-                bottom-slots
-                outlined
-                v-model="file"
-                label="Upload Excel File"
-                dense
-                counter
-                :disable="fileUploading || (ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="attach_file" />
-                </template>
-
-                <template v-slot:hint> Allowed file format: .xlsx </template>
-              </q-file> 
-
-               <q-btn
-                class="col"
-                type="submit"
-                label="Upload"
-                color="primary"
-                style="min-width: 150px"
-                :loading="fileUploading"
-                :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-              > 
-                <template v-slot:loading>
-                  <q-spinner-facebook />
-                </template>
-              </q-btn> 
-
-              <q-input
-                clearable
-                class="q-ml-sm"
-                label="Serial Number OR Model OR Reported Issue"
-                style="min-width: 350px"
-                v-model="inputValue"
-                outlined
-                dense
-              >
-                <template v-slot:append>
-                  <q-icon name="search" />
-                </template>
-              </q-input>
-            </div>
-          </q-form>
-        </div> -->
         <!-- Ticket serials -->
         <TicketEditTable
           ref="editTable"
@@ -257,8 +192,20 @@
     >
     <div class="col-auto text-weight-bold">
       Acknowledged:&nbsp;&nbsp;
-      <q-radio v-model="ticketInfo.acknowledged" val="1" lable="Yes" @update:model-value="ackComment()" :disable="!checkAckPermission()">Yes</q-radio>
-      <q-radio v-model="ticketInfo.acknowledged" val="0" lable="No"  @update:model-value="unackComment()" :disable="!checkAckPermission()">No</q-radio>
+      <input
+            type="radio"
+            v-model="ticketInfo.acknowledged"
+            value="1"
+            @update:model-value="ackComment()"
+            :disabled="!ackPermission"
+          />&nbsp;Yes&nbsp;&nbsp;
+          <input
+            type="radio"
+            v-model="ticketInfo.acknowledged"
+            value="0"
+            @update:model-value="unackComment()"
+            :disabled="!ackPermission"
+          />&nbsp;No&nbsp;
     </div>
   </div>
     <MessageBoard
@@ -402,6 +349,9 @@ export default {
     address() {
       return this.ticketInfo.address;
     },
+    ackPermission(){
+      return useUserStore().checkPermission("ticketing.edit.acknowledge");
+    }
   },
   methods: {
     ...mapActions(useCreateTicketStore, [
@@ -574,12 +524,12 @@ export default {
           if(this.checkAckPermission()){
             //rma clerk
             this.ackComment();
-            this.ticketInfo.acknowledged = "1";
+            this.ticketInfo.acknowledged = 1;
           }
           else{
             //customer
             this.unackComment();
-            this.ticketInfo.acknowledged = "0";
+            this.ticketInfo.acknowledged = 0;
           }
           this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
         })
@@ -635,9 +585,6 @@ export default {
     },
     showAddressGrid() {
       this.showAddressModal = true;
-    },
-    checkAckPermission() {
-      return useUserStore().checkPermission("ticketing.edit.acknowledge");
     },
   },
 };
