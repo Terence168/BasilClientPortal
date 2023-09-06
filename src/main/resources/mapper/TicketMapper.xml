@@ -256,7 +256,6 @@
     </select>
 
 
-
     <select id="existingMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
         SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, SUBMITTER_ID as submitterID,
         mo.mc_oid as mcOID,
@@ -918,23 +917,54 @@
 
     <update id="ackPrepMasterTicket">
         update BASIL_SEC_PRD.PREP_MASTER_ORDER
-        <set> ACKNOWLEDGED = 1</set>;
+        <set> ACKNOWLEDGED = 1</set>
+        <where>
+            <if test="moOID != null">
+                mo_oid = #{moOID}
+            </if>
+        </where>
     </update>
 
     <update id="unAckPrepMasterTicket">
         update BASIL_SEC_PRD.PREP_MASTER_ORDER
         <set> ACKNOWLEDGED = 0</set>
+        <where>
+            <if test="moOID != null">
+                mo_oid = #{moOID}
+            </if>
+        </where>
     </update>
 
     <update id="ackMasterTicket">
         update BASIL_SEC_PRD.PREP_MASTER_ORDER
-        <set> ACKNOWLEDGED = 1</set>;
+        <set> ACKNOWLEDGED = 1</set>
+        <where>
+            <if test="moOID != null">
+                mo_oid = #{moOID}
+            </if>
+        </where>
     </update>
 
     <update id="unAckMasterTicket">
         update BASIL_SEC_PRD.PREP_MASTER_ORDER
         <set> ACKNOWLEDGED = 0</set>
+        <where>
+            <if test="moOID != null">
+                mo_oid = #{moOID}
+            </if>
+        </where>
     </update>
+
+    <select id="getTicketAckStatus" resultType="Integer">
+        select ACKNOWLEDGED
+        from BASIL_SEC_PRD.PREP_MASTER_ORDER
+        <where>
+            <if test="moOID != null">
+                mo_oid = #{moOID}
+            </if>
+        </where>
+        limit 1
+    </select>
 </mapper>
 
 

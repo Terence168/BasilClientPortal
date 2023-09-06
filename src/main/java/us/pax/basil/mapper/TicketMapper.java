@@ -114,4 +114,6 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void unAckMasterTicket(Long moOID);
     void ackPrepMasterTicket(Long moOID);
     void unAckPrepMasterTicket(Long moOID);
+
+    List<Integer> getTicketAckStatus(Long moOID);
 }

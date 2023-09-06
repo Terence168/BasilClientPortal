@@ -19,6 +19,7 @@ package us.pax.basil.controller;
 import io.swagger.annotations.Api;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import us.pax.basil.dto.output.*;
@@ -133,14 +134,21 @@ public class TicketController {
         return ticketService.insertResponse(response);
     }
 
+    @PreAuthorize("hasAuthority('ticketing.edit.acknowledge')")
     @PutMapping("/{ticketId}/acknowledged")
     public QueryResultDTO acknowledgeTicket(@PathVariable("ticketId")Long ticketId){
         return ticketService.ackTicket(ticketId);
     }
 
+
     @PutMapping("/{ticketId}/unacknowledged")
     public QueryResultDTO unacknowledgeTicket(@PathVariable("ticketId")Long ticketId){
         return ticketService.unAckTicket(ticketId);
+    }
+
+    @GetMapping("/{ticketId}/acknowledged")
+    public QueryResultDTO getTicketAckStatus(@PathVariable("ticketId")Long ticketId){
+        return ticketService.getTicketAckStatus(ticketId);
     }
 
     @GetMapping("/dropdown/department")

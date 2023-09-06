@@ -1,6 +1,7 @@
 package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.sun.mail.util.QEncoderStream;
 import io.swagger.models.auth.In;
 import org.springframework.web.bind.annotation.RequestParam;
 import us.pax.basil.dto.output.*;
@@ -66,7 +67,8 @@ public interface TicketService extends IService<Integer>{
     QueryResultDTO insertResponse(TicketResponse ticketResponse);
     QueryResultArrayDTO getResponse(String id);
     QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO);
+
     QueryResultDTO ackTicket(Long moOID);
     QueryResultDTO unAckTicket(Long moOID);
-
+    QueryResultDTO getTicketAckStatus(Long moOID);
 }

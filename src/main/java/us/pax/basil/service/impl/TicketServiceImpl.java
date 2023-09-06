@@ -764,9 +764,25 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     public QueryResultDTO unAckTicket(Long moOID){
         try{
-            ticketMapper.ackMasterTicket(moOID);
-            ticketMapper.ackPrepMasterTicket(moOID);
+            ticketMapper.unAckMasterTicket(moOID);
+            ticketMapper.unAckPrepMasterTicket(moOID);
             return new QueryResultDTO(null, 0, null);
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultDTO getTicketAckStatus(Long moOID) {
+        try{
+            List<Integer> list = ticketMapper.getTicketAckStatus(moOID);
+            if(list.size() != 1){
+                return new QueryResultDTO(null, -1, "Ticket not found");
+            }
+            Integer ack = list.get(0);
+            Map<String, Object> map = new HashMap<>();
+            map.put("acknowledged", ack);
+            return new QueryResultDTO(map, 0, null);
         }catch (Exception e){
             return new QueryResultDTO(null, -1, e.getMessage());
         }
