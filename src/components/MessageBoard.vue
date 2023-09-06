@@ -121,6 +121,7 @@ export default {
         content: this.editor,
         moOID: this.ticketId,
       };
+      this.editor = "";
       this.$emit("add-comment", comment);
     },
     checkAckPermission() {
