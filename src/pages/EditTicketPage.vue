@@ -186,28 +186,35 @@
       </div>
     </div>
     <div class="row justify-between">
-    <div class="col-auto text-weight-bold text-subtitle1"
-      style="text-decoration-line: underline"
-      >Comments</div
-    >
-    <div class="col-auto text-weight-bold">
-      Acknowledged:&nbsp;&nbsp;
-      <input
-            type="radio"
-            v-model="ticketInfo.acknowledged"
-            value="1"
-            @update:model-value="ackComment()"
-            :disabled="!ackPermission"
-          />&nbsp;Yes&nbsp;&nbsp;
-          <input
-            type="radio"
-            v-model="ticketInfo.acknowledged"
-            value="0"
-            @update:model-value="unackComment()"
-            :disabled="!ackPermission"
-          />&nbsp;No&nbsp;
+      <div
+        class="col-auto text-weight-bold text-subtitle1"
+        style="text-decoration-line: underline"
+      >
+        Comments
+      </div>
+      <div class="col-2 text-weight-bold q-mb-sm q-mt-sm">
+        Acknowledged:&nbsp;&nbsp;
+        <input
+          type="radio"
+          v-model="ticketInfo.acknowledged"
+          value="1"
+          @update:model-value="ackComment()"
+          :disabled="!ackPermission"
+        />&nbsp;Yes&nbsp;&nbsp;
+        <input
+          type="radio"
+          v-model="ticketInfo.acknowledged"
+          value="0"
+          @update:model-value="unackComment()"
+          :disabled="!ackPermission"
+        />&nbsp;No&nbsp;
+      </div>
     </div>
-  </div>
+    <!-- <div class="row justify-end">
+        <div class="col-auto" @click="resetTicket">
+            <q-btn color="red">Refresh Data</q-btn>
+        </div>
+    </div> -->
     <MessageBoard
       :ticketId="ticketId"
       :comments="comments"
@@ -263,7 +270,7 @@ export default {
         trackingNumbers: [],
         encrypt: null,
         testKeyType: null,
-        acknowledged:null,
+        acknowledged: null,
       },
       comments: [],
       editInfo: {
@@ -295,24 +302,34 @@ export default {
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
+          this.fetchAckStatus(this.ticketId),
           //ensure it been populated
         ])
           .then((values) => {
             const ticketInfo = values[0];
             const comments = values[1];
+            const ack = values[2];
+
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
             }
             if (comments != null) {
               this.comments = comments;
             }
+            if (ack != null) {
+              this.ticketInfo.acknowledged = ack;
+            }
             this.comments.forEach((c) => {
+              //is the replyer == current user, mark it as green
               if (c.email == this.email) {
                 c.bgColor = "bg-green-3";
               }
             });
 
             this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
+          })
+          .catch((e) => {
+            console.log(e);
           })
           .finally(() => {
             this.isLoading = false;
@@ -349,9 +366,9 @@ export default {
     address() {
       return this.ticketInfo.address;
     },
-    ackPermission(){
+    ackPermission() {
       return useUserStore().checkPermission("ticketing.edit.acknowledge");
-    }
+    },
   },
   methods: {
     ...mapActions(useCreateTicketStore, [
@@ -521,12 +538,11 @@ export default {
           newComment.responseBy = username;
           newComment.bgColor = "bg-green-3";
           this.comments.push(newComment);
-          if(this.checkAckPermission()){
+          if (this.ackPermission) {
             //rma clerk
             this.ackComment();
             this.ticketInfo.acknowledged = 1;
-          }
-          else{
+          } else {
             //customer
             this.unackComment();
             this.ticketInfo.acknowledged = 0;
@@ -541,7 +557,7 @@ export default {
           });
         });
     },
-    ackComment(){
+    ackComment() {
       //can backend to ack the ticket
       const link = `/ticketing/${this.ticketId}/acknowledged`;
       const vm = this;
@@ -560,7 +576,7 @@ export default {
           });
         });
     },
-    unackComment(){
+    unackComment() {
       //can backend to unack the ticket
       const link = `/ticketing/${this.ticketId}/unacknowledged`;
       const vm = this;
@@ -570,6 +586,25 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    fetchAckStatus() {
+      const link = `/ticketing/${this.ticketId}/acknowledged`;
+      const vm = this;
+      return api
+        .get(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          return response.data.data.acknowledged;
         })
         .catch((error) => {
           console.log(error);

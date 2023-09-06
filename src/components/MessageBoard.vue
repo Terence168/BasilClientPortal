@@ -33,9 +33,10 @@
     </q-scroll-area>
     <!-- text input editor -->
     <div style="width: 95%">
-      <span class="text-weight-bold" style="text-decoration-line: underline"
-        >Write a Comment:</span
-      >
+      <div class="row justify-between">
+        <span class="text-weight-bold" style="text-decoration-line: underline"
+        >Write a Comment:</span>
+    </div>
       <q-editor
         v-model="editor"
         :definitions="{
@@ -46,7 +47,38 @@
             handler: handleSendComment,
           },
         }"
-        :toolbar="[['bold', 'italic', 'strike', 'underline'], ['send']]"
+        :toolbar="[['bold', 'italic', 'strike', 'underline','removeFormat'],  [
+          {
+            label: $q.lang.editor.formatting,
+            icon: $q.iconSet.editor.formatting,
+            list: 'no-icons',
+            options: [
+              'p',
+              'h1',
+              'h2',
+              'h3',
+              'h4',
+              'h5',
+              'h6',
+              'code'
+            ]
+          },
+          {
+            label: $q.lang.editor.fontSize,
+            icon: $q.iconSet.editor.fontSize,
+            fixedLabel: true,
+            fixedIcon: true,
+            list: 'no-icons',
+            options: [
+              'size-1',
+              'size-2',
+              'size-3',
+              'size-4',
+              'size-5',
+              'size-6',
+              'size-7'
+            ]
+          }],['send']]"
         min-height="5rem"
       >
       </q-editor>
