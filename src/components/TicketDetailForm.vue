@@ -65,11 +65,12 @@
 
           <div
             class="connector"
-            :class="details.statusItems[index] ? 'bg-primary' : 'bg-grey-6'"
+            :class="details.statusItems[index].completed ? 'bg-primary' : 'bg-grey-6'"
           ></div>
         </li>
       </ul>
     </div>
+    
     <div class="row q-col-gutter-x-md text-body1">
       <div class="col-6 q-gutter-y-md">
         <div class="row">
@@ -204,7 +205,6 @@
       <div class="text-grey-6">Technician Notes:&nbsp;</div>
       <div>{{ details.techNotes }}</div>
     </div>
-
     <div class="row justify-center q-mt-md">
       <div class="col-auto">
         <q-btn

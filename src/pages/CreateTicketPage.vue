@@ -82,7 +82,7 @@
             />
           </div>
         </div>
-        <!-- <div class="row items-center">
+        <div class="row items-center">
           Encrypt:&nbsp;
           <input type="radio" v-model="encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
           <input type="radio" v-model="encrypt" value="no">&nbsp;No&nbsp;
@@ -94,9 +94,9 @@
               ref="testKeyTypeSelect"
               style="min-width: 200px"
               label="Please select"
-              v-model="testKeyType"
-              :options="testKeyTypeOpt"
-              @filter="populateTestKeyTypeOpt"
+              v-model="keyType"
+              :options="keyTypeOpt"
+              @filter="populateKeyTypeOpt"
               dense
               emit-value
               map-options
@@ -110,7 +110,7 @@
               </template>
             </q-select>
           </div>
-        </div> -->
+        </div>
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">
           <div class="col-auto">
@@ -241,6 +241,7 @@
           :rows="getSerials"
           :containsXrefMaterials="false"
           :inputValue="inputValue"
+          :encrypt="encrypt"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -250,7 +251,7 @@
           <q-btn
             class="col-auto "
             color="primary"
-            @click="handleSubmitSerials"
+            @click="submitTicket"
             style="min-width: 200px"
             :loading="serialsSubmitting"
           >
@@ -333,7 +334,7 @@ export default {
   computed: {
     ...mapWritableState(useCreateTicketStore, [
       "orderType",
-      "testKeyType",
+      "keyType",
       "trackingNums",
       "inputValue",
       "originalRMA",
@@ -342,13 +343,13 @@ export default {
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
-      "testKeyTypeOpt",
+      "keyTypeOpt",
       "getSerials",
       "getAllSerials",
       "getTrackingNums",
     ]),
     isEncrypted(){
-      return this.encrypt === "yes";
+      return this.encrypt != null && this.encrypt === "yes";
     },
     isReRepair() {
       return this.orderType === 4;
@@ -370,7 +371,7 @@ export default {
       "deleteTrackingNum",
       "resetTicket",
       "populateOrderTypeOpt",
-      "populateTestKeyTypeOpt",
+      "populateKeyTypeOpt",
       "addSerial",
       "addSerialList",
       "updateSerial",
@@ -406,7 +407,7 @@ export default {
     handleClickHelpUnit(){
       this.showHelpModal = true;
     },
-    handleSubmitSerials() {
+    submitTicket() {
       this.serialsSubmitting = true;
       const serials = this.getSerials;
       //no serial
@@ -464,9 +465,12 @@ export default {
           serial.cosmetic === null || serial.cosmetic === false ? 891 : 890;
         return snObject;
       });
+      
 
       const payload = {
+        encrypt: this.encrypt,
         orderType: this.orderType,
+        testKeyType:this.isEncrypted? this.keyTypeOpt[this.keyType].label:null,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
@@ -474,6 +478,7 @@ export default {
       };
 
       const vm = this;
+      console.log(payload);
       this.$api
         .post(actionURL, payload, {
           headers: {

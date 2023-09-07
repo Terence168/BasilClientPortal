@@ -11,23 +11,13 @@ export const useCreateTicketStore = defineStore("createTicket", {
     trackingNums: [],
     serials: [],
     inputValue: null,
-    testKeyType:null,
-    testKeyTypeOpt:null,
+    keyType:null,
+    keyTypeOpt:null,
     encrypt:null,
   }),
 
   getters: {
     getSerials() {
-      // if (this.inputValue != null) {
-      //   return this.serials.filter(
-      //     (t) =>
-      //       (t.serialNumber != null &&
-      //         t.serialNumber.includes(this.inputValue)) ||
-      //       (t.model != null && t.model.includes(this.inputValue)) ||
-      //       (t.customerReportedIssueExt != null &&
-      //         t.customerReportedIssueExt.includes(this.inputValue))
-      //   );
-      // }
       return this.serials;
     },
     getTrackingNums(){
@@ -50,8 +40,43 @@ export const useCreateTicketStore = defineStore("createTicket", {
     deleteTrackingNum(index) {
       this.trackingNums.splice(index, 1);
     },
-    populateTestKeyTypeOpt(_, update){
-
+    populateKeyTypeOpt(_, update){
+      if (this.keyTypeOpt) {
+        update();
+        return;
+      }
+      const link = "/ticketing/dropdown/key_type";
+      api
+        .get(link)
+        .then((response) => {
+          update(() => {
+            this.keyTypeOpt = response.data.data;
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Key Type Dropdown cannot be populated",
+          });
+        });
+    },
+    populateKeyTypeOptOnce(){
+      const link = "/ticketing/dropdown/key_type";
+      api
+        .get(link)
+        .then((response) => {
+            this.keyTypeOpt = response.data.data;
+        })
+        .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Key Type Dropdown cannot be populated",
+          });
+        });
     },
     populateOrderTypeOpt(_, update) {
       if (this.orderTypeOpt) {
@@ -64,7 +89,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .then((response) => {
           update(() => {
             this.orderTypeOpt = response.data.data;
-            // console.log(this.orderTypeOpt);
           });
         })
         .catch(function (error) {
@@ -82,7 +106,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .get(link)
         .then((response) => {
           this.orderTypeOpt = response.data.data;
-          // console.log(this.orderTypeOpt);
         })
         .catch(function (error) {
           console.log(error);

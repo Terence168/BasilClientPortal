@@ -58,9 +58,6 @@ export const useEditTicketStore = defineStore("editTicket", {
   },
   reset() {},
   actions: {
-    populateTestKeyTypeOpt(_, update){
-      // this.testKeyTypeOpt = ["1", "2", "3"];
-    },
     /**
      * Ticket: get, add, remove, fetch
      */

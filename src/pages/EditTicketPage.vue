@@ -43,7 +43,11 @@
         <div v-if="isReRepair" class="row items-center">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
-            <q-input style="min-width: 200px" dense v-model="ticketInfo.originalRMA" />
+            <q-input
+              style="min-width: 200px"
+              dense
+              v-model="ticketInfo.originalRMA"
+            />
           </div>
         </div>
         <div class="row items-center">
@@ -79,10 +83,20 @@
             />
           </div>
         </div>
-        <!-- <div class="row items-center">
+        <div class="row items-center">
           Encrypt:&nbsp;
-          <input type="radio" v-model="ticketInfo.encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
-          <input type="radio" v-model="ticketInfo.encrypt" value="no">&nbsp;No&nbsp;
+          <input
+            type="radio"
+            v-model="ticketInfo.encrypt"
+            value="yes"
+            disabled
+          />&nbsp;Yes&nbsp;&nbsp;
+          <input
+            type="radio"
+            v-model="ticketInfo.encrypt"
+            value="no"
+            disabled
+          />&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
           <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
@@ -92,8 +106,8 @@
               style="min-width: 200px"
               label="Please select"
               v-model="ticketInfo.testKeyType"
-              :options="testKeyTypeOpt"
-              @filter="populateTestKeyTypeOpt"
+              :options="keyTypeOpt"
+              @filter="populateKeyTypeOpt"
               dense
               emit-value
               map-options
@@ -107,7 +121,7 @@
               </template>
             </q-select>
           </div>
-        </div> -->
+        </div>
         <div class="q-my-sm">Shipping Address:</div>
         <AddressBlock :address="address" @click="showAddressGrid" />
         <!-- tracking number section -->
@@ -144,71 +158,6 @@
             @click="deleteTrackingNum(ticketId, index)"
           />
         </div>
-        <!-- <div class="q-py-md text-subtitle1 text-weight-bold">
-          Ticket Serial Numbers
-        </div>
-        <div class="row items-start">
-           <q-btn
-            class="col-auto"
-            color="primary"
-            @click="this.$refs.editTable.handleClickAddUnit()"
-            :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-          > 
-             Add Serial Number
-          </q-btn>
-          <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
-          <q-form class="col-auto" @submit="onFileSubmit">
-            <div class="row items-start">
-              <q-file
-                style="min-width: 250px"
-                name="file"
-                class="col q-mr-sm"
-                clearable
-                bottom-slots
-                outlined
-                v-model="file"
-                label="Upload Excel File"
-                dense
-                counter
-                :disable="fileUploading || (ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="attach_file" />
-                </template>
-
-                <template v-slot:hint> Allowed file format: .xlsx </template>
-              </q-file> 
-
-               <q-btn
-                class="col"
-                type="submit"
-                label="Upload"
-                color="primary"
-                style="min-width: 150px"
-                :loading="fileUploading"
-                :disable="(ticketInfo.containsXrefMaterials === null? false : ticketInfo.containsXrefMaterials)"
-              > 
-                <template v-slot:loading>
-                  <q-spinner-facebook />
-                </template>
-              </q-btn> 
-
-              <q-input
-                clearable
-                class="q-ml-sm"
-                label="Serial Number OR Model OR Reported Issue"
-                style="min-width: 350px"
-                v-model="inputValue"
-                outlined
-                dense
-              >
-                <template v-slot:append>
-                  <q-icon name="search" />
-                </template>
-              </q-input>
-            </div>
-          </q-form>
-        </div> -->
         <!-- Ticket serials -->
         <TicketEditTable
           ref="editTable"
@@ -217,6 +166,7 @@
           :orderType="ticketInfo.typeOfRepair"
           :rows="getSerialsByTicketId(ticketId)"
           :inputValue="inputValue"
+          :encrypt="ticketInfo.encrypt"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -235,13 +185,42 @@
         </div>
       </div>
     </div>
+    <div class="row justify-between">
+      <div
+        class="col-auto text-weight-bold text-subtitle1"
+        style="text-decoration-line: underline"
+      >
+        Comments
+      </div>
+      <div class="col-2 text-weight-bold q-mb-sm q-mt-sm">
+        Acknowledged:&nbsp;&nbsp;
+        <input
+          type="radio"
+          v-model="ticketInfo.acknowledged"
+          value="1"
+          @update:model-value="ackComment()"
+          :disabled="!ackPermission"
+        />&nbsp;Yes&nbsp;&nbsp;
+        <input
+          type="radio"
+          v-model="ticketInfo.acknowledged"
+          value="0"
+          @update:model-value="unackComment()"
+          :disabled="!ackPermission"
+        />&nbsp;No&nbsp;
+      </div>
+    </div>
+    <!-- <div class="row justify-end">
+        <div class="col-auto" @click="resetTicket">
+            <q-btn color="red">Refresh Data</q-btn>
+        </div>
+    </div> -->
     <MessageBoard
       :ticketId="ticketId"
       :comments="comments"
       @add-comment="addComment"
       ref="messageBoard"
     />
-
     <BaseModal
       :show="showAddressModal"
       title="Select Shipping Address"
@@ -289,9 +268,9 @@ export default {
         submitterEmail: null,
         serials: [],
         trackingNumbers: [],
-        encrypt:null,
-        testKeyType:null,
-
+        encrypt: null,
+        testKeyType: null,
+        acknowledged: null,
       },
       comments: [],
       editInfo: {
@@ -320,21 +299,37 @@ export default {
         }
 
         this.isLoading = true;
-
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
+          this.fetchAckStatus(this.ticketId),
           //ensure it been populated
         ])
           .then((values) => {
             const ticketInfo = values[0];
             const comments = values[1];
+            const ack = values[2];
+
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
             }
-            if (this.comments != null) {
+            if (comments != null) {
               this.comments = comments;
             }
+            if (ack != null) {
+              this.ticketInfo.acknowledged = ack;
+            }
+            this.comments.forEach((c) => {
+              //is the replyer == current user, mark it as green
+              if (c.email == this.email) {
+                c.bgColor = "bg-green-3";
+              }
+            });
+
+            this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
+          })
+          .catch((e) => {
+            console.log(e);
           })
           .finally(() => {
             this.isLoading = false;
@@ -346,18 +341,22 @@ export default {
     );
 
     this.populateOrderTypeOptOnce();
+    this.populateKeyTypeOptOnce();
   },
-
   mounted() {},
-
   computed: {
-    // ...mapWritableState(useCreateTicketStore, ["orderType"]),
-    ...mapState(useCreateTicketStore, ["orderTypeOpt", "testKeyTypeOpt"]),
+    ...mapState(useUserStore, ["email"]),
+    ...mapState(useCreateTicketStore, ["orderTypeOpt", "keyTypeOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
       "getTicketbyId",
     ]),
+    isEncrypted() {
+      return (
+        this.ticketInfo.encrypt != null && this.ticketInfo.encrypt === "yes"
+      );
+    },
     isReRepair() {
       return this.ticketInfo.typeOfRepair === 4;
     },
@@ -367,15 +366,16 @@ export default {
     address() {
       return this.ticketInfo.address;
     },
-    isEncrypted(){
-      return this.ticketInfo.encrypt === "yes";
-    }
+    ackPermission() {
+      return useUserStore().checkPermission("ticketing.edit.acknowledge");
+    },
   },
   methods: {
     ...mapActions(useCreateTicketStore, [
       "populateOrderTypeOpt",
       "populateOrderTypeOptOnce",
-      "populateTestKeyTypeOpt",
+      "populateKeyTypeOpt",
+      "populateKeyTypeOptOnce",
     ]),
     ...mapActions(useEditTicketStore, [
       "fetchTicket",
@@ -418,7 +418,6 @@ export default {
           return;
         }
       }
-
       const payload = {
         ...editTracking,
         ...editSerial,
@@ -429,8 +428,12 @@ export default {
         originalRMA: this.ticketInfo.originalRMA,
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
+        encrypt: this.ticketInfo.encrypt,
+        testKeyType: this.isEncrypted
+          ? this.keyTypeOpt[this.ticketInfo.testKeyType].label
+          : null,
       };
-      if(payload.orderType === 3 || payload.orderType === 7){
+      if (payload.orderType === 3 || payload.orderType === 7) {
         payload.originalRMA = null;
       }
       const actionURL = "/ticketing/editTicket/" + this.ticketId;
@@ -533,8 +536,75 @@ export default {
           }
           const newComment = response.data.data.response;
           newComment.responseBy = username;
+          newComment.bgColor = "bg-green-3";
           this.comments.push(newComment);
-          this.$refs.messageBoard.scrollToBottom();
+          if (this.ackPermission) {
+            //rma clerk
+            this.ackComment();
+            this.ticketInfo.acknowledged = 1;
+          } else {
+            //customer
+            this.unackComment();
+            this.ticketInfo.acknowledged = 0;
+          }
+          this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    ackComment() {
+      //can backend to ack the ticket
+      const link = `/ticketing/${this.ticketId}/acknowledged`;
+      const vm = this;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    unackComment() {
+      //can backend to unack the ticket
+      const link = `/ticketing/${this.ticketId}/unacknowledged`;
+      const vm = this;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    fetchAckStatus() {
+      const link = `/ticketing/${this.ticketId}/acknowledged`;
+      const vm = this;
+      return api
+        .get(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          return response.data.data.acknowledged;
         })
         .catch((error) => {
           console.log(error);
