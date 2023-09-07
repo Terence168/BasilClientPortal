@@ -1,17 +1,31 @@
+
+<script>
+import { useUserStore } from "stores/user";
+
+export default {
+
+  computed: {
+    clientUser() {
+      return useUserStore().isClientUser;
+    },
+  },
+};
+</script>
+
 <template>
   <q-list class="q-pa-lg text-secondary text-subtitle1">
     <div class="q-ml-md q-mb-sm section-title">Ticketing</div>
 
-    <q-item
+    <q-item v-if="clientUser"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'ticketing-queue' }"
       style="height: 50px"
     >
-      <q-item-section avatar>
+      <q-item-section avatar >
         <q-icon name="confirmation_number" />
       </q-item-section>
-      <q-item-section> Ticketing Queue </q-item-section>
+      <q-item-section > Ticketing Queue </q-item-section>
     </q-item>
 
     <q-item
@@ -40,4 +54,3 @@
   </q-list>
 </template>
 
-<script setup></script>
