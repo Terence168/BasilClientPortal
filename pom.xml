@@ -13,7 +13,7 @@
   
   <groupId>us.pax.basil</groupId>
   <artifactId>BasilClientPortal</artifactId>
-  <version>1.00.10-20230824</version>
+  <version>1.00.20-20230908</version>
   <packaging>jar</packaging>
 
   <properties>

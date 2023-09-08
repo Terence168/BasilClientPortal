@@ -57,11 +57,13 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage(), ex);
         String requestUri = HttpServletUtils.getHttpRequest().getRequestURI();
 
-        if(requestUri.startsWith("/api/")){
-            return apiResultWrapper(ex);
-        }else {
-            return webResultWrapper(ex);
-        }
+//        if(requestUri.startsWith("/api/")){
+//            return apiResultWrapper(ex);
+//        }else {
+//            return webResultWrapper(ex);
+//        }
+        
+        return webResultWrapper(ex);
     }
 
     private String getConstraintViolationExceptionMessage(Throwable e) {
