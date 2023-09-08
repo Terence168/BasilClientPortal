@@ -16,7 +16,7 @@ export default {
   <q-list class="q-pa-lg text-secondary text-subtitle1">
     <div class="q-ml-md q-mb-sm section-title">Ticketing</div>
 
-    <q-item v-if="clientUser"
+    <q-item v-if="!clientUser"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'ticketing-queue' }"
