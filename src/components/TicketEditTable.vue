@@ -342,7 +342,7 @@ export default {
             throw new Error(response.data.errorMessage);
           }
           this.details = response.data.data[0];
-            this.computeStatusItem();
+          this.computeStatusItem();
           this.showDetailModal = true;
         })
         .catch(function (error) {
@@ -387,31 +387,30 @@ export default {
 
       const statusItems = [];
       statusItems.push({
-        completed: receive.invalid != null? false : receive < now,
+        completed: receive.invalid != null ? false : receive < now,
         completeTime: this.details.receivedDate,
       });
 
       statusItems.push({
-        completed: repair.invalid != null ? false:repair < now,
+        completed: repair.invalid != null ? false : repair < now,
         completeTime: this.details.repairDate,
       });
 
       statusItems.push(
         (statusItems[1] = {
-          completed: complete.invalid != null? false: complete < now,
+          completed: complete.invalid != null ? false : complete < now,
           completeTime: this.details.completedDate,
         })
       );
       statusItems.push({
-        completed: qa.invalid != null ? false: qa < now,
+        completed: qa.invalid != null ? false : qa < now,
         completeTime: this.details.quarantineDate,
       });
 
       statusItems.push({
-        completed: ship.invalid != null ? false: ship < now,
+        completed: ship.invalid != null ? false : ship < now,
         completeTime: this.details.shipDate,
       });
-      
 
       this.details.statusItems = statusItems;
     },
@@ -425,7 +424,7 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
 .popup-button-group {
   position: absolute;
   height: max-content;

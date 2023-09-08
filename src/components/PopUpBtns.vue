@@ -1,40 +1,39 @@
 <template>
   <div>
-      <div
-        class="popup-button-group"
-        v-show="withClient"
-        :style="positionStyle"
-        ref="popup-button-group"
-      >
-        <q-btn
-          class="remove-unit"
-          size="sm"
-          color="red"
-          icon="close"
-          round
-          v-show="showRemoveUnit"
-          @click.prevent="handleClickOnRemoveUnit"
-        />
-        <q-btn
-          class="edit-unit"
-          size="sm"
-          color="primary"
-          icon="edit"
-          round
-          v-show="showUpdateUnit"
-          @click.prevent="this.$emit('popup-update-sn')"
-        />
-        <q-btn
-          class="view-unit"
-          size="sm"
-          color="yellow-5"
-          icon="visibility"
-          round
-          v-show="showViewUnit"
-          @click.prevent="this.$emit('popup-view-sn')"
-        />
-      </div>
-
+    <div
+      class="popup-button-group"
+      v-show="withClient"
+      :style="positionStyle"
+      ref="popup-button-group"
+    >
+      <q-btn
+        class="remove-unit"
+        size="sm"
+        color="red"
+        icon="close"
+        round
+        v-show="showRemoveUnit"
+        @click.prevent="handleClickOnRemoveUnit"
+      />
+      <q-btn
+        class="edit-unit"
+        size="sm"
+        color="primary"
+        icon="edit"
+        round
+        v-show="showUpdateUnit"
+        @click.prevent="this.$emit('popup-update-sn')"
+      />
+      <q-btn
+        class="view-unit"
+        size="sm"
+        color="yellow-5"
+        icon="visibility"
+        round
+        v-show="showViewUnit"
+        @click.prevent="this.$emit('popup-view-sn')"
+      />
+    </div>
   </div>
 </template>
 <script>
@@ -125,7 +124,7 @@ export default {
         this.withClient = false;
       }
     },
-    handleClickOnRemoveUnit(){
+    handleClickOnRemoveUnit() {
       this.$q
         .dialog({
           title: "Remove Device",
@@ -134,13 +133,13 @@ export default {
           persistent: true,
         })
         .onOk(() => {
-          this.$emit('popup-remove-sn')
+          this.$emit("popup-remove-sn");
         });
-    }
+    },
   },
 };
 </script>
-<style>
+<style lang="scss" scoped>
 .popup-button-group {
   position: absolute;
   height: max-content;
