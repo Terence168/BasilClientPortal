@@ -378,10 +378,10 @@ export default {
       "removeSerial",
     ]),
     downloadBlankTemplate(){
-      window.open('../public/blankFile.xlsx', '_self');
+      window.open('/blankFile.xlsx', '_self');
     },
     downloadSampleFile(){
-      window.open('../public/sampleFile.xlsx', '_self');
+      window.open('/sampleFile.xlsx', '_self');
     },
     onFileSubmit(e) {
       if (!this.file) {
