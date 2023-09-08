@@ -210,11 +210,6 @@
         />&nbsp;No&nbsp;
       </div>
     </div>
-    <!-- <div class="row justify-end">
-        <div class="col-auto" @click="resetTicket">
-            <q-btn color="red">Refresh Data</q-btn>
-        </div>
-    </div> -->
     <MessageBoard
       :ticketId="ticketId"
       :comments="comments"
@@ -315,6 +310,7 @@ export default {
             }
             if (comments != null) {
               this.comments = comments;
+              console.log(this.comments);
             }
             if (ack != null) {
               this.ticketInfo.acknowledged = ack;

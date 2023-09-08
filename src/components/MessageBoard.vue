@@ -9,20 +9,15 @@
             "
             style="border-style: solid; max-width: 100%"
           >
-            <q-item-section>
-              <q-item-label
-                class="text-weight-bold"
-                style="text-decoration-line: underline"
-                >{{ comment.responseBy }} :</q-item-label
-              >
-              <q-item-label caption lines="2" :id="`el${index}`">
-                <span v-html="comment.content"></span>
+            <q-item-section style="width: 90%">
+              <q-item-label class="row justify-between">
+                  <div class="col-auto text-weight-bold"
+                style="text-decoration-line: underline">{{ comment.responseBy }} :</div>
+                  <div class="col-auto text-weight-light text-caption" >{{this.getTimeAgo(comment.responseDate)}}</div>
               </q-item-label>
-            </q-item-section>
-            <q-item-section side top>
-              <q-item-label caption>{{
-                this.getTimeAgo(comment.responseDate)
-              }}</q-item-label>
+              <q-item-label lines="2">
+                <div v-html="comment.content" class="comment-box" ></div>
+              </q-item-label>
             </q-item-section>
           </q-item>
           <q-separator spaced inset></q-separator>
@@ -141,4 +136,9 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.comment-box {
+        white-space: normal;
+        overflow-y: auto; /* Hide overflowing text */
+    }
+</style>
