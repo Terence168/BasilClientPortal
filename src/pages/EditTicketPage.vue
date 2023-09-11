@@ -180,7 +180,7 @@
             style="min-width: 200px"
             :loading="ticketEditing"
           >
-            Submit
+            Submit Ticket
           </q-btn>
         </div>
       </div>

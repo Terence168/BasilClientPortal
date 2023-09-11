@@ -38,7 +38,7 @@
           send: {
             tip: 'reply',
             icon: 'reply',
-            label: 'send',
+            label: 'Send Comments',
             handler: handleSendComment,
           },
         }"
