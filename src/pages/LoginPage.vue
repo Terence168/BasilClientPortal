@@ -1,12 +1,8 @@
 <template>
-  <div style="background-color: #e5f5fd; width: 100vw; height: 100vh">
-    <q-img
-      class="float-left"
-      src="~assets/login_background.png"
-      style="width: calc(100% - 600px); height: 100vh"
-    />
+  <div class="main-container">
+    <q-img class="login-background" src="~assets/login_background.png" />
 
-    <div class="login-container float-right">
+    <div class="login-container">
       <div class="column justify-center" style="height: 100vh">
         <div v-if="uat" class="col-auto self-center q-mb-md">
           <div class="text-h4 text-weight-bold text-center text-red">
@@ -144,10 +140,26 @@ const onSubmit = function () {
 </script>
 
 <style lang="sass" scoped>
-.login-container
-  width: 600px
+.main-container
+  position: relative
+  width: 100vw
   height: 100vh
-  border-radius: 50px 0 0 50px
-  padding: 0 110px
-  background-color: white
+
+  .login-background
+    position: absolute
+    top: 0
+    left: 0
+    z-index: -1
+    width: calc(100% - 550px)
+    height: 100vh
+
+  .login-container
+    position: absolute
+    top: 0
+    right: 0
+    width: 600px
+    height: 100vh
+    border-radius: 50px 0 0 50px
+    padding: 0 110px
+    background-color: white
 </style>

@@ -122,8 +122,14 @@
             </q-select>
           </div>
         </div>
+
         <div class="q-my-sm">Shipping Address:</div>
-        <AddressBlock :address="address" @click="showAddressGrid" />
+        <div class="row">
+          <div class="col-auto">
+            <AddressBlock :address="address" @click="showAddressGrid" />
+          </div>
+        </div>
+
         <!-- tracking number section -->
         <div class="row q-my-sm items-center">
           <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
