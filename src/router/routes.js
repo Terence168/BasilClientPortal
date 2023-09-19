@@ -135,6 +135,45 @@ const routes = [
           }
         ],
       },
+      {
+        path: "/account",
+        name: "account",
+        component: () => import("pages/account/AccountPage.vue"),
+        meta: {
+          requiresAuth: true,
+          permissions: ["account"],
+        },
+        children: [
+          {
+            path: "/customer",
+            name: "customer",
+            component: () => import("pages/account/CustomerPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["account.customer"],
+            },
+          },
+
+          {
+            path: "/notification",
+            name: "notification",
+            component: () => import("pages/account/NotificationPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["account.notification"],
+            },
+          },
+          {
+            path: "/account-set",
+            name: "account-set",
+            component: () => import("pages/account/AccountSetPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["account.account"],
+            },
+          },
+        ],
+      },
     ],
   },
 

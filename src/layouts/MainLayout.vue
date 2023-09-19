@@ -17,6 +17,10 @@
             name="privilege"
             label="Privilege"
           />
+          <q-tab
+            name="Account"
+            label="Account"
+          />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
           <div class="row">
@@ -165,6 +169,7 @@
 import RMAStatusSubMenu from "src/components/RMAStatusSubMenu.vue";
 import TicketingSubMenu from "src/components/TicketingSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
+import AccountSubMenu from "src/components/AccountSubMenu.vue";
 import BaseModal from "src/components/BaseModal.vue";
 
 import { format } from "quasar";
@@ -184,6 +189,7 @@ export default {
     RMAStatusSubMenu,
     TicketingSubMenu,
     PrivilegeSubMenu,
+    AccountSubMenu,
     BaseModal,
   },
 
@@ -201,6 +207,7 @@ export default {
 
   computed: {
     activeSubMenu() {
+      console.log(capitalize(this.tab) + "SubMenu");
       return capitalize(this.tab) + "SubMenu";
     },
     userName() {
