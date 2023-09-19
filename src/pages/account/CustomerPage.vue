@@ -6,16 +6,29 @@
       </div>
       <q-separator />
       <div class="q-px-lg q-py-md">
-        <div class="row text-subtitle1 text-weight-medium q-pb-xs">
-          Company Information:
+        <div class="row">
+          <div class="col">
+            <div class="row text-subtitle1 text-weight-medium q-pb-xs">
+              Company Information:
+            </div>
+            <div class="rows q-pl-md">
+              <div class="row q-pb-xs">Company Name : {{ company.name }}</div>
+              <div class="row q-pb-xs">Company Type : {{ company.type }}</div>
+              <div class="row q-pb-xs">Phone : {{ company.phone }}</div>
+              <div class="row q-pb-xs">Tax Status : {{ company.tax }}</div>
+              <div class="row q-pb-xs">Status : {{ company.status }}</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="q-my-sm">Default Shipping Address:</div>
+            <div class="row">
+          <div class="col-auto">
+            <AddressBlock :address="defaultAddress" @click="showAddressGrid" />
+          </div>
         </div>
-        <div class="rows q-pl-md">
-          <div class="row q-pb-xs">Company Name : {{ company.name }}</div>
-          <div class="row q-pb-xs">Company Type : {{ company.type }}</div>
-          <div class="row q-pb-xs">Phone : {{ company.phone }}</div>
-          <div class="row q-pb-xs">Tax Status : {{ company.tax }}</div>
-          <div class="row q-pb-xs">Status : {{ company.status }}</div>
+          </div>
         </div>
+
         <div class="row text-subtitle1 text-weight-medium q-pb-xs">
           Billing Address:
         </div>
@@ -37,7 +50,13 @@
           </div>
         </div>
         <div class="row justify-center q-py-sm">
-          <q-btn class="col-auto" color="primary" @click="edit" style="min-width: 200px">Edit </q-btn>
+          <q-btn
+            class="col-auto"
+            color="primary"
+            @click="edit"
+            style="min-width: 200px"
+            >Edit
+          </q-btn>
         </div>
       </div>
     </div>
@@ -183,15 +202,27 @@
         </div>
       </q-form>
     </BaseModal>
+    <BaseModal
+      :show="showAddressModal"
+      title="Select Shipping Address"
+      :width="972"
+      @update:show="showAddressModal = false"
+    >
+      <AddressGrid @selectShippingAddress="selectShippingAddress" />
+    </BaseModal>
   </div>
 </template>
 
 <script>
 import BaseModal from "src/components/BaseModal.vue";
+import AddressBlock from "src/components/AddressBlock.vue";
+import AddressGrid from "src/components/AddressGrid.vue";
 
 export default {
   components: {
     BaseModal,
+    AddressBlock,
+    AddressGrid,
   },
 
   data: () => {
@@ -212,13 +243,22 @@ export default {
         state: "FL",
         zipCode: "32224",
       },
-      copiedCompany : null,
-      copiedAddress : null,
+      copiedCompany: null,
+      copiedAddress: null,
       withClient: false,
       updating: false,
+      showAddressModal: false,
+      defaultAddress: null,
     };
   },
   methods: {
+    selectShippingAddress(address) {
+      this.defaultAddress = address;
+      this.showAddressModal = false;
+    },
+    showAddressGrid() {
+      this.showAddressModal = true;
+    },
     edit() {
       let companyDeepCopy = JSON.parse(JSON.stringify(this.company));
       let addressDeepCopy = JSON.parse(JSON.stringify(this.address));
@@ -244,13 +284,13 @@ export default {
 
       this.withClient = false;
     },
-    update(){
+    update() {
       const updatedCompany = this.copiedCompany;
       const updatedAddress = this.copiedAddress;
 
       this.resetModal();
       //call backend api to update it
-    }
+    },
   },
 };
 </script>
