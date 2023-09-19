@@ -37,7 +37,7 @@
               v-model="user.password"
               filled
               :type="isPwd1 ? 'password' : 'text'"
-              label="Current Email"
+              label="Current Password"
               readonly
             >
               <template v-slot:prepend>
@@ -126,7 +126,17 @@ export default {
   },
   methods: {
     save(){
-
+        const payload = {email : this.newEmail, password: this.newPassword};
+        if(this.group.includes("report")){
+            payload.repair = true;
+        }
+        if(this.group.includes("contact")){
+            payload.contact = true;
+        }
+        if(this.group.includes("invoice")){
+            payload.invoice = true;
+        }
+        console.log(payload);
     }
   },
 };

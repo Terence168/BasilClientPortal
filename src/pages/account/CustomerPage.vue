@@ -37,7 +37,7 @@
           </div>
         </div>
         <div class="row justify-center q-py-sm">
-          <q-btn class="col-auto" color="primary" @click="edit">Edit </q-btn>
+          <q-btn class="col-auto" color="primary" @click="edit" style="min-width: 200px">Edit </q-btn>
         </div>
       </div>
     </div>
