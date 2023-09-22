@@ -100,7 +100,8 @@
               class="col-12 col-sm-6"
               :nodes="permissions"
               node-key="id"
-              tick-strategy="ticked"
+              tick-strategy="leaf"
+              v-model:ticked="ticked"
             />
           </div>
         </div>
@@ -185,7 +186,9 @@ import { useUserStore } from "stores/user";
 
 export default {
   components: { RoleCard, BaseModal },
+  mounted(){
 
+  },
   data() {
     return {
       showModal: false,
@@ -289,15 +292,27 @@ export default {
     },
 
     updateData(id) {
+      this.setAllUnselectable(this.permissions, true);
       this.modalFormOptions.action = "Update";
       this.populateFields(id);
     },
 
     viewData(id) {
+      this.setAllUnselectable(this.permissions, false);
       this.modalFormOptions.action = "View";
       this.populateFields(id);
     },
 
+    setAllUnselectable(permissions, flag){
+      if(permissions == null || permissions.length == 0){
+        return;
+      }
+      permissions.forEach((node) => {
+        node.selectable = flag;
+        node.tickable = flag;
+        this.setAllUnselectable(node.children);
+      })
+    },
     onSubmit(id) {
       if (this.modalFormOptions.action === "View") return;
 
@@ -325,6 +340,7 @@ export default {
     },
 
     addData() {
+      this.setAllUnselectable(this.permissions, true);
       this.modalFormOptions.action = "Add";
       this.modalFormOptions.id = null;
 
