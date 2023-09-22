@@ -51,6 +51,7 @@
           <q-separator />
           <div class="row justify-end q-mt-md">
             <q-btn
+              v-if="checkPermission('privilege.role.add')"
               icon="add"
               label="Add"
               color="primary"
@@ -288,6 +289,11 @@ export default {
   },
 
   methods: {
+    methods: {
+      checkPermission(permission) {
+        return useUserStore().checkPermission(permission);
+      },
+    },
     queryData() {
       const vm = this;
 

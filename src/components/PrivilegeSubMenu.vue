@@ -3,7 +3,7 @@
     <div class="q-ml-md q-mb-sm section-title">Privilege Settings</div>
 
     <q-item
-      v-if="checkPermission('privilege.role-type')"
+      v-if="checkPermission('privilege.role-type.view')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'role-type' }"
@@ -16,7 +16,7 @@
     </q-item>
 
     <q-item
-      v-if="checkPermission('privilege.role')"
+      v-if="checkPermission('privilege.role.view')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'role' }"
@@ -29,6 +29,7 @@
     </q-item>
 
     <q-item
+     v-if="checkPermission('privilege.user.view')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'user' }"

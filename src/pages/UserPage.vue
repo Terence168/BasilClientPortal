@@ -82,6 +82,7 @@
           <div class="row justify-center">
             <GenericTable
               @update-data="updateData"
+              @view-data="viewData"
               style="width: 1000px"
               :tableData="tableData"
             />
@@ -233,7 +234,11 @@ const user = useUserStore();
 
 export default {
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
-
+  mounted(){
+    if(!this.checkPermission("privilege.user.update")){
+      this.modalFormOptions.action = "View";
+    }
+  },
   data() {
     return {
       showModal: false,
@@ -285,7 +290,6 @@ export default {
       total: 0,
     };
   },
-
   computed: {
     totalPages() {
       const perPage = this.$route.query.per_page || 10;
@@ -311,7 +315,7 @@ export default {
     },
   },
 
-  methods: {
+  methods: {   
     queryData() {
       const vm = this;
 
@@ -358,10 +362,13 @@ export default {
 
     updateData(id) {
       this.modalFormOptions.action = "Update";
-
       this.populateFields(id);
     },
-
+    viewData(id) {
+      console.log("view", id);
+      this.modalFormOptions.action = "View";
+      this.populateFields(id);
+    },
     onSubmit(id) {
       if (this.modalFormOptions.action === "View") return;
 

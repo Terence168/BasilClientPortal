@@ -39,7 +39,19 @@
       </q-item>
     </q-list>
   </template>
-  
-  <script setup>
+
+
+<script>
+import { useUserStore } from "src/stores/user";
+
+export default {
+  name: "PrivilegeSubMenu",
+
+  methods: {
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
+    },
+  },
+};
 </script>
   

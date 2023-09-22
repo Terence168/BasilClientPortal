@@ -3,6 +3,7 @@
     <div class="q-ml-md q-mb-sm section-title">Ticket Status Options</div>
 
     <q-item
+      v-if="checkPermission('status')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'status' }"
@@ -15,6 +16,7 @@
     </q-item>
 
     <q-item
+      v-if="checkPermission('shipping')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'shipping' }"
@@ -27,6 +29,7 @@
     </q-item>
 
     <q-item
+      v-if="checkPermission('quarantine')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'quarantine' }"
@@ -40,4 +43,15 @@
   </q-list>
 </template>
 
-<script setup></script>
+<script>
+import { useUserStore } from "src/stores/user";
+
+export default {
+
+  methods: {
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
+    },
+  },
+};
+</script>

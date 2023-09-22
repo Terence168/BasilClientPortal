@@ -19,6 +19,7 @@
           Click on a column to sort the content of the table
           <q-space />
           <q-btn
+            v-if="checkPermission('privilege.role-type.add')"
             icon="add"
             label="Add"
             color="primary"
@@ -98,7 +99,18 @@ import { useUserStore } from "stores/user";
 
 export default {
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
-
+  mounted(){
+    if(this.checkPermission("privilege.role-type.update")){
+      this.tableData.columns= [
+          { id: "roleType", label: "Role Type", sortable: true },
+          { id: "actions", label: "Actions", sortable: false },
+        ];
+    }
+    else{
+      this.tableData.columns=[
+          { id: "roleType", label: "Role Type", sortable: true }];
+    }
+  },
   data() {
     return {
       showModal: false,

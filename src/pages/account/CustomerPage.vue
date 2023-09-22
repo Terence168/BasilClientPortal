@@ -28,7 +28,6 @@
         </div>
           </div>
         </div>
-
         <div class="row text-subtitle1 text-weight-medium q-pb-xs">
           Billing Address:
         </div>
@@ -51,12 +50,13 @@
         </div>
         <div class="row justify-center q-py-sm">
           <q-btn
+            v-if="checkPermission('customer.info.update')"
             class="col-auto"
             color="primary"
             @click="edit"
             style="min-width: 200px"
-            >Edit
-          </q-btn>
+            label="Edit"
+            />
         </div>
       </div>
     </div>
@@ -217,6 +217,7 @@
 import BaseModal from "src/components/BaseModal.vue";
 import AddressBlock from "src/components/AddressBlock.vue";
 import AddressGrid from "src/components/AddressGrid.vue";
+import { useUserStore } from "stores/user";
 
 export default {
   components: {
@@ -224,7 +225,6 @@ export default {
     AddressBlock,
     AddressGrid,
   },
-
   data: () => {
     return {
       company: {
@@ -252,6 +252,9 @@ export default {
     };
   },
   methods: {
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
+    },
     selectShippingAddress(address) {
       this.defaultAddress = address;
       this.showAddressModal = false;

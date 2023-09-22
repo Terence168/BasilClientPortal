@@ -16,6 +16,7 @@
         <div class="row items-center q-mb-sm">
           <div class="col-auto q-table__title q-mr-xs">{{ title }}</div>
           <q-btn
+           v-if="checkPermission('privilege.role.update')"
             flat
             round
             color="primary"
@@ -55,6 +56,7 @@
 </template>
 
 <script>
+import { useUserStore } from "stores/user";
 export default {
   name: "RoleCard",
 
@@ -98,14 +100,6 @@ export default {
         },
       ],
 
-      // users: [
-      //   { id: 1, userName: "John Doe", email: "aaa@gmail.com" },
-      //   { id: 2, userName: "John Doe Jr.", email: "bbb@gmail.com" },
-      //   { id: 3, userName: "Jane Doe", email: "ccc@gmail.com" },
-      //   { id: 4, userName: "Will Smith", email: "ddd@gmail.com" },
-      //   { id: 5, userName: "Michael Bates", email: "eee@gmail.com" },
-      //   { id: 6, userName: "Mark Bowman", email: "ggg@gmail.com" }
-      // ]
     };
   },
 
@@ -116,6 +110,9 @@ export default {
   },
 
   methods: {
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
+    },
     updateUserNumber() {
       this.$nextTick(function () {
         this.filteredUserNumber =

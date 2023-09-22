@@ -75,7 +75,7 @@
             </q-input>
           </div>
         </div>
-        <div class="text-subtitle1 text-weight-medium q-pt-sm">Access Level:</div>
+        <!-- <div class="text-subtitle1 text-weight-medium q-pt-sm">Access Level:</div>
         <div class="q-pa-xs">
             <q-option-group
             :options="options"
@@ -83,7 +83,7 @@
             type="checkbox"
             v-model="group"
             ></q-option-group>
-        </div>
+        </div> -->
       </div>
 
       <div class="row justify-center q-pb-sm ">
