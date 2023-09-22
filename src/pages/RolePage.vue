@@ -100,8 +100,7 @@
               class="col-12 col-sm-6"
               :nodes="permissions"
               node-key="id"
-              tick-strategy="leaf"
-              v-model:ticked="ticked"
+              tick-strategy="ticked"
             />
           </div>
         </div>
@@ -144,6 +143,7 @@
         <div class="generic-container">
           <RoleCard
             @update-data="updateData"
+            @view-data="viewData"
             :id="role.id"
             :title="role.name"
             :role="kebabRole(role.name)"
@@ -208,62 +208,7 @@ export default {
         sparePartsClerk: 3,
       },
 
-      permissions: [
-        // {
-        //   id: 0,
-        //   label: "All Permissions",
-        //   children: [
-        //     {
-        //       id: 1,
-        //       label: "User Control Access",
-        //       children: [
-        //         {
-        //           id: 2,
-        //           label: "Role Type List",
-        //           children: [
-        //             {
-        //               id: 5,
-        //               label: "Add - Role Type",
-        //             },
-        //             {
-        //               id: 6,
-        //               label: "Update - Role Type",
-        //             },
-        //           ],
-        //         },
-        //         {
-        //           id: 3,
-        //           label: "Role List",
-        //           children: [
-        //             {
-        //               id: 7,
-        //               label: "Add - Role",
-        //             },
-        //             {
-        //               id: 8,
-        //               label: "Update - Role",
-        //             },
-        //           ],
-        //         },
-        //         {
-        //           id: 4,
-        //           label: "User List",
-        //           children: [
-        //             {
-        //               id: 9,
-        //               label: "Add - User",
-        //             },
-        //             {
-        //               id: 10,
-        //               label: "Update - User",
-        //             },
-        //           ],
-        //         },
-        //       ],
-        //     },
-        //   ],
-        // },
-      ],
+      permissions: [],
 
       ticked: [],
 
@@ -272,7 +217,6 @@ export default {
       roleTypes: [],
     };
   },
-
   created() {
     this.queryData();
 
@@ -346,7 +290,11 @@ export default {
 
     updateData(id) {
       this.modalFormOptions.action = "Update";
+      this.populateFields(id);
+    },
 
+    viewData(id) {
+      this.modalFormOptions.action = "View";
       this.populateFields(id);
     },
 

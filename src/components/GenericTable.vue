@@ -70,16 +70,16 @@
             </span>
 
             <span v-if="column.id === 'userActions'">
-              <q-btn 
-                v-if="!checkPermission('privilege.user.update')" 
+              <q-btn
+                v-if="!checkPermission('privilege.user.update')"
                 flat
                 round
                 color="grey-6"
                 icon="manage_accounts"
-                @click="$emit('view-data'), row.id">
-              </q-btn>
+                @click="$emit('view-data', row.id)"
+              ></q-btn>
               <q-btn
-               v-if="checkPermission('privilege.user.update')" 
+               v-if="checkPermission('privilege.user.update')"
                 flat
                 round
                 color="grey-6"
@@ -218,9 +218,6 @@ export default {
   },
 
   methods: {
-    checkPermission(permission) {
-      return useUserStore().checkPermission(permission);
-    },
     sortField(id) {
       if (!this.tableData.columns.find((row) => id === row.id).sortable) return;
 
@@ -276,6 +273,9 @@ export default {
 
     editTicket(id) {
       this.$router.push({ name: "edit-ticket", params: { ticketId: id } });
+    },
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
     },
   },
 };

@@ -158,7 +158,7 @@
           </template>
         </q-select>
 
-        <div class="q-mb-sm text-weight-bold">Assign Roles</div>
+        <div class="q-mb-sm text-weight-bold">{{modalFormOptions.action === 'View'? 'Roles': 'Assign Roles'}}</div>
 
         <div class="q-mb-sm">
           <q-list bordered class="rounded-borders">
@@ -181,6 +181,7 @@
                       v-model="rolesSelected"
                       :val="role.id"
                       :label="role.roleName"
+                      :disable="modalFormOptions.action === 'View'"
                     />
                   </div>
                 </q-card-section>
@@ -365,7 +366,6 @@ export default {
       this.populateFields(id);
     },
     viewData(id) {
-      console.log("view", id);
       this.modalFormOptions.action = "View";
       this.populateFields(id);
     },
