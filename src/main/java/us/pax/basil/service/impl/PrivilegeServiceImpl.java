@@ -425,16 +425,24 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         try {
             List<Map<String, Object>> privileges = privilegeMapper.queryAllPrivileges();
             Privilege privilege_root = new Privilege(0, "All Permissions", null);
+            Map<Integer, Privilege> privilegeMap = new HashMap<>();
+            privilegeMap.put(0, privilege_root);
+            for (Map<String, Object> privilege : privileges) {
+                int id = (int) privilege.get("P_OID");
+                String name = (String) privilege.get("NAME");
+                Privilege privilegeCurr = new Privilege(id, name, null);
+                privilegeMap.put(id, privilegeCurr);
+            }
+
             for (Map<String, Object> privilege : privileges) {
                 int id = (int) privilege.get("P_OID");
                 int parentId = (int) privilege.get("PARENT_OID");
-                String name = (String) privilege.get("NAME");
-                Privilege privilege_child = new Privilege(id, name, null);
-                Privilege privilege_parent = privilege_root.findPrivilege(parentId);
-                if (privilege_parent != null) {
-                    privilege_parent.addChild(privilege_child);
-                }
+                Privilege privilege_parent = privilegeMap.get(parentId);
+                Privilege privilege_child = privilegeMap.get(id);
+                assert privilege_parent != null;
+                privilege_parent.addChild(privilege_child);
             }
+
             returnArray.add(privilege_root.toMap());
             return new QueryResultArrayDTO(returnArray, privileges.size(), 0, "");
         } catch (Exception e) {
@@ -451,22 +459,29 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             CustomUserDetails user = AuthUtil.getUser();
             Privilege privilege_root = new Privilege(0, "All Permissions", null);
             int cnt = 1;
+            Map<Integer, Privilege> privilegeMap = new HashMap<>();
+            privilegeMap.put(0, privilege_root);
+            for (Map<String, Object> privilege : privileges) {
+                int id = (int) privilege.get("P_OID");
+                String name = (String) privilege.get("NAME");
+                Privilege privilegeCurr = new Privilege(id, name, null);
+                privilegeMap.put(id, privilegeCurr);
+            }
+
             for (Map<String, Object> privilege : privileges) {
                 int id = (int) privilege.get("P_OID");
                 int parentId = (int) privilege.get("PARENT_OID");
-                String name = (String) privilege.get("NAME");
+                Privilege privilege_parent = privilegeMap.get(parentId);
+                Privilege privilege_child = privilegeMap.get(id);
                 int access_control = (int) privilege.get("ACCESS_CONTROL");
-                Privilege privilege_child = new Privilege(id, name, null);
-                Privilege privilege_parent = privilege_root.findPrivilege(parentId);
-                if (privilege_parent != null) {
-                    assert user != null;
-                    if ((access_control & 1) != 0 && user.isClientUser()) {
-                        privilege_parent.addChild(privilege_child);
-                        ++cnt;
-                    } else if ((access_control & 2) != 0 && !user.isClientUser()) {
-                        privilege_parent.addChild(privilege_child);
-                        ++cnt;
-                    }
+                assert privilege_parent != null;
+                assert user != null;
+                if ((access_control & 1) != 0 && user.isClientUser()) {
+                    privilege_parent.addChild(privilege_child);
+                    ++cnt;
+                } else if ((access_control & 2) != 0 && !user.isClientUser()) {
+                    privilege_parent.addChild(privilege_child);
+                    ++cnt;
                 }
             }
             returnArray.add(privilege_root.toMap());
