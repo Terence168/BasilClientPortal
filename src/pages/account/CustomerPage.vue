@@ -218,6 +218,8 @@ import BaseModal from "src/components/BaseModal.vue";
 import AddressBlock from "src/components/AddressBlock.vue";
 import AddressGrid from "src/components/AddressGrid.vue";
 import { useUserStore } from "stores/user";
+import { api } from "src/boot/axios";
+import { Notify } from "quasar";
 
 export default {
   components: {
@@ -228,6 +230,7 @@ export default {
   data: () => {
     return {
       company: {
+        id:null,
         name: "test name",
         type: "corpoate",
         phone: "111-111-1111",
@@ -242,6 +245,7 @@ export default {
         city: "Jacksonville",
         state: "FL",
         zipCode: "32224",
+        country:"USA"
       },
       copiedCompany: null,
       copiedAddress: null,
@@ -251,7 +255,52 @@ export default {
       defaultAddress: null,
     };
   },
+  created(){
+    this.queryData();
+  },
+  watch: {
+    $route(newRoute, oldRoute) {
+      if (newRoute.path === oldRoute.path) {
+        this.queryData();
+      }
+    },
+  },
   methods: {
+    queryData(){
+      //get company info. default shipping address, billing address from backend
+      const actionURL = "/privilege/company"
+      api.get(actionURL).then(function (response) {
+          if (response.data.resultCode === 0) {
+            const jsonObject = response.data.data;
+            const company = {
+              id: jsonObject.id,
+              name: jsonObject.customerName,
+              type: "corporate", // You can set this as needed
+              phone: jsonObject.contactPhone,
+              tax: "tax1", // You can set this as needed
+              status: "activate", // You can set this as needed
+            };
+
+            const address = {
+              attentionTo: jsonObject.contactName,
+              shipToCompany: jsonObject.customerName, // You can set this as needed
+              address: jsonObject.address1,
+              address2: jsonObject.address2 || "", // Set to an empty string if null
+              city: jsonObject.city,
+              state: jsonObject.state,
+              zipCode: jsonObject.zip,
+            };
+            this.company = company;
+            this.address = address;
+          } else {
+            Notify.create({
+              type: "negative",
+              message: response.data.errorMessage,
+            });
+          }
+      })
+    },
+    
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);
     },
@@ -284,13 +333,38 @@ export default {
       this.copiedAddress.city = null;
       this.copiedAddress.state = null;
       this.copiedAddress.zipCode = null;
+      this.copiedAddress.country = null;
 
       this.withClient = false;
     },
     update() {
-      const updatedCompany = this.copiedCompany;
-      const updatedAddress = this.copiedAddress;
-
+      const company = this.copiedCompany;
+      const address = this.copiedAddress;
+      const jsonObject = {
+        id: company.id, // You can set this to null if you don't have an ID yet
+        customerName: company.name,
+        contactPhone: company.phone,
+        // type:company.type,
+        // tax:company.tax,
+        // status:company.status,
+        address1: address.address,
+        address2: address.address2 || null, // Set to null if it's an empty string
+        city: address.city,
+        state: address.state,
+        zip: address.zipCode,
+        country: address.country, // You can set the country field as needed
+        contactName: address.attentionTo,
+      };
+      const actionURL = "/privilege/company"
+      api.put(actionURL, jsonObject).then(function (response){
+        if (response.data.resultCode != 0) {
+            Notify.create({
+              type: "negative",
+              message: response.data.errorMessage,
+            });
+          }
+      })
+      
       this.resetModal();
       //call backend api to update it
     },

@@ -438,10 +438,10 @@ export default {
       if (payload.orderType === 3 || payload.orderType === 7) {
         payload.originalRMA = null;
       }
-      const actionURL = "/ticketing/editTicket/" + this.ticketId;
+      const actionURL = "/ticketing/" + this.ticketId;
 
       api
-        .post(actionURL, payload, {
+        .put(actionURL, payload, {
           headers: {
             "Content-Type": "application/json",
           },

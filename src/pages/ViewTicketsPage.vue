@@ -55,6 +55,7 @@ import { useUserStore } from "stores/user";
 
 import { exportFile, date } from "quasar";
 
+
 export default {
   components: { FilterOptions, GenericTable, GenericPagination },
   data() {
