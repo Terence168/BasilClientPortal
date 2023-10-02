@@ -33,13 +33,16 @@ public class Customer{
 
     private Long id;
     private String customerName;
+    private String contactName;
+
     private String address1;
     private String address2;
     private String city;
+
     private String state;
     private String zip;
     private String country;
-    private String contactName;
+
     private String contactPhone;
     private String storeNumber;
     private Integer clientGroup;

@@ -23,6 +23,7 @@ import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PasswordConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Company;
@@ -359,4 +360,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
 	}
+
+    @Override
+    public QueryResultDTO updateUserInfo(String newPassword, String newEmail) {
+        try {
+
+            User userAccount = userMapper.getUserByEmail(newEmail);
+
+            if (userAccount != null) {
+                return new QueryResultDTO(null, -300, "Email already exists");
+            }
+
+            CustomUserDetails userDetails = AuthUtil.getUser();
+            User user = userMapper.getUserById(userDetails.getUserId());
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setEmail(newEmail);
+
+
+
+            return new QueryResultDTO(null, 0,  "");
+        }catch(Exception e) {
+            return new QueryResultDTO(null, 0, e.getMessage());
+        }
+    }
 }

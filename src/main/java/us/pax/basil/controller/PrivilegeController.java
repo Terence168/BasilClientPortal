@@ -20,18 +20,15 @@ import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.Api;
 import us.pax.basil.constant.PrivilegeConstant;
 import us.pax.basil.constant.SupportAttributeConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.privilege.PasswordChange;
 import us.pax.basil.entity.privilege.Role;
 import us.pax.basil.entity.privilege.RoleType;
@@ -206,21 +203,15 @@ public class PrivilegeController {
         return supportAttributeService.getDropDown(SupportAttributeConstant.EMPLOYEE_MASTER_STATUS);
     }
 
-    @PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
-    @GetMapping("/division/drop-down")
-    public QueryResultArrayDTO divisionDropDown() {
-        return supportAttributeService.getDropDown(SupportAttributeConstant.EMPLOYEE_MASTER_DIVISION);
+
+    @PreAuthorize("hasAuthority('customer.info.update')")
+    @PutMapping("/company")
+    public QueryResultDTO updateCompany(@RequestBody Customer customer){
+        return privilegeService.updateCustomer(customer);
     }
 
-    @PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
-    @GetMapping("/title/drop-down")
-    public QueryResultArrayDTO titleDropDown() {
-        return supportAttributeService.getDropDown(SupportAttributeConstant.EMPLOYEE_MASTER_TITLE);
-    }
-
-    @PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
-    @GetMapping("/company/drop-down")
-    public QueryResultArrayDTO companyDropDown() {
-        return supportAttributeService.getCompanyInfo();
+    @GetMapping("/company")
+    public QueryResultDTO getCompany(){
+        return privilegeService.getCustomer();
     }
 }

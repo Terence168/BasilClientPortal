@@ -18,6 +18,7 @@ package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 
@@ -51,5 +52,6 @@ public interface UserService extends IService<User> {
 
     QueryResultArrayDTO viewQuery (HttpServletRequest request);
     QueryResultArrayDTO queryCompany(String name);
+    QueryResultDTO updateUserInfo(String newPassword, String newEmail);
 
 }

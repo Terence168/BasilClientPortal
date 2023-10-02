@@ -64,6 +64,7 @@ public class RmaController {
         return rmaService.statusQuery(currentPage, sizePerPage, sortColumns, rmaNumber, serialNumber, partNumber);
     }
     
+
     @PreAuthorize("hasAuthority('status')")
     @GetMapping("/status/tier1")
     public QueryResultArrayDTO statusTier1(@RequestParam(value = "partNumber", required = false) String partNumber,

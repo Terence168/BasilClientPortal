@@ -18,16 +18,22 @@ package us.pax.basil.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.xalan.lib.sql.ObjectArray;
+import software.amazon.awssdk.services.ses.endpoints.internal.Value;
 import us.pax.basil.constant.ClientGroupConstant;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PrivilegeConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Company;
+import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.privilege.*;
 import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.RoleEntityMapper;
@@ -72,6 +78,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     @Autowired(required=false)
     RoleEntityMapper roleMapper;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
     //
     // Add() - Add customer information parameters passed in.
     //
@@ -371,6 +378,9 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             if (user.getStandardUser() == null)
             	user.setStandardUser(0);
 
+            if(user.getId() == null){
+                user.setId(currentUser.getUserId());
+            }
             userMapper.updateUser(user);
 
             privilegeMapper.deleteUserRoles(user.getId());
@@ -473,6 +483,32 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             return new QueryResultArrayDTO(returnArray, cnt, 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultDTO updateCustomer(Customer customer) {
+        try{
+            privilegeMapper.updateCustomer(customer);
+            return new QueryResultDTO(null, 0,  "");
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1,  e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultDTO getCustomer() {
+        try{
+            CustomUserDetails userDetails = AuthUtil.getUser();
+            Integer id = userDetails.getCompanyId();
+            Customer customer = privilegeMapper.getCustomer(id);
+            Map<String, Object> map = null;
+            if(customer != null){
+                map = objectMapper.convertValue(customer, Map.class);
+            }
+            return new QueryResultDTO(map, 0,  "");
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1,  e.getMessage());
         }
     }
 }

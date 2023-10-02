@@ -39,41 +39,61 @@ public class TicketController {
     @Autowired
     private TicketService ticketService;
     private EntityManager entityManager;
-    @GetMapping("/serialNumberUpdate")//BCP-25
+
     //search serial number and return device information and repair price.
+    @PreAuthorize("hasAnyAuthority('ticketing.add', 'ticketing.edit')")
+    @GetMapping("/serialNumberUpdate")//BCP-25
     public QueryResultArrayDTO serialNumberUpdate(@RequestParam(value = "serialNumber", required = true) String serialNumber){
         return ticketService.serialNumberQuery(serialNumber);
     }
-    @PostMapping("/batchSerialNumberQuery")//BCP-25
     //upload Excel file, process serial number by batch processing.
+    @PreAuthorize("hasAnyAuthority('ticketing.add', 'ticketing.edit')")
+    @PostMapping("/batchSerialNumberQuery")
     public QueryResultArrayDTO batchSerialNumberUpload(@RequestParam("file") MultipartFile file,
                                                        @RequestParam("fileName") String fileName
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25viewEditTicket?id=189
     //submit the ticket
+    @PreAuthorize("hasAuthority('ticketing.add')")
+    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25viewEditTicket?id=189
     public QueryResultDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
         return ticketService.submitTicket(ticketInsertion);
     }
 
-    //get ticket
+    /**
+     * Need to check if they user's id == ticket's cmoid OR it's pax employee
+     * @param id MO OID
+     */
+    @PreAuthorize("hasAuthority('ticketing.view')")
     @GetMapping("/{ticketId}")
-    public QueryResultDTO viewEditTicket(@PathVariable(value = "ticketId", required = true) String id){
+    public QueryResultDTO viewTicket(@PathVariable(value = "ticketId", required = true) String id){
         return ticketService.viewEditTicket(id);
     }
 
-    @GetMapping("/viewDetails")//BCP-28 view details, id is xm_oid
+    /**
+     * BCP-28 view details, id is xm_oid
+     * Need to check if they user's id == ticket's cmoid OR it's pax employee
+     * */
+    @PreAuthorize("hasAuthority('ticketing.view')")
+    @GetMapping("/viewDetails")
     public QueryResultArrayDTO viewTicketDetails(@RequestParam(value = "id", required = true) Integer id){
         return ticketService.viewTicketDetails(id);
     }
 
-    @PostMapping("/editTicket/{ticketId}")
-    public QueryResultArrayDTO updateTicketDetails(@PathVariable("ticketId") String id, @RequestBody TicketEditDTO ticketEditDTO){
+    /**
+     * Edit ticket. Need to check if they user's cmid == ticket's cmoid or it's a pax Employee.
+     */
+    @PreAuthorize("hasAuthority('ticketing.edit')")
+    @PutMapping("/{ticketId}")
+    public QueryResultArrayDTO updateTicket(@PathVariable("ticketId") String id, @RequestBody TicketEditDTO ticketEditDTO){
         return ticketService.editTicket(id, ticketEditDTO);
     }
 
-    // bcp 26
+    /**
+     * View Ticket for customers. Only return tickets under user's company id
+     * */
+    @PreAuthorize("hasAuthority('ticketing.view')")
     @GetMapping("/viewTickets")
     public QueryResultArrayDTO viewTickets(@RequestParam(value = "page", required = false) Integer currentPage,
                                                        @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -100,6 +120,10 @@ public class TicketController {
         return ticketService.ticketQueryViews(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate,lastResponse, serialNumber,customerOrganization,customerId);
     }
 
+    /**
+     * Ticket queue for pax employee. Need to check if user is pax employee.
+     * */
+    @PreAuthorize("hasAuthority('ticketing.queue')")
     @GetMapping("/queue")
     public QueryResultArrayDTO status(@RequestParam(value = "page", required = false) Integer currentPage,
                                       @RequestParam(value = "per_page", required = false) Integer sizePerPage,
@@ -120,32 +144,49 @@ public class TicketController {
         if(null == sizePerPage){
             sizePerPage = 10;
         }
-
         return ticketService.ticketQuery(currentPage, sizePerPage, sortColumns, ticketId, department,responder, status, type, createdDate, serialNumber, customerId);
     }
 
+    /**
+     * Message board in edit ticket. both pax employee and user under this company can see it.
+     * */
+    @PreAuthorize("hasAuthority('ticketing.edit')")
     @GetMapping("/{ticketId}/response")
     public QueryResultArrayDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId) {
         return ticketService.getResponse(String.valueOf(ticketId));
     }
 
+    /**
+     * Message board in edit ticket. both pax employee and user under this company can see it.
+     * */
+    @PreAuthorize("hasAuthority('ticketing.edit')")
     @PostMapping("/{ticketId}/response")
-    public QueryResultDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId, @RequestBody TicketResponse response) {
+    public QueryResultDTO addResponsesForTicket(@PathVariable("ticketId") Long ticketId, @RequestBody TicketResponse response) {
         return ticketService.insertResponse(response);
     }
 
-    @PreAuthorize("hasAuthority('ticketing.edit.acknowledge')")
+    /**
+     * Message board in edit ticket. only pax employee can ack a ticket.
+     * */
+    @PreAuthorize("hasAuthority('ticketing.ack')")
     @PutMapping("/{ticketId}/acknowledged")
     public QueryResultDTO acknowledgeTicket(@PathVariable("ticketId")Long ticketId){
         return ticketService.ackTicket(ticketId);
     }
 
-
+    /**
+     * Message board in edit ticket. client and pax employee can unack a ticket.
+     * */
     @PutMapping("/{ticketId}/unacknowledged")
+    @PreAuthorize("hasAuthority('ticketing.unack')")
     public QueryResultDTO unacknowledgeTicket(@PathVariable("ticketId")Long ticketId){
         return ticketService.unAckTicket(ticketId);
     }
 
+    /**
+     * Message board in edit ticket. client and pax employee can get a ticket's ack status.
+     * */
+    @PreAuthorize("hasAuthority('ticketing.edit')")
     @GetMapping("/{ticketId}/acknowledged")
     public QueryResultDTO getTicketAckStatus(@PathVariable("ticketId")Long ticketId){
         return ticketService.getTicketAckStatus(ticketId);

@@ -7,6 +7,7 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.Response;
@@ -77,6 +78,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                                            String createdDate,
                                            String serialNumber,
                                            String customerId) {
+        CustomUserDetails user = AuthUtil.getUser();
+        assert user != null;
+
+        if (user.isClientUser()) {
+            return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the ticket");
+        }
         String[] createdDates;
         String createdFromDate = null;
         String createdToDate = null;
@@ -87,7 +94,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             createdToDate = createdDates[1];
         }
 
-        CustomUserDetails user = AuthUtil.getUser();
         String companyId = null;
 
         if (user != null) {
@@ -199,6 +205,10 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO viewTicketDetails(Integer id) {
+        String ticketId = String.valueOf(id);
+        if(!userHasAccess(ticketId)){
+            return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the ticket");
+        }
         try {
             ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
             List<RepairRecord> repairRecords = ticketMapper.getRepairDetail(id);
@@ -366,6 +376,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     public QueryResultDTO viewEditTicket(String id) {
+        if(!userHasAccess(id)){
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try {
             TicketInfo ticket = ticketMapper.existingMasterOrder(id); //existing check BASIL_ODS_PRD.XREF_MATERIALS\
             Integer companyId;
@@ -446,6 +459,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO getResponse(String id) {
+        if(!userHasAccess(id)){
+            return new QueryResultArrayDTO(null, 0,-1, "Don't have access to the ticket");
+        }
         try {
             ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
 
@@ -466,6 +482,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO) {
+        if(!userHasAccess(id)){
+            return new QueryResultArrayDTO(null, 0,-1, "Don't have access to the ticket");
+        }
         try {
             //update tracking number part
             if (ticketEditDTO.isFromMaster()) {
@@ -753,6 +772,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     public QueryResultDTO ackTicket(Long moOID){
+        CustomUserDetails user = AuthUtil.getUser();
+        assert user != null;
+
+        if (user.isClientUser()) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try{
             ticketMapper.ackMasterTicket(moOID);
             ticketMapper.ackPrepMasterTicket(moOID);
@@ -763,6 +788,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     public QueryResultDTO unAckTicket(Long moOID){
+        if(userHasAccess(String.valueOf(moOID))){
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try{
             ticketMapper.unAckMasterTicket(moOID);
             ticketMapper.unAckPrepMasterTicket(moOID);
@@ -774,6 +802,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultDTO getTicketAckStatus(Long moOID) {
+        if(userHasAccess(String.valueOf(moOID))){
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try{
             List<Integer> list = ticketMapper.getTicketAckStatus(moOID);
             if(list.size() != 1){
@@ -786,5 +817,32 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }catch (Exception e){
             return new QueryResultDTO(null, -1, e.getMessage());
         }
+    }
+
+    private Boolean userHasAccess(String id){
+        CustomUserDetails user = AuthUtil.getUser();
+        assert user != null;
+        //user is client and has same mcoid with ticket or user is pax employee
+        if (user.isClientUser() && hasAccessToTicket(id) || !user.isClientUser()) {
+            return true;
+        }
+        return false;
+    }
+    private Boolean hasAccessToTicket(String tickId){
+        CustomUserDetails user = AuthUtil.getUser();
+        String customerId = String.valueOf(user.getUserId());
+        String userMcoId = null;
+        if (user != null) {
+            if (user.getStandardUser() == 1)
+                userMcoId = String.valueOf(user.getCompanyId());
+            else {
+                userMcoId = customerId;
+            }
+        }
+        TicketInfo ticket = ticketMapper.existingMasterOrder(tickId);
+        if (ticket == null) {
+            ticket = ticketMapper.existingPREPMasterOrder(tickId);
+        }
+        return ticket != null && user != null && ticket.getMcOID().equals(userMcoId);
     }
 }
