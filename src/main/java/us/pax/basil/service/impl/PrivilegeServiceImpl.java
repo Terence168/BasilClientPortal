@@ -385,6 +385,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             if(user.getId() == null){
                 user.setId(currentUser.getUserId());
             }
+
             userMapper.updateUser(user);
 
             privilegeMapper.deleteUserRoles(user.getId());
@@ -523,4 +524,6 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             return new QueryResultDTO(null, -1,  e.getMessage());
         }
     }
+
+
 }

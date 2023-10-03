@@ -18,6 +18,7 @@ package us.pax.basil.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import lombok.extern.log4j.Log4j2;
+import software.amazon.awssdk.services.ses.endpoints.internal.Value;
 import us.pax.basil.constant.ClientGroupConstant;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PasswordConstant;
@@ -362,21 +363,37 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 	}
 
     @Override
-    public QueryResultDTO updateUserInfo(String newPassword, String newEmail) {
+    public QueryResultDTO updateUserInfo(User user, Integer userId) {
         try {
 
-            User userAccount = userMapper.getUserByEmail(newEmail);
+            User userAccount = userMapper.getUserByEmail(user.getEmail());
 
             if (userAccount != null) {
                 return new QueryResultDTO(null, -300, "Email already exists");
             }
 
-            CustomUserDetails userDetails = AuthUtil.getUser();
-            User user = userMapper.getUserById(userDetails.getUserId());
-            user.setPassword(passwordEncoder.encode(newPassword));
-            user.setEmail(newEmail);
+            userMapper.updateUserInfo(user, userId);
 
+            return new QueryResultDTO(null, 0,  "");
+        }catch(Exception e) {
+            return new QueryResultDTO(null, 0, e.getMessage());
+        }
+    }
 
+    @Override
+    public QueryResultDTO updateUserEmail(String email) {
+        try {
+
+            User userAccount = userMapper.getUserByEmail(email);
+
+            if (userAccount != null) {
+                return new QueryResultDTO(null, -300, "Email already exists");
+            }
+            CustomUserDetails customUserDetails = AuthUtil.getUser();
+            Integer userId = customUserDetails.getUserId();
+            User user = new User();
+            user.setEmail(email);
+            userMapper.updateUserInfo(user, userId);
 
             return new QueryResultDTO(null, 0,  "");
         }catch(Exception e) {

@@ -174,10 +174,10 @@
     </update>
 
     <update id="changePassword" >
-    	UPDATE BASIL_ODS_PRD.EMPLOYEE_MASTER
+    	UPDATE BASIL_SEC_PRD.USERS
     	SET
-    		PASSWORD=#{newPassword,jdbcType=VARCHAR}
-   		WHERE EMP_OID=#{id,jdbcType=INTEGER};
+    		PASSWORD=#{newPassword}
+   		WHERE U_OID=#{id};
     </update>
 
 	<select id="getCustomer" resultType="us.pax.basil.entity.customer.Customer">
@@ -218,7 +218,7 @@
 			<if test="version != null">VERSION = #{version}</if>
 		</set>
 		<where>
-			MC_ID = #{id}
+			MC_OID = #{id}
 		</where>
 	</update>
 

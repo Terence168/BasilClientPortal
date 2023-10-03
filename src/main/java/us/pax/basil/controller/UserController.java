@@ -16,7 +16,9 @@ package us.pax.basil.controller;
  */
 
 
+import org.springframework.boot.actuate.integration.IntegrationGraphEndpoint;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.security.CustomUserDetails;
@@ -114,5 +116,16 @@ public class UserController {
     @GetMapping("/customers")
     public QueryResultArrayDTO customerDropDown(@RequestParam(value = "customerName", required = true) String name) {
         return userService.queryCompany(name);
+    }
+
+    @PreAuthorize("hasAuthority('privilege.user.update')")
+    @PutMapping("/{userId}")
+    public QueryResultDTO updateUser(@RequestBody User user, @PathVariable Integer userId){
+        return userService.updateUserInfo(user, userId);
+    }
+
+    @PutMapping("/update-email")
+    public QueryResultDTO updateUserEmail(@RequestBody User user){
+        return userService.updateUserEmail(user.getEmail());
     }
 }

@@ -52,6 +52,7 @@ public interface UserService extends IService<User> {
 
     QueryResultArrayDTO viewQuery (HttpServletRequest request);
     QueryResultArrayDTO queryCompany(String name);
-    QueryResultDTO updateUserInfo(String newPassword, String newEmail);
+    QueryResultDTO updateUserInfo(User user, Integer userId);
+    QueryResultDTO updateUserEmail(String email);
 
 }
