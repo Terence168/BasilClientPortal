@@ -231,21 +231,21 @@ export default {
     return {
       company: {
         id:null,
-        name: "test name",
-        type: "corpoate",
-        phone: "111-111-1111",
-        tax: "tax1",
-        status: "activate",
+        name:null,
+        type: null,
+        phone: null,
+        tax: null,
+        status: null,
       },
       address: {
-        attentionTo: "Jay Zhou",
-        shipToCompany: "Pax Technology",
-        address: "555 Address Way",
+        attentionTo: null,
+        shipToCompany: null,
+        address: null,
         address2: null,
-        city: "Jacksonville",
-        state: "FL",
-        zipCode: "32224",
-        country:"USA"
+        city: null,
+        state: null,
+        zipCode: null,
+        country:null,
       },
       copiedCompany: null,
       copiedAddress: null,
@@ -268,17 +268,18 @@ export default {
   methods: {
     queryData(){
       //get company info. default shipping address, billing address from backend
-      const actionURL = "/privilege/company"
+      const actionURL = "/privilege/company";
+      const vm = this;
       api.get(actionURL).then(function (response) {
           if (response.data.resultCode === 0) {
             const jsonObject = response.data.data;
             const company = {
               id: jsonObject.id,
               name: jsonObject.customerName,
-              type: "corporate", // You can set this as needed
-              phone: jsonObject.contactPhone,
-              tax: "tax1", // You can set this as needed
-              status: "activate", // You can set this as needed
+              type: jsonObject.type, // You can set this as needed
+              phone: jsonObject.contactPhone, // You can set this as needed
+              tax: jsonObject.tax, // You can set this as needed
+              status: jsonObject.status, // You can set this as needed
             };
 
             const address = {
@@ -290,8 +291,10 @@ export default {
               state: jsonObject.state,
               zipCode: jsonObject.zip,
             };
-            this.company = company;
-            this.address = address;
+
+            vm.company = company;
+            vm.address = address;
+            vm.defaultAddress = jsonObject.address;
           } else {
             Notify.create({
               type: "negative",
@@ -300,16 +303,18 @@ export default {
           }
       })
     },
-    
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);
     },
     selectShippingAddress(address) {
       this.defaultAddress = address;
+      this.updateDefaultAddress(address.xaOid);
       this.showAddressModal = false;
     },
     showAddressGrid() {
-      this.showAddressModal = true;
+      if(this.checkPermission("customer.shipping.update-default")){
+        this.showAddressModal = true;
+      }
     },
     edit() {
       let companyDeepCopy = JSON.parse(JSON.stringify(this.company));
@@ -317,6 +322,29 @@ export default {
       this.copiedAddress = addressDeepCopy;
       this.copiedCompany = companyDeepCopy;
       this.withClient = true;
+    },
+    updateDefaultAddress(xaOid){
+      const vm = this;
+      const link = "/customer/address/default?xaOid="+xaOid;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          Notify.create({
+            type:"positive",
+            message:"Update Default Shipping Address Successfully"
+          })
+          return response.data.data;
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
     },
     updateCompany() {},
     resetModal() {
@@ -355,7 +383,7 @@ export default {
         country: address.country, // You can set the country field as needed
         contactName: address.attentionTo,
       };
-      const actionURL = "/privilege/company"
+      const actionURL = "/privilege/company";
       api.put(actionURL, jsonObject).then(function (response){
         if (response.data.resultCode != 0) {
             Notify.create({
