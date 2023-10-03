@@ -144,7 +144,6 @@
         <div class="generic-container">
           <RoleCard
             @update-data="updateData"
-            @view-data="viewData"
             :id="role.id"
             :title="role.name"
             :role="kebabRole(role.name)"

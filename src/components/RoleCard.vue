@@ -23,14 +23,6 @@
             icon="edit_note"
             @click="$emit('update-data', id)"
           />
-          <q-btn
-           v-if="!checkPermission('privilege.role.update') && checkPermission('privilege.role.view')"
-            flat
-            round
-            color="primary"
-            icon="edit_note"
-            @click="$emit('view-data', id)"
-          />
         </div>
 
         <q-input
