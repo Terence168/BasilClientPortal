@@ -18,4 +18,7 @@ public interface AddressMapper {
     int delete(int xaOid);
     
     List<Address> findAllByCompanyId(int companyId);
+    Address getDefault(int mcOid);
+
+    void updateDefault(int xaOid, int mcOid);
 }

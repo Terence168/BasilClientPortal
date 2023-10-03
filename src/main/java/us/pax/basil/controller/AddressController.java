@@ -1,7 +1,9 @@
 package us.pax.basil.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.entity.customer.Address;
 import us.pax.basil.service.AddressService;
 
@@ -37,5 +39,11 @@ public class AddressController {
     @DeleteMapping("/{xaOid}")
     public int delete(@PathVariable int xaOid) {
         return addressService.delete(xaOid);
+    }
+
+    @PreAuthorize("hasAuthority('customer.shipping.update-default')")
+    @PutMapping("/default")
+    public QueryResultDTO updateDefault(@RequestParam("xaOid") Integer xaOid){
+        return addressService.updateDefault(xaOid);
     }
 }

@@ -218,7 +218,7 @@
 			<if test="version != null">VERSION = #{version}</if>
 		</set>
 		<where>
-			CUSTOMER_ID = #{id}
+			MC_ID = #{id}
 		</where>
 	</update>
 

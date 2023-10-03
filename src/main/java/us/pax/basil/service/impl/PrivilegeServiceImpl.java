@@ -32,6 +32,7 @@ import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.customer.Company;
 import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.privilege.*;
@@ -40,6 +41,7 @@ import us.pax.basil.mapper.RoleEntityMapper;
 import us.pax.basil.mapper.RoleTypeMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
+import us.pax.basil.service.AddressService;
 import us.pax.basil.service.PrivilegeService;
 import us.pax.basil.utils.AuthUtil;
 import us.pax.basil.utils.ColumnMapping;
@@ -77,6 +79,8 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     RoleTypeMapper roleTypeMapper;
     @Autowired(required=false)
     RoleEntityMapper roleMapper;
+    @Autowired
+    private AddressService addressService;
 
     private ObjectMapper objectMapper = new ObjectMapper();
     //
@@ -505,6 +509,14 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             Map<String, Object> map = null;
             if(customer != null){
                 map = objectMapper.convertValue(customer, Map.class);
+            }
+            Address defaultAddress = addressService.findDefaultAddress(id);
+            if(defaultAddress != null){
+                Map<String, Object> addressMap = objectMapper.convertValue(defaultAddress, Map.class);
+                map.put("address", addressMap);
+            }
+            else{
+                map.put("address", null);
             }
             return new QueryResultDTO(map, 0,  "");
         }catch (Exception e){

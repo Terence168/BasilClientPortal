@@ -53,4 +53,19 @@
         DELETE FROM BASIL_SEC_PRD.XREF_ADDRESS WHERE XA_OID = #{xaOid}
     </delete>
 
+    <select id="getDefault" resultMap="AddressResultMap">
+        SELECT *
+        FROM BASIL_SEC_PRD.XREF_ADDRESS xa, BASIL_SEC_PRD.DEFAULT_SHIPPING ds
+        where xa.XA_OID = ds.XA_OID and ds.MC_OID = #{mcOid}
+    </select>
+
+    <update id="updateDefault">
+        update BASIL_SEC_PRD.DEFAULT_SHIPPING
+        <set>
+            XA_OID = #{xaOid}
+        </set>
+        <where>
+            MC_OID = #{mcOid}
+        </where>
+    </update>
 </mapper>

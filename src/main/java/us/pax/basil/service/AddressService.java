@@ -1,5 +1,6 @@
 package us.pax.basil.service;
 
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.entity.customer.Address;
 
 import java.util.List;
@@ -14,4 +15,8 @@ public interface AddressService {
     int update(Address address);
     
     int delete(int xaOid);
+
+    Address findDefaultAddress(int mcOid);
+
+    QueryResultDTO updateDefault(int xaOid);
 }
