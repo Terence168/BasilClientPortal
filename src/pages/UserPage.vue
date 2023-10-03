@@ -237,7 +237,13 @@ export default {
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
   mounted(){
     if(!this.checkPermission("privilege.user.update")){
-      this.modalFormOptions.action = "View";
+      this.tableData.columns = [
+          { id: "name", label: "User Name", sortable: true },
+          { id: "email", label: "Email", sortable: true },
+          { id: "registerTime", label: "Register Time", sortable: true },
+          { id: "lastLogin", label: "Last Login", sortable: true },
+          { id: "statusStr", label: "User Status", sortable: true },
+        ];
     }
   },
   data() {

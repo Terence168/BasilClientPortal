@@ -71,7 +71,7 @@
 
             <span v-if="column.id === 'userActions'">
               <q-btn
-                v-if="!checkPermission('privilege.user.update')"
+                v-if="checkPermission('privilege.user.update')"
                 flat
                 round
                 color="grey-6"
@@ -79,7 +79,6 @@
                 @click="$emit('view-data', row.id)"
               ></q-btn>
               <q-btn
-              
                v-if="checkPermission('privilege.user.update')"
                 flat
                 round
