@@ -368,10 +368,10 @@ export default {
     update() {
       const company = this.copiedCompany;
       const address = this.copiedAddress;
-      const jsonObject = {
+      const payload = {
         id: company.id, // You can set this to null if you don't have an ID yet
         customerName: company.name,
-        contactPhone: company.phone,
+        // contactPhone: company.phone,
         // type:company.type,
         // tax:company.tax,
         // status:company.status,
@@ -384,17 +384,29 @@ export default {
         contactName: address.attentionTo,
       };
       const actionURL = "/privilege/company";
-      api.put(actionURL, jsonObject).then(function (response){
-        if (response.data.resultCode != 0) {
+      const vm = this;
+      api.put(actionURL, payload)
+      .then(function (response){
+          if (response.data.resultCode != 0) {
             Notify.create({
               type: "negative",
               message: response.data.errorMessage,
             });
           }
-      })
+          Notify.create({
+              type: "positive",
+              message: "Update Customer Information Successfully",
+          });
+        vm.queryData();
+      }).catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
       
       this.resetModal();
-      //call backend api to update it
     },
   },
 };

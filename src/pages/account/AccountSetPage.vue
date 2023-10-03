@@ -179,11 +179,10 @@ export default {
   methods: {
     ...mapActions(useUserStore, ["logout"]),
     saveEmail(){
-      const user = {email : this.newEmail};
-      console.log(user);
-      const url = "/user/";
+      const url = "/user/update-email";
       const vm = this;
-      api.put(url, user).then(function (response) {
+      const payload = {"email":this.newEmail};
+      api.put(url, payload).then(function (response) {
           if (response.data.resultCode === 0) {
             setTimeout(() => vm.logout(), 2000);
             Notify.create({
