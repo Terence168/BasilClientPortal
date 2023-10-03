@@ -31,7 +31,7 @@
             <q-btn
               class="col-auto"
               color="primary"
-              @click="savePass"
+              @click="saveEmail"
               style="min-width: 200px; max-height: 40px; "
               :loading="emailSaving"
               dense
@@ -43,6 +43,7 @@
         <div class="rows item-center">
           <div class="row q-py-sm">
             <q-input
+              ref="currPassRef"
               class="q-pr-lg custom-input"
               v-model="currPassword"
               filled
@@ -66,7 +67,7 @@
 
           <div class="row q-py-sm">
             <q-input
-              ref="newPasswordRef"
+              ref="newPassRef"
               class="q-pr-lg custom-input"
               v-model="newPassword"
               filled
@@ -95,7 +96,7 @@
           </div>
           <div class="row q-py-sm">
             <q-input
-              ref="repeatPasswordRef"
+              ref="repeatPassRef"
               class="q-pr-lg custom-input"
               v-model="repeatPassword"
               filled
@@ -144,6 +145,11 @@
 <script>
 import { useUserStore } from "stores/user";
 import { mapState, mapStores } from "pinia";
+import { api } from "src/boot/axios";
+import { Notify } from "quasar";
+import { sha256 } from "js-sha256";
+import router from "src/router";
+import { mapActions } from "pinia";
 
 export default {
   data: () => {
@@ -171,49 +177,57 @@ export default {
     ...mapState(useUserStore, ["email", "username", "companyId"]),
   },
   methods: {
+    ...mapActions(useUserStore, ["logout"]),
     saveEmail(){
-      const user = {email : this.newEmail, name: this.username, companyId: this.companyId};
-      const url = "/privilege/user/update"
-      this.emailSavingSaving = true;
-        api.post(actionURL, user).then(function (response) {
+      const user = {email : this.newEmail};
+      console.log(user);
+      const url = "/user/";
+      const vm = this;
+      api.put(url, user).then(function (response) {
           if (response.data.resultCode === 0) {
-            Notify.create("Update email successful");
-            router.push({ name: "login" });
+            setTimeout(() => vm.logout(), 2000);
+            Notify.create({
+              type:"positive",
+              message:"Update email successful. Please login using new email."
+            });
           } else {
             Notify.create({
               type: "negative",
               message: response.data.errorMessage,
             });
           }
-        }).finally(() =>{ 
-          this.emailSavingSaving = false;
         })
     },
     savePass(){
         const newPassRef = this.$refs.newPassRef;
         const repeatPassRef = this.$refs.repeatPassRef;
+        const currPassRef = this.$refs.currPassRef;
+        
+        newPassRef.validate();
+        repeatPassRef.validate();
 
-        newPassRef.value.validate();
-        repeatPassRef.value.validate();
-
-        if (newPassRef.value.hasError || currentPassRef.value.hasError) {
+        if (newPassRef.hasError || currPassRef.hasError) {
           return;
         }
-        
-        const newPass = sha256(newPasswordRef.value);
-        const currPass = sha256(currPasswordRef.value);
+
+        const newPass = sha256(this.newPassword);
+        const currPass = sha256(this.currPassword);
 
         const passwordChange = {
           currentPassword: currPass,
           newPassword: newPass,
         };
-    
+        
         const actionURL = "/privilege/user/password-change";
+        const vm = this;
         this.accountSaving = true;
         api.post(actionURL, passwordChange).then(function (response) {
           if (response.data.resultCode === 0) {
-            Notify.create("Password was successfully changed");
-            router.push({ name: "login" });
+            setTimeout(() => vm.logout(), 2000);
+            Notify.create({
+              type:"positive",
+              message:"Password was successfully changed. Please login using new password."
+            });
           } else {
             Notify.create({
               type: "negative",
