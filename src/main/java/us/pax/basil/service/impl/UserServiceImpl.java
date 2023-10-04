@@ -208,13 +208,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			                              Integer status) {
 		
 		try {
-			Integer total = userMapper.getListCount(name, company, status, email);
+            CustomUserDetails currUser = AuthUtil.getUser();
+            Integer companyId = null;
+
+            if (currUser != null)
+                if(currUser.getStandardUser() == 1){
+                    if(company != null){
+                        return new QueryResultArrayDTO(null, 0, -1, "Don't have access it.");
+                    }
+                    companyId = currUser.getCompanyId();
+                }
+                else {
+                    companyId = company;
+                }
+
+			Integer total = userMapper.getListCount(name, companyId, status, email);
 	
 			List<User> userList = userMapper.queryList((currentPage-1) * sizePerPage, 
 					                                   sizePerPage, 
 					                                   sortColumns, 
 					                                   name, 
-					                                   company, 
+					                                   companyId,
 					                                   email, 
 					                                   status);
 			

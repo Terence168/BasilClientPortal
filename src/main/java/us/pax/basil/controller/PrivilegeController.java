@@ -197,12 +197,6 @@ public class PrivilegeController {
         return privilegeService.changePassword(passwordChange);
     }
 
-    @PreAuthorize("hasAnyAuthority('basic', 'rma', 'tech')")
-    @GetMapping("/status/drop-down")
-    public QueryResultArrayDTO statusDropDown() {
-        return supportAttributeService.getDropDown(SupportAttributeConstant.EMPLOYEE_MASTER_STATUS);
-    }
-
 
     @PreAuthorize("hasAuthority('customer.info.update')")
     @PutMapping("/company")

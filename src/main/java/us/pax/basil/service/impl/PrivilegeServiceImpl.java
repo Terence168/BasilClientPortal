@@ -414,7 +414,6 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     @Override
     public SqlResultDTO changePassword(PasswordChange passwordChange) {
         CustomUserDetails userDetails = AuthUtil.getUser();
-
         try {
             PasswordEncoder p = new BCryptPasswordEncoder();
 
