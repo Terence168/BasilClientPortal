@@ -316,7 +316,6 @@ export default {
             }
             if (comments != null) {
               this.comments = comments;
-              console.log(this.comments);
             }
             if (ack != null) {
               this.ticketInfo.acknowledged = ack;

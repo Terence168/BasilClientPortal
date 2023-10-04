@@ -207,7 +207,6 @@ export default {
 
   computed: {
     activeSubMenu() {
-      console.log(capitalize(this.tab) + "SubMenu");
       return capitalize(this.tab) + "SubMenu";
     },
     userName() {
