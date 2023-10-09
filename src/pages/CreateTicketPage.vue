@@ -49,7 +49,7 @@
         <!-- Add ticket  -->
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Organization:&nbsp;</div>
-          <div class="col-auto">
+          <div class="col-auto" v-if="clientUser">
             <q-input
               :model-value="companyName"
               disable
@@ -57,11 +57,31 @@
               dense
             />
           </div>
+          <div class="col-auto" v-if="!clientUser">
+            <q-select
+              style="min-width: 200px"
+              label="Please select"
+              v-model="custType"
+              :options="custTypeOpt"
+              @filter="populateCustTypeOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
         </div>
 
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Email:&nbsp;</div>
-          <div class="col-auto">
+          <div class="col-auto" >
             <q-input
               :model-value="userEmail"
               disable
@@ -339,7 +359,8 @@ export default {
       "inputValue",
       "originalRMA",
       "address",
-      "encrypt"
+      "encrypt",
+      "custType",
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
@@ -347,7 +368,9 @@ export default {
       "getSerials",
       "getAllSerials",
       "getTrackingNums",
+      "custTypeOpt"
     ]),
+    ...mapState(useUserStore, ["clientUser"]),
     isEncrypted(){
       return this.encrypt != null && this.encrypt === "yes";
     },
@@ -372,6 +395,7 @@ export default {
       "resetTicket",
       "populateOrderTypeOpt",
       "populateKeyTypeOpt",
+      "populateCustTypeOpt",
       "addSerial",
       "addSerialList",
       "updateSerial",

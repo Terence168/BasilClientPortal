@@ -14,6 +14,8 @@ export const useCreateTicketStore = defineStore("createTicket", {
     keyType:null,
     keyTypeOpt:null,
     encrypt:null,
+    custType:null,
+    custTypeOpt:null,
   }),
 
   getters: {
@@ -106,6 +108,27 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .get(link)
         .then((response) => {
           this.orderTypeOpt = response.data.data;
+          
+        })
+        .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Order Type Dropdown cannot be populated",
+          });
+        });
+    },
+    populateCustTypeOpt(_, update){
+      if (this.custTypeOpt) {
+        update();
+        return;
+      }
+      const link = "/ticketing/dropdown/cust_org";
+      api
+        .get(link)
+        .then((response) => {
+          this.custTypeOpt = response.data.data;
         })
         .catch(function (error) {
           console.log(error);
