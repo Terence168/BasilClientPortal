@@ -16,6 +16,7 @@ import us.pax.basil.dto.output.*;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.customer.Company;
+import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.mapper.UserMapper;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -414,7 +416,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if (ticket != null) {
                 if (ticket.getXaOID() != null) {
                     Address address = addressService.findById(ticket.getXaOID());
-                    ticket.setAddress(address);
+                    if(address != null)
+                        ticket.setAddress(address);
                 }
 
                 if (ticket.getSubmitterID() != null) {
@@ -788,7 +791,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     public QueryResultDTO unAckTicket(Long moOID){
-        if(userHasAccess(String.valueOf(moOID))){
+        if(!userHasAccess(String.valueOf(moOID))){
             return new QueryResultDTO(null, -1, "Don't have access to the ticket");
         }
         try{
@@ -802,7 +805,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultDTO getTicketAckStatus(Long moOID) {
-        if(userHasAccess(String.valueOf(moOID))){
+        if(!userHasAccess(String.valueOf(moOID))){
             return new QueryResultDTO(null, -1, "Don't have access to the ticket");
         }
         try{
@@ -816,6 +819,31 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             return new QueryResultDTO(map, 0, null);
         }catch (Exception e){
             return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryCustomerOrg() {
+        try{
+            CustomUserDetails user = AuthUtil.getUser();
+            assert user != null;
+            //user is client and has same mcoid with ticket or user is pax employee
+            if (user.isClientUser()) {
+                return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the resource.");
+            }
+            List<Customer> customers = ticketMapper.getAllCustomerOrg();
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Customer customer : customers){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, customer.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, customer.getCustomerName());
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
 

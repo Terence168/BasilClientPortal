@@ -965,6 +965,25 @@
         </where>
         limit 1
     </select>
+
+    <select id="getAllCustomerOrg" resultType="us.pax.basil.entity.customer.Customer">
+        SELECT distinct
+        MC_OID as id,
+        CUSTOMER_ORGANIZATION as customerName,
+        CUST_CONTACT_NAME as contactName,
+        CUST_ADDRESS as address1,
+        CUST_ADDRESS2 as address2,
+        CITY as city,
+        STATE as state,
+        ZIP_CODE as zip,
+        COUNTRY as country,
+        STORE_NUMBER as storeNumber,
+        CLIENT_GROUP as clientGroup,
+        PAY_AFTER as payAfter,
+        VERSION as version
+        FROM  BASIL_ODS_PRD.MASTER_CUSTOMER
+        ORDER BY CUSTOMER_ORGANIZATION
+    </select>
 </mapper>
 
 
