@@ -11,8 +11,17 @@ export const useCreateTicketStore = defineStore("createTicket", {
     trackingNums: [],
     serials: [],
     inputValue: null,
+    keys:null,
+
     keyType:null,
     keyTypeOpt:null,
+
+    kcv:null,
+    kcvOpt:null,
+
+    ksi:null,
+    ksiOpt:null,
+
     encrypt:null,
     custType:null,
     custTypeOpt:null,
@@ -43,16 +52,34 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.trackingNums.splice(index, 1);
     },
     populateKeyTypeOpt(_, update){
-      if (this.keyTypeOpt) {
-        update();
-        return;
-      }
-      const link = "/ticketing/dropdown/key_type";
+      // if (this.keyTypeOpt) {
+      //   update();
+      //   return;
+      // }
+      const link = "/ticketing/dropdown/key";
       api
         .get(link)
         .then((response) => {
           update(() => {
-            this.keyTypeOpt = response.data.data;
+            const keyTypeSet = new Set();
+            this.keys = response.data.data;
+
+            this.keys.forEach((key) => {
+              keyTypeSet.add(key.label.keyType);
+            })
+
+            const keyTypeArray = [];
+            var index = 0;
+            for(const keyType of keyTypeSet){
+              keyTypeArray.push({
+                value:index,
+                label:keyType,
+              })
+              index += 1
+            }
+
+            // console.log(keyTypeArray);
+            this.keyTypeOpt = keyTypeArray;
           });
         })
         .catch(function (error) {
@@ -63,6 +90,31 @@ export const useCreateTicketStore = defineStore("createTicket", {
             message: "Key Type Dropdown cannot be populated",
           });
         });
+    },
+    populateKcvOpt(_, update){
+      // if (this.keyTypeOpt) {
+      //   update();
+      //   return;
+      // }
+      if(this.keyType != null){
+        const keyTypeLable = this.keyTypeOpt[this.keyType].label;
+        console.log(keyTypeLable);
+        console.log(this.keys);
+        const kcvs = this.keys.filter((key) => key.label.keyType == keyTypeLable);
+        
+        console.log(kcvs);
+        console.log(kcvs.length);
+      }
+    },
+    populateKsiOpt(_, update){
+      // if (this.keyTypeOpt) {
+      //   update();
+      //   return;
+      // }
+      if(this.keyType != null && this.kcv != null){
+        const kcvs = this.keys.filter((key) => key.keyType == this.keyType && key.kcv == this.kcv);
+        console.log(kcvs);
+      }
     },
     populateKeyTypeOptOnce(){
       const link = "/ticketing/dropdown/key_type";

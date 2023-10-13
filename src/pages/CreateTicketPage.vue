@@ -130,6 +130,50 @@
               </template>
             </q-select>
           </div>
+          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null">KCV:&nbsp;</div>
+          <div class="col-auto" v-show="keyType != null">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="kcv"
+              :options="kcvOpt"
+              @filter="populateKcvOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null && ksi != null">KSI:&nbsp;</div>
+          <div class="col-auto"  v-show="keyType != null && ksi != null">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="ksi"
+              :options="ksiOpt"
+              @filter="populateKsiOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
         </div>
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">
@@ -355,6 +399,8 @@ export default {
     ...mapWritableState(useCreateTicketStore, [
       "orderType",
       "keyType",
+      "kcv",
+      "ksi",
       "trackingNums",
       "inputValue",
       "originalRMA",
@@ -368,7 +414,9 @@ export default {
       "getSerials",
       "getAllSerials",
       "getTrackingNums",
-      "custTypeOpt"
+      "custTypeOpt",
+      "kcvOpt",
+      "ksiOpt"
     ]),
     ...mapState(useUserStore, ["clientUser"]),
     isEncrypted(){
@@ -396,6 +444,8 @@ export default {
       "populateOrderTypeOpt",
       "populateKeyTypeOpt",
       "populateCustTypeOpt",
+      "populateKcvOpt",
+      "populateKsiOpt",
       "addSerial",
       "addSerialList",
       "updateSerial",

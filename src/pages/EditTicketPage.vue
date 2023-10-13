@@ -310,9 +310,7 @@ export default {
             const ticketInfo = values[0];
             const comments = values[1];
             const ack = values[2];
-            // console.log(ticketInfo);
-            // console.log(comments);
-            // console.log(ack);
+
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
             }
