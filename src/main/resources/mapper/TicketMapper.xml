@@ -910,9 +910,24 @@
         WHERE MO_OID = #{moOID}
     </update>
 
+    <select id="getAllKeys" resultType="us.pax.basil.entity.ticket.Key">
+        SELECT distinct KEY_INDEX as keyIndex, Key_Type as keyType, KCV as kcv, KSI as ksi
+        FROM BASIL_SEC_PRD.MASTER_KEY;
+    </select>
 
-    <select id="getAllKeyType" resultType="String">
-        select distinct KEY_TYPE from BASIL_SEC_PRD.MASTER_KEY
+    <select id="getAllKeyType" resultType="us.pax.basil.entity.ticket.Key">
+        SELECT distinct Key_Type as keyType
+        FROM BASIL_SEC_PRD.MASTER_KEY
+    </select>
+
+    <select id="getAllKcv" resultType="us.pax.basil.entity.ticket.Key">
+        SELECT distinct KCV as kcv
+        FROM BASIL_SEC_PRD.MASTER_KEY
+        <where>
+            <if test="keyType !=null">
+                KEY_Type = {keyType}
+            </if>
+        </where>
     </select>
 
     <update id="ackPrepMasterTicket">

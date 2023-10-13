@@ -360,22 +360,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
-    @Override
-    public QueryResultArrayDTO queryKeyType() {
-        try {
-            List<String> keyTypeList = ticketMapper.getAllKeyType();
-            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
-            for(int i = 0; i < keyTypeList.size(); ++i){
-                Map<String, Object> mm = new LinkedHashMap<>();
-                mm.put(DropDownConstant.DROPDOWN_VALUE, i);
-                mm.put(DropDownConstant.DROPDOWN_LABEL, keyTypeList.get(i));
-                jsonArray.add(mm);
-            }
-            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
-        } catch (Exception e) {
-            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
-        }
-    }
 
     public QueryResultDTO viewEditTicket(String id) {
         if(!userHasAccess(id)){
@@ -847,6 +831,83 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
+    @Override
+    public QueryResultArrayDTO queryKeyType() {
+        try {
+            List<String> keys = ticketMapper.getAllKeyType();
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+
+            for(int i = 0; i < keys.size(); ++i){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, i);
+                mm.put(DropDownConstant.DROPDOWN_LABEL, keys.get(i));
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryKeyKcv(String keyType) {
+        try{
+            List<Key> keys = ticketMapper.getAllKey(keyType, null);
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Key key: keys){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, key.getKeyIndex());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, key.getKcv());
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryKeyKsi(String keyType, String kcv) {
+        try{
+            List<Key> keys = ticketMapper.getAllKey(keyType, kcv);
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Key key: keys){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, key.getKeyIndex());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, key.getKsi());
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryKey() {
+        try{
+            List<Key> keys = ticketMapper.getAllKeys();
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Key key: keys){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                Map<String, Object> keyMap = objectMapper.convertValue(key, Map.class);
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, key.getKeyIndex());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, keyMap);
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
     private Boolean userHasAccess(String id){
         CustomUserDetails user = AuthUtil.getUser();
         assert user != null;
@@ -856,6 +917,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
         return false;
     }
+
     private Boolean hasAccessToTicket(String tickId){
         CustomUserDetails user = AuthUtil.getUser();
         String customerId = String.valueOf(user.getUserId());

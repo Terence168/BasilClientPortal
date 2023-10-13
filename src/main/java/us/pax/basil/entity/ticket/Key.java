@@ -9,7 +9,9 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain =  true)
 @ApiModel(value = "OrderType Object", description = "")
-public class KeyType {
-    private String keyIndex;
+public class Key{
+    private Integer keyIndex;
+    private String kcv;
+    private String ksi;
     private String keyType;
 }

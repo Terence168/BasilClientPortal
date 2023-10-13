@@ -210,9 +210,37 @@ public class TicketController {
         return ticketService.queryRepairType();
     }
 
+    /**
+     * Get all keys
+     * */
+    @GetMapping("/dropdown/key") //BCP-25
+    public QueryResultArrayDTO keyDropDown(){
+        return ticketService.queryKey();
+    }
+
+
+    /**
+     * Get unique key type
+     * */
     @GetMapping("/dropdown/key_type") //BCP-25
     public QueryResultArrayDTO keyTypeDropDown(){
         return ticketService.queryKeyType();
+    }
+
+    /**
+     * Get unique kcv using key_type
+     * */
+    @GetMapping("/dropdown/kcv") //BCP-25
+    public QueryResultArrayDTO kcvDropDown(@RequestBody Key key){
+        return ticketService.queryKeyKcv(key.getKeyType());
+    }
+
+    /**
+     * Get unique ksi using key_type and kcv
+     * */
+    @GetMapping("/dropdown/ksi") //BCP-25
+    public QueryResultArrayDTO ksiDropDown(@RequestBody Key key){
+        return ticketService.queryKeyKsi(key.getKeyType(), key.getKcv());
     }
 
     @GetMapping("/dropdown/cust_org")
