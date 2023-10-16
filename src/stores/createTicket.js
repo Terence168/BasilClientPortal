@@ -63,7 +63,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
           update(() => {
             const keyTypeSet = new Set();
             this.keys = response.data.data;
-
             this.keys.forEach((key) => {
               keyTypeSet.add(key.label.keyType);
             })
@@ -72,14 +71,14 @@ export const useCreateTicketStore = defineStore("createTicket", {
             var index = 0;
             for(const keyType of keyTypeSet){
               keyTypeArray.push({
-                value:index,
+                value:keyType,
                 label:keyType,
               })
               index += 1
             }
 
-            // console.log(keyTypeArray);
             this.keyTypeOpt = keyTypeArray;
+            console.log(this.keyTypeOpt);
           });
         })
         .catch(function (error) {
@@ -92,28 +91,36 @@ export const useCreateTicketStore = defineStore("createTicket", {
         });
     },
     populateKcvOpt(_, update){
-      // if (this.keyTypeOpt) {
-      //   update();
-      //   return;
-      // }
+      this.kcv = null;
+      this.ksi = null;
       if(this.keyType != null){
-        const keyTypeLable = this.keyTypeOpt[this.keyType].label;
-        console.log(keyTypeLable);
-        console.log(this.keys);
-        const kcvs = this.keys.filter((key) => key.label.keyType == keyTypeLable);
-        
-        console.log(kcvs);
-        console.log(kcvs.length);
+        const kcvs = this.keys.filter((key) => key.label.keyType == this.keyType);
+        const kcvArrays = [];
+        kcvs.forEach((key) => {
+          const data = {
+            "value":key.label.kcv,
+            "label":key.label.kcv,
+          }
+          kcvArrays.push(data);
+        })
+
+        this.kcvOpt = kcvArrays;
+        console.log(this.kcvOpt);
       }
     },
     populateKsiOpt(_, update){
-      // if (this.keyTypeOpt) {
-      //   update();
-      //   return;
-      // }
       if(this.keyType != null && this.kcv != null){
-        const kcvs = this.keys.filter((key) => key.keyType == this.keyType && key.kcv == this.kcv);
-        console.log(kcvs);
+        const keys = this.keys.filter((key) => key.label.keyType == this.keyType && key.label.kcv == this.kcv);
+        const ksiArray = [];
+        keys.forEach((key) => {
+          const data = {
+            "value":key.value,
+            "label":key.label.ksi,
+          };
+          ksiArray.push(data);
+        })
+        this.ksiOpt = ksiArray;
+        console.log(this.ksiOpt);
       }
     },
     populateKeyTypeOptOnce(){

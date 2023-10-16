@@ -117,6 +117,8 @@
               v-model="keyType"
               :options="keyTypeOpt"
               @filter="populateKeyTypeOpt"
+              @input-value="populateKcvOpt"
+              @update:model-value="populateKcvOpt"
               dense
               emit-value
               map-options
@@ -138,7 +140,8 @@
               label="Please select"
               v-model="kcv"
               :options="kcvOpt"
-              @filter="populateKcvOpt"
+              @input-value="populateKsiOpt"
+              @update:model-value="populateKsiOpt"
               dense
               emit-value
               map-options
@@ -152,15 +155,14 @@
               </template>
             </q-select>
           </div>
-          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null && ksi != null">KSI:&nbsp;</div>
-          <div class="col-auto"  v-show="keyType != null && ksi != null">
+          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null && kcv != null">KSI:&nbsp;</div>
+          <div class="col-auto"  v-show="keyType != null && kcv != null">
             <q-select
               ref="testKeyTypeSelect"
               style="min-width: 200px"
               label="Please select"
               v-model="ksi"
               :options="ksiOpt"
-              @filter="populateKsiOpt"
               dense
               emit-value
               map-options
@@ -544,13 +546,13 @@ export default {
       const payload = {
         encrypt: this.encrypt,
         orderType: this.orderType,
-        testKeyType:this.isEncrypted? this.keyTypeOpt[this.keyType].label:null,
+        testKeyType:this.isEncrypted? this.ksi:null,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
         xaOID: this.address.xaOid,
       };
-
+      
       const vm = this;
       this.$api
         .post(actionURL, payload, {
