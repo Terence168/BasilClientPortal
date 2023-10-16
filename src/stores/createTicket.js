@@ -78,7 +78,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
             }
 
             this.keyTypeOpt = keyTypeArray;
-            console.log(this.keyTypeOpt);
+            // console.log(this.keyTypeOpt);
           });
         })
         .catch(function (error) {
@@ -105,7 +105,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         })
 
         this.kcvOpt = kcvArrays;
-        console.log(this.kcvOpt);
+        // console.log(this.kcvOpt);
       }
     },
     populateKsiOpt(_, update){
@@ -120,7 +120,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
           ksiArray.push(data);
         })
         this.ksiOpt = ksiArray;
-        console.log(this.ksiOpt);
+        // console.log(this.ksiOpt);
       }
     },
     populateKeyTypeOptOnce(){

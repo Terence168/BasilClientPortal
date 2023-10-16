@@ -216,11 +216,9 @@
             @click="deleteTrackingNum(index)"
           />
         </div>
-
         <div class="q-py-md text-subtitle1 text-weight-bold">
           Ticket Serial Numbers
         </div>
-
         <div class="row items-start">
           <!-- Add Serial Number -->
           <q-btn
@@ -525,7 +523,15 @@ export default {
         this.serialsSubmitting = false;
         return;
       }
-
+      //no test key select when user select encrypted
+      if(this.isEncrypted && this.ksi === null){
+        Notify.create({
+          type: "negative",
+          message: "Please Select an Unique Key for Encryption",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
       const trackingNumbers = this.getTrackingNums.filter(t => t!= "" && t.length > 0);
       const actionURL = "/ticketing/submitTicket";
 

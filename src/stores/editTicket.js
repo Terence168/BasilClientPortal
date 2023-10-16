@@ -52,9 +52,6 @@ export const useEditTicketStore = defineStore("editTicket", {
         return null;
       };
     },
-    // testKeyTypeOpt(){
-    //   return ["1", "2", "3"];
-    // },
   },
   reset() {},
   actions: {

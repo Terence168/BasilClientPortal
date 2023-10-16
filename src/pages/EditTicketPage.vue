@@ -89,13 +89,11 @@
             type="radio"
             v-model="ticketInfo.encrypt"
             value="yes"
-            disabled
           />&nbsp;Yes&nbsp;&nbsp;
           <input
             type="radio"
             v-model="ticketInfo.encrypt"
             value="no"
-            disabled
           />&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
@@ -105,9 +103,67 @@
               ref="testKeyTypeSelect"
               style="min-width: 200px"
               label="Please select"
-              v-model="ticketInfo.testKeyType"
+              v-model="ticketInfo.keyType"
               :options="keyTypeOpt"
-              @filter="populateKeyTypeOpt"
+              @input-value="populateKcvOpt"
+              @update:model-value="populateKcvOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+          <div
+            class="col-auto q-mr-sm q-ml-sm"
+            v-show="ticketInfo.keyType != null"
+          >
+            KCV:&nbsp;
+          </div>
+          <div class="col-auto" v-show="ticketInfo.keyType != null">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="ticketInfo.kcv"
+              :options="kcvOpt"
+              @input-value="populateKsiOpt"
+              @update:model-value="populateKsiOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+          <div
+            class="col-auto q-mr-sm q-ml-sm"
+            v-show="ticketInfo.keyType != null && ticketInfo.kcv != null"
+          >
+            KSI:&nbsp;
+          </div>
+          <div
+            class="col-auto"
+            v-show="ticketInfo.keyType != null && ticketInfo.kcv != null"
+          >
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="ticketInfo.ksi"
+              :options="ksiOpt"
               dense
               emit-value
               map-options
@@ -122,7 +178,6 @@
             </q-select>
           </div>
         </div>
-
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">
           <div class="col-auto">
@@ -272,6 +327,10 @@ export default {
         encrypt: null,
         testKeyType: null,
         acknowledged: null,
+        kcv: null,
+        ksi: null,
+        keyType: null,
+        keyIndex: null,
       },
       comments: [],
       editInfo: {
@@ -288,6 +347,11 @@ export default {
       inputValue: null,
 
       showAddressModal: false,
+
+      keys: null,
+      kcvOpt: null,
+      ksiOpt: null,
+      keyTypeOpt: null,
     };
   },
   created() {
@@ -295,15 +359,16 @@ export default {
     this.$watch(
       () => this.$route.params,
       () => {
-        if (this.$route.name !== "edit-ticket") {
+        if (this.$route.name !== "edit-ticket" || this.sessionTimeLeft <= 0) {
           return;
         }
-
         this.isLoading = true;
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
           this.fetchAckStatus(this.ticketId),
+          this.populateKeysOptOnce(),
+          this.populateOrderTypeOptOnce(),
           //ensure it been populated
         ])
           .then((values) => {
@@ -313,6 +378,7 @@ export default {
 
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
+
             }
             if (comments != null) {
               this.comments = comments;
@@ -326,7 +392,6 @@ export default {
                 c.bgColor = "bg-green-3";
               }
             });
-
             this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
           })
           .catch((e) => {
@@ -340,14 +405,14 @@ export default {
       // already being observed
       { immediate: true }
     );
-
+    // this.populateKeysOptOnce();
     // this.populateOrderTypeOptOnce();
     // this.populateKeyTypeOptOnce();
   },
   mounted() {},
   computed: {
-    ...mapState(useUserStore, ["email"]),
-    ...mapState(useCreateTicketStore, ["orderTypeOpt", "keyTypeOpt"]),
+    ...mapState(useUserStore, ["email", "loggedIn", "sessionTimeLeft"]),
+    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
@@ -372,11 +437,10 @@ export default {
     },
   },
   methods: {
+    ...mapActions(useUserStore, ["logout"]),
     ...mapActions(useCreateTicketStore, [
       "populateOrderTypeOpt",
       "populateOrderTypeOptOnce",
-      "populateKeyTypeOpt",
-      "populateKeyTypeOptOnce",
     ]),
     ...mapActions(useEditTicketStore, [
       "fetchTicket",
@@ -419,6 +483,21 @@ export default {
           return;
         }
       }
+
+      if (
+        this.isEncrypted &&
+        (this.ticketInfo.ksi === null ||
+          this.ticketInfo.keyType === null ||
+          this.ticketInfo.kcv === null)
+      ) {
+        Notify.create({
+          type: "negative",
+          message: "Please Select an Unique Key for Encryption",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
+
       const payload = {
         ...editTracking,
         ...editSerial,
@@ -430,9 +509,7 @@ export default {
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
         encrypt: this.ticketInfo.encrypt,
-        testKeyType: this.isEncrypted
-          ? this.keyTypeOpt[this.ticketInfo.testKeyType].label
-          : null,
+        testKeyType: this.isEncrypted ? this.ticketInfo.ksi : null,
       };
       if (payload.orderType === 3 || payload.orderType === 7) {
         payload.originalRMA = null;
@@ -621,6 +698,135 @@ export default {
     },
     showAddressGrid() {
       this.showAddressModal = true;
+    },
+    populateKeysOptOnce() {
+      if (this.keys == null) {
+        const link = "/ticketing/dropdown/key";
+        api
+          .get(link)
+          .then((response) => {
+              const keyTypeSet = new Set();
+              this.keys = response.data.data;
+              //set up keys
+              this.keys.forEach((key) => {
+                keyTypeSet.add(key.label.keyType);
+              });
+
+              const keyTypeArray = [];
+              var index = 0;
+              for (const keyType of keyTypeSet) {
+                keyTypeArray.push({
+                  value: keyType,
+                  label: keyType,
+                });
+                index += 1;
+              }
+
+              this.keyTypeOpt = keyTypeArray;
+              
+              //set up keycv drop down menu
+              if (this.ticketInfo.keyType != null) {
+                const kcvs = this.keys.filter(
+                  (key) => key.label.keyType == this.ticketInfo.keyType
+                );
+                const kcvArrays = [];
+                kcvs.forEach((key) => {
+                  const data = {
+                    value: key.label.kcv,
+                    label: key.label.kcv,
+                  };
+                  kcvArrays.push(data);
+                });
+                this.kcvOpt = kcvArrays;
+              }
+              
+              this.populateKsiOpt();
+          })
+          .catch(function (error) {
+            console.log(error);
+            // handle error
+            Notify.create({
+              type: "negative",
+              message: "Key Type Dropdown cannot be populated",
+            });
+          });
+      }
+    },
+    populateKeyTypeOpt() {
+      if (this.keyTypeOpt != null) {
+        return;
+      }
+      const link = "/ticketing/dropdown/key";
+      api
+        .get(link)
+        .then((response) => {
+          update(() => {
+            const keyTypeSet = new Set();
+            this.keys = response.data.data;
+            this.keys.forEach((key) => {
+              keyTypeSet.add(key.label.keyType);
+            });
+
+            const keyTypeArray = [];
+            var index = 0;
+            for (const keyType of keyTypeSet) {
+              keyTypeArray.push({
+                value: keyType,
+                label: keyType,
+              });
+              index += 1;
+            }
+            this.keyTypeOpt = keyTypeArray;
+            // console.log(this.keyTypeOpt);
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Key Type Dropdown cannot be populated",
+          });
+        });
+    },
+    populateKcvOpt() {
+      this.ticketInfo.kcv = null;
+      this.ticketInfo.ksi = null;
+      if (this.ticketInfo.keyType != null) {
+        const kcvs = this.keys.filter(
+          (key) => key.label.keyType == this.ticketInfo.keyType
+        );
+        const kcvArrays = [];
+        kcvs.forEach((key) => {
+          const data = {
+            value: key.label.kcv,
+            label: key.label.kcv,
+          };
+          kcvArrays.push(data);
+        });
+
+        this.kcvOpt = kcvArrays;
+        // console.log(this.kcvOpt);
+      }
+    },
+    populateKsiOpt() {
+      if (this.ticketInfo.keyType != null && this.ticketInfo.kcv != null) {
+        const keys = this.keys.filter(
+          (key) =>
+            key.label.keyType == this.ticketInfo.keyType &&
+            key.label.kcv == this.ticketInfo.kcv
+        );
+        const ksiArray = [];
+        keys.forEach((key) => {
+          const data = {
+            value: key.value,
+            label: key.label.ksi,
+          };
+          ksiArray.push(data);
+        });
+        this.ksiOpt = ksiArray;
+        // console.log(this.ksiOpt);
+      }
     },
   },
 };
