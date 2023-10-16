@@ -32,6 +32,10 @@ public class TicketInfo {
     private List<TrackingNum> trackingNumbers; //use mo_oid to query from BASIL_SEC_PRD.XREF_INBOUND_TRACKING
     private List<SNInfo> serials; //use mo_oid to query from BASIL_SEC_PRD.PREP_XREF_MATERIALS and BASIL_ODS_PRD.XREF_MATERIALS
     private String encrypt;
-    private String testKeyType;
+//    private String testKeyType;
     private Integer acknowledged;
+    private String keyIndex;
+    private String keyType;
+    private String kcv;
+    private String ksi;
 }

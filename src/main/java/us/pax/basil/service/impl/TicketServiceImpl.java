@@ -376,6 +376,19 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     if(ticket.getEncrypt()== null){
                         ticket.setEncrypt("no");
                     }
+
+                    if(ticket.getKeyType() == null || ticket.getKeyType().length() == 0){
+                        ticket.setKeyType("N/A");
+                    }
+
+                    if(ticket.getKcv() == null || ticket.getKcv().length() == 0){
+                        ticket.setKcv("N/A");
+                    }
+
+                    if(ticket.getKsi() == null || ticket.getKsi().length() == 0){
+                        ticket.setKsi("N/A");
+                    }
+
                     List<SNInfo> prefDevices = ticketMapper.getSecMaterials(id, companyId);
                     List<SNInfo> xrefDevices = ticketMapper.getOdsMaterials(id, companyId);
 
@@ -502,29 +515,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 }
             }
 
-            if (ticketEditDTO.getDeleteSerial().size() > 0) {
-                ticketMapper.deletePrep_Xref_Materials(ticketEditDTO.getDeleteSerial());
-                List<Integer> pxmOIDs = ticketEditDTO.getDeleteSerial().stream().map(Integer::parseInt)
-                        .collect(Collectors.toList());
-                invoiceService.deleteInvoiceList(pxmOIDs);
-                //ticketMapper.deleteXref_Materials(ticketEditDTO.getDeleteSerial());
-            }
-            //update serials number part
-            if (ticketEditDTO.getAddSerial().size() > 0) {
-                for (SNsInsertionObject snsObject : ticketEditDTO.getAddSerial()) {
-                    snsObject.setMoOID(Integer.valueOf(id));
-                }
-                ticketMapper.insertPrep_Xref_Materials(ticketEditDTO.getAddSerial());
-                List<Integer> pxmOidList = new ArrayList<>();
-                ticketEditDTO.getAddSerial().stream().forEach(s -> pxmOidList.add(s.getXmOID()));
-                invoiceService.insertInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
-            }
-            if (ticketEditDTO.getUpdateSerial().size() > 0) {
-                ticketMapper.updatePrep_Xref_Materials(ticketEditDTO.getUpdateSerial());
-                ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
-                List<Integer> pxmOidList = ticketEditDTO.getUpdateSerial().stream().map(s -> Integer.valueOf(s.getXmOID())).collect(Collectors.toList());
-                invoiceService.updateInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
-            }
             return new QueryResultArrayDTO(null, 0, 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
@@ -894,6 +884,18 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             ArrayList<Map<String, Object>> result = new ArrayList<>();
             for(Key key: keys){
+                if(key.getKeyType() == null || key.getKeyType().length() == 0){
+                    key.setKeyType("N/A");
+                }
+
+                if(key.getKcv() == null || key.getKcv().length() == 0){
+                    key.setKcv("N/A");
+                }
+
+                if(key.getKsi() == null || key.getKsi().length() == 0){
+                    key.setKsi("N/A");
+                }
+
                 Map<String, Object> mm = new LinkedHashMap<>();
                 Map<String, Object> keyMap = objectMapper.convertValue(key, Map.class);
 

@@ -263,10 +263,14 @@
         XA_OID as xaOID,
         RMA_NUMBER as originalRMA,
         ZOHO_ENCRYPT as encrypt,
-        TEST_KEY_TYPE as testKeyType,
+        mo.TEST_KEY_TYPE as keyIndex,
+        mk.key_Type as keyType,
+        COALESCE(mk.KCV, 'N/A') as kcv,
+        COALESCE(mk.KSI, 'N/A') as ksi,
         ACKNOWLEDGED as acknowledged
         from BASIL_ODS_PRD.MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
+        left join BASIL_SEC_PRD.MASTER_KEY as mk on mk.key_Index = mo.test_key_type
         <where>
             <if test="id !=null">
                 mo.MO_OID = #{id}
@@ -281,10 +285,14 @@
         XA_OID as xaOID,
         RMA_NUMBER as originalRMA,
         ZOHO_ENCRYPT as encrypt,
-        TEST_KEY_TYPE as testKeyType,
+        mo.TEST_KEY_TYPE as keyIndex,
+        mk.key_Type as keyType,
+        COALESCE(mk.KCV, 'N/A') as kcv,
+        COALESCE(mk.KSI, 'N/A') as ksi,
         ACKNOWLEDGED as acknowledged
         from BASIL_SEC_PRD.PREP_MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
+        left join BASIL_SEC_PRD.MASTER_KEY as mk on mk.key_Index = mo.test_key_type
         <where>
             <if test="id !=null">
                 mo.MO_OID = #{id}
