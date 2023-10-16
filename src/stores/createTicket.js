@@ -153,6 +153,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
           });
         })
         .catch(function (error) {
+          // if(!this.loggedIn) return;
           console.log(error);
           // handle error
           Notify.create({

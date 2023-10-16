@@ -594,6 +594,7 @@ export default {
           return response.data.data;
         })
         .catch((error) => {
+          if(!this.loggedIn) return;
           console.log(error);
           Notify.create({
             type: "negative",
@@ -685,6 +686,7 @@ export default {
           return response.data.data.acknowledged;
         })
         .catch((error) => {
+          if(!this.loggedIn)return;
           console.log(error);
           Notify.create({
             type: "negative",
@@ -700,6 +702,7 @@ export default {
       this.showAddressModal = true;
     },
     populateKeysOptOnce() {
+      const vm = this;
       if (this.keys == null) {
         const link = "/ticketing/dropdown/key";
         api
@@ -743,6 +746,7 @@ export default {
               this.populateKsiOpt();
           })
           .catch(function (error) {
+            if(!vm.loggedIn) return;
             console.log(error);
             // handle error
             Notify.create({

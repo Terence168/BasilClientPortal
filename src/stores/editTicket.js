@@ -108,7 +108,14 @@ export const useEditTicketStore = defineStore("editTicket", {
 
           ticketInfo.serials = ticketInfo.serials.map((s) => validateSerial(s));
           return ticketInfo;
-        });
+        }).catch((e) => {
+          if(!this.loggedIn) return;
+            // handle error
+            Notify.create({
+              type: "negative",
+              message: "Cant't fetch ticket.",
+            });
+        })
     },
     getTicket(ticketId) {
       const index = this.tickets.findIndex((t) => {
