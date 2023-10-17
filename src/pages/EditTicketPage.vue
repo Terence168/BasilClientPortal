@@ -362,7 +362,7 @@ export default {
     this.$watch(
       () => this.$route.params,
       () => {
-        if (this.$route.name !== "edit-ticket" || this.sessionTimeLeft <= 0) {
+        if (this.$route.name !== "edit-ticket") {
           return;
         }
         this.isLoading = true;
@@ -378,7 +378,7 @@ export default {
             const ticketInfo = values[0];
             const comments = values[1];
             const ack = values[2];
-
+            
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
 
