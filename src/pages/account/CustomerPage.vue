@@ -1,0 +1,413 @@
+<template>
+  <div class="q-mx-lg">
+    <div class="generic-container">
+      <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
+        Customer Settings
+      </div>
+      <q-separator />
+      <div class="q-px-lg q-py-md">
+        <div class="row">
+          <div class="col">
+            <div class="row text-subtitle1 text-weight-medium q-pb-xs">
+              Company Information:
+            </div>
+            <div class="rows q-pl-md">
+              <div class="row q-pb-xs">Company Name : {{ company.name }}</div>
+              <div class="row q-pb-xs">Company Type : {{ company.type }}</div>
+              <div class="row q-pb-xs">Phone : {{ company.phone }}</div>
+              <div class="row q-pb-xs">Tax Status : {{ company.tax }}</div>
+              <div class="row q-pb-xs">Status : {{ company.status }}</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="q-my-sm">Default Shipping Address:</div>
+            <div class="row">
+          <div class="col-auto">
+            <AddressBlock :address="defaultAddress" @click="showAddressGrid" />
+          </div>
+        </div>
+          </div>
+        </div>
+        <div class="row text-subtitle1 text-weight-medium q-pb-xs">
+          Billing Address:
+        </div>
+        <div class="rows q-pl-md">
+          <div class="row q-pb-xs" v-if="address.attentionTo">
+            {{ address.attentionTo }}
+          </div>
+          <div class="row q-pb-xs">
+            {{ address.shipToCompany }}
+          </div>
+          <div class="row q-pb-xs">
+            {{ address.address }}
+          </div>
+          <div v-if="address.address2" class="row q-pb-xs">
+            {{ address.address2 }}
+          </div>
+          <div class="row q-pb-xs">
+            {{ address.city }}, {{ address.state }} {{ address.zipCode }}
+          </div>
+        </div>
+        <div class="row justify-center q-py-sm">
+          <q-btn
+            v-if="checkPermission('customer.info.update')"
+            class="col-auto"
+            color="primary"
+            @click="edit"
+            style="min-width: 200px"
+            label="Edit"
+            />
+        </div>
+      </div>
+    </div>
+    <BaseModal
+      title="Update Company"
+      :width="500"
+      @update:show="resetModal"
+      v-bind:show="withClient"
+    >
+      <q-form ref="modalForm" @submit.prevent="updateCompany">
+        <div class="row text-subtitle1 text-weight-medium q-pb-xs">
+          Company Information:
+        </div>
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedCompany.name"
+          label="Company Name"
+          dense
+        />
+        <div class="row">
+          <q-input
+            class="col-auto q-mt-sm q-mb-sm"
+            outlined
+            autogrow
+            v-model="copiedCompany.type"
+            label="Company Type"
+            dense
+          />
+          <q-input
+            class="col-auto q-mt-sm q-mb-sm"
+            outlined
+            autogrow
+            v-model="copiedCompany.other"
+            label="Other"
+            dense
+          />
+        </div>
+        <div class="row">
+          <q-input
+            class="col-auto q-mt-sm q-mb-sm"
+            outlined
+            autogrow
+            v-model="copiedCompany.phone"
+            label="Phone"
+            dense
+          />
+          <q-input
+            class="col-auto q-mt-sm q-mb-sm"
+            outlined
+            autogrow
+            v-model="copiedCompany.tax"
+            label="Tax Status"
+            dense
+          />
+        </div>
+        <q-input
+          class="col-auto q-mt-sm q-mb-sm"
+          outlined
+          autogrow
+          v-model="company.tax"
+          label="Company Status"
+          dense
+        />
+        <div class="row text-subtitle1 text-weight-medium q-pb-xs">
+          Billing Address:
+        </div>
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedAddress.attentionTo"
+          label="Attention To"
+          dense
+        />
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedAddress.shipToCompany"
+          label="Company Name"
+          dense
+        />
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedAddress.address"
+          label="Address"
+          dense
+        />
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedAddress.address2"
+          label="Address 2"
+          dense
+        />
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedAddress.city"
+          label="City"
+          dense
+        />
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedAddress.state"
+          label="State/Province"
+          dense
+        />
+        <q-input
+          class="row q-mb-sm"
+          outlined
+          v-model="copiedAddress.zipCode"
+          label="Zip Code/Postal Code"
+          dense
+        />
+        <div class="row justify-center q-mt-md">
+          <div class="col-auto">
+            <q-btn
+              class="q-mr-md"
+              type="submit"
+              label="Update"
+              color="primary"
+              style="min-width: 150px"
+              :loading="updating"
+              @click="update"
+            >
+              <template v-slot:loading>
+                <q-spinner-facebook />
+              </template>
+            </q-btn>
+          </div>
+          <!-- cancel Button -->
+          <div class="col-auto">
+            <q-btn
+              label="Cancel"
+              color="grey-4"
+              text-color="grey-6"
+              style="min-width: 150px"
+              @click="resetModal"
+            />
+          </div>
+        </div>
+      </q-form>
+    </BaseModal>
+    <BaseModal
+      :show="showAddressModal"
+      title="Select Shipping Address"
+      :width="972"
+      @update:show="showAddressModal = false"
+    >
+      <AddressGrid @selectShippingAddress="selectShippingAddress" />
+    </BaseModal>
+  </div>
+</template>
+
+<script>
+import BaseModal from "src/components/BaseModal.vue";
+import AddressBlock from "src/components/AddressBlock.vue";
+import AddressGrid from "src/components/AddressGrid.vue";
+import { useUserStore } from "stores/user";
+import { api } from "src/boot/axios";
+import { Notify } from "quasar";
+
+export default {
+  components: {
+    BaseModal,
+    AddressBlock,
+    AddressGrid,
+  },
+  data: () => {
+    return {
+      company: {
+        id:null,
+        name:null,
+        type: null,
+        phone: null,
+        tax: null,
+        status: null,
+      },
+      address: {
+        attentionTo: null,
+        shipToCompany: null,
+        address: null,
+        address2: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        country:null,
+      },
+      copiedCompany: null,
+      copiedAddress: null,
+      withClient: false,
+      updating: false,
+      showAddressModal: false,
+      defaultAddress: null,
+    };
+  },
+  created(){
+    this.queryData();
+  },
+  watch: {
+    $route(newRoute, oldRoute) {
+      if (newRoute.path === oldRoute.path) {
+        this.queryData();
+      }
+    },
+  },
+  methods: {
+    queryData(){
+      //get company info. default shipping address, billing address from backend
+      const actionURL = "/privilege/company";
+      const vm = this;
+      api.get(actionURL).then(function (response) {
+          if (response.data.resultCode === 0) {
+            const jsonObject = response.data.data;
+            const company = {
+              id: jsonObject.id,
+              name: jsonObject.customerName,
+              type: jsonObject.type, // You can set this as needed
+              phone: jsonObject.contactPhone, // You can set this as needed
+              tax: jsonObject.tax, // You can set this as needed
+              status: jsonObject.status, // You can set this as needed
+            };
+
+            const address = {
+              attentionTo: jsonObject.contactName,
+              shipToCompany: jsonObject.customerName, // You can set this as needed
+              address: jsonObject.address1,
+              address2: jsonObject.address2 || "", // Set to an empty string if null
+              city: jsonObject.city,
+              state: jsonObject.state,
+              zipCode: jsonObject.zip,
+            };
+
+            vm.company = company;
+            vm.address = address;
+            vm.defaultAddress = jsonObject.address;
+          } else {
+            Notify.create({
+              type: "negative",
+              message: response.data.errorMessage,
+            });
+          }
+      })
+    },
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
+    },
+    selectShippingAddress(address) {
+      this.defaultAddress = address;
+      this.updateDefaultAddress(address.xaOid);
+      this.showAddressModal = false;
+    },
+    showAddressGrid() {
+      if(this.checkPermission("customer.shipping.update-default")){
+        this.showAddressModal = true;
+      }
+    },
+    edit() {
+      let companyDeepCopy = JSON.parse(JSON.stringify(this.company));
+      let addressDeepCopy = JSON.parse(JSON.stringify(this.address));
+      this.copiedAddress = addressDeepCopy;
+      this.copiedCompany = companyDeepCopy;
+      this.withClient = true;
+    },
+    updateDefaultAddress(xaOid){
+      const vm = this;
+      const link = "/customer/address/default?xaOid="+xaOid;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage);
+          }
+          Notify.create({
+            type:"positive",
+            message:"Update Default Shipping Address Successfully"
+          })
+          return response.data.data;
+        })
+        .catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+    },
+    updateCompany() {},
+    resetModal() {
+      this.copiedCompany.name = null;
+      this.copiedCompany.type = null;
+      this.copiedCompany.phone = null;
+      this.copiedCompany.tax = null;
+      this.copiedCompany.status = null;
+
+      this.copiedAddress.attentionTo = null;
+      this.copiedAddress.shipToCompany = null;
+      this.copiedAddress.address = null;
+      this.copiedAddress.address2 = null;
+      this.copiedAddress.city = null;
+      this.copiedAddress.state = null;
+      this.copiedAddress.zipCode = null;
+      this.copiedAddress.country = null;
+
+      this.withClient = false;
+    },
+    update() {
+      const company = this.copiedCompany;
+      const address = this.copiedAddress;
+      const payload = {
+        id: company.id, // You can set this to null if you don't have an ID yet
+        customerName: company.name,
+        // contactPhone: company.phone,
+        // type:company.type,
+        // tax:company.tax,
+        // status:company.status,
+        address1: address.address,
+        address2: address.address2 || null, // Set to null if it's an empty string
+        city: address.city,
+        state: address.state,
+        zip: address.zipCode,
+        country: address.country, // You can set the country field as needed
+        contactName: address.attentionTo,
+      };
+      const actionURL = "/privilege/company";
+      const vm = this;
+      api.put(actionURL, payload)
+      .then(function (response){
+          if (response.data.resultCode != 0) {
+            Notify.create({
+              type: "negative",
+              message: response.data.errorMessage,
+            });
+          }
+          Notify.create({
+              type: "positive",
+              message: "Update Customer Information Successfully",
+          });
+        vm.queryData();
+      }).catch((error) => {
+          console.log(error);
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        });
+      
+      this.resetModal();
+    },
+  },
+};
+</script>

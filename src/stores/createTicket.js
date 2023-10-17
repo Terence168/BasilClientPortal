@@ -11,9 +11,20 @@ export const useCreateTicketStore = defineStore("createTicket", {
     trackingNums: [],
     serials: [],
     inputValue: null,
+    keys:null,
+
     keyType:null,
     keyTypeOpt:null,
+
+    kcv:null,
+    kcvOpt:null,
+
+    ksi:null,
+    ksiOpt:null,
+
     encrypt:null,
+    custType:null,
+    custTypeOpt:null,
   }),
 
   getters: {
@@ -41,16 +52,33 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.trackingNums.splice(index, 1);
     },
     populateKeyTypeOpt(_, update){
-      if (this.keyTypeOpt) {
-        update();
-        return;
-      }
-      const link = "/ticketing/dropdown/key_type";
+      // if (this.keyTypeOpt) {
+      //   update();
+      //   return;
+      // }
+      const link = "/ticketing/dropdown/key";
       api
         .get(link)
         .then((response) => {
           update(() => {
-            this.keyTypeOpt = response.data.data;
+            const keyTypeSet = new Set();
+            this.keys = response.data.data;
+            this.keys.forEach((key) => {
+              keyTypeSet.add(key.label.keyType);
+            })
+
+            const keyTypeArray = [];
+            var index = 0;
+            for(const keyType of keyTypeSet){
+              keyTypeArray.push({
+                value:keyType,
+                label:keyType,
+              })
+              index += 1
+            }
+
+            this.keyTypeOpt = keyTypeArray;
+            // console.log(this.keyTypeOpt);
           });
         })
         .catch(function (error) {
@@ -61,6 +89,39 @@ export const useCreateTicketStore = defineStore("createTicket", {
             message: "Key Type Dropdown cannot be populated",
           });
         });
+    },
+    populateKcvOpt(_, update){
+      this.kcv = null;
+      this.ksi = null;
+      if(this.keyType != null){
+        const kcvs = this.keys.filter((key) => key.label.keyType == this.keyType);
+        const kcvArrays = [];
+        kcvs.forEach((key) => {
+          const data = {
+            "value":key.label.kcv,
+            "label":key.label.kcv,
+          }
+          kcvArrays.push(data);
+        })
+
+        this.kcvOpt = kcvArrays;
+        // console.log(this.kcvOpt);
+      }
+    },
+    populateKsiOpt(_, update){
+      if(this.keyType != null && this.kcv != null){
+        const keys = this.keys.filter((key) => key.label.keyType == this.keyType && key.label.kcv == this.kcv);
+        const ksiArray = [];
+        keys.forEach((key) => {
+          const data = {
+            "value":key.value,
+            "label":key.label.ksi,
+          };
+          ksiArray.push(data);
+        })
+        this.ksiOpt = ksiArray;
+        // console.log(this.ksiOpt);
+      }
     },
     populateKeyTypeOptOnce(){
       const link = "/ticketing/dropdown/key_type";
@@ -92,6 +153,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
           });
         })
         .catch(function (error) {
+          // if(!this.loggedIn) return;
           console.log(error);
           // handle error
           Notify.create({
@@ -106,6 +168,27 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .get(link)
         .then((response) => {
           this.orderTypeOpt = response.data.data;
+          
+        })
+        .catch(function (error) {
+          console.log(error);
+          // handle error
+          Notify.create({
+            type: "negative",
+            message: "Order Type Dropdown cannot be populated",
+          });
+        });
+    },
+    populateCustTypeOpt(_, update){
+      if (this.custTypeOpt) {
+        update();
+        return;
+      }
+      const link = "/ticketing/dropdown/cust_org";
+      api
+        .get(link)
+        .then((response) => {
+          this.custTypeOpt = response.data.data;
         })
         .catch(function (error) {
           console.log(error);

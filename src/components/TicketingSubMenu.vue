@@ -1,22 +1,11 @@
 
-<script>
-import { useUserStore } from "stores/user";
 
-export default {
-
-  computed: {
-    clientUser() {
-      return useUserStore().isClientUser;
-    },
-  },
-};
-</script>
 
 <template>
   <q-list class="q-pa-lg text-secondary text-subtitle1">
     <div class="q-ml-md q-mb-sm section-title">Ticketing</div>
 
-    <q-item v-if="!clientUser"
+    <q-item v-if="!clientUser && checkPermission('ticketing.queue')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'ticketing-queue' }"
@@ -29,6 +18,7 @@ export default {
     </q-item>
 
     <q-item
+    v-if="checkPermission('ticketing.view')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'view-tickets' }"
@@ -41,6 +31,7 @@ export default {
     </q-item>
 
     <q-item
+    v-if="checkPermission('ticketing.add')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'create-ticket' }"
@@ -53,4 +44,19 @@ export default {
     </q-item>
   </q-list>
 </template>
+<script>
+import { useUserStore } from "stores/user";
 
+export default {
+  computed: {
+    clientUser() {
+      return useUserStore().isClientUser;
+    },
+  },
+  methods: {
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
+    },
+  },
+};
+</script>

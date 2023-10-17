@@ -82,6 +82,7 @@
           <div class="row justify-center">
             <GenericTable
               @update-data="updateData"
+              @view-data="viewData"
               style="width: 1000px"
               :tableData="tableData"
             />
@@ -157,7 +158,7 @@
           </template>
         </q-select>
 
-        <div class="q-mb-sm text-weight-bold">Assign Roles</div>
+        <div class="q-mb-sm text-weight-bold">{{modalFormOptions.action === 'View'? 'Roles': 'Assign Roles'}}</div>
 
         <div class="q-mb-sm">
           <q-list bordered class="rounded-borders">
@@ -180,6 +181,7 @@
                       v-model="rolesSelected"
                       :val="role.id"
                       :label="role.roleName"
+                      :disable="modalFormOptions.action === 'View'"
                     />
                   </div>
                 </q-card-section>
@@ -233,7 +235,17 @@ const user = useUserStore();
 
 export default {
   components: { FilterOptions, GenericTable, GenericPagination, BaseModal },
-
+  mounted(){
+    if(!this.checkPermission("privilege.user.update")){
+      this.tableData.columns = [
+          { id: "name", label: "User Name", sortable: true },
+          { id: "email", label: "Email", sortable: true },
+          { id: "registerTime", label: "Register Time", sortable: true },
+          { id: "lastLogin", label: "Last Login", sortable: true },
+          { id: "statusStr", label: "User Status", sortable: true },
+        ];
+    }
+  },
   data() {
     return {
       showModal: false,
@@ -285,7 +297,6 @@ export default {
       total: 0,
     };
   },
-
   computed: {
     totalPages() {
       const perPage = this.$route.query.per_page || 10;
@@ -311,7 +322,7 @@ export default {
     },
   },
 
-  methods: {
+  methods: {   
     queryData() {
       const vm = this;
 
@@ -358,10 +369,12 @@ export default {
 
     updateData(id) {
       this.modalFormOptions.action = "Update";
-
       this.populateFields(id);
     },
-
+    viewData(id) {
+      this.modalFormOptions.action = "View";
+      this.populateFields(id);
+    },
     onSubmit(id) {
       if (this.modalFormOptions.action === "View") return;
 

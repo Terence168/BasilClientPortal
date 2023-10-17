@@ -70,7 +70,16 @@
             </span>
 
             <span v-if="column.id === 'userActions'">
+              <!-- <q-btn
+                v-if="checkPermission('privilege.user.update')"
+                flat
+                round
+                color="grey-6"
+                icon="manage_accounts"
+                @click="$emit('view-data', row.id)"
+              ></q-btn> -->
               <q-btn
+               v-if="checkPermission('privilege.user.update')"
                 flat
                 round
                 color="grey-6"
@@ -141,6 +150,8 @@
 </template>
 
 <script>
+import { useUserStore } from "stores/user";
+
 export default {
   props: ["tableData", "permissions", "bulkAssign", "ids"],
 
@@ -262,6 +273,9 @@ export default {
 
     editTicket(id) {
       this.$router.push({ name: "edit-ticket", params: { ticketId: id } });
+    },
+    checkPermission(permission) {
+      return useUserStore().checkPermission(permission);
     },
   },
 };

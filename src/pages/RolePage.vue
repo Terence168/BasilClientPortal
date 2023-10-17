@@ -51,6 +51,7 @@
           <q-separator />
           <div class="row justify-end q-mt-md">
             <q-btn
+              v-if="checkPermission('privilege.role.add')"
               icon="add"
               label="Add"
               color="primary"
@@ -184,7 +185,9 @@ import { useUserStore } from "stores/user";
 
 export default {
   components: { RoleCard, BaseModal },
+  mounted(){
 
+  },
   data() {
     return {
       showModal: false,
@@ -207,62 +210,7 @@ export default {
         sparePartsClerk: 3,
       },
 
-      permissions: [
-        // {
-        //   id: 0,
-        //   label: "All Permissions",
-        //   children: [
-        //     {
-        //       id: 1,
-        //       label: "User Control Access",
-        //       children: [
-        //         {
-        //           id: 2,
-        //           label: "Role Type List",
-        //           children: [
-        //             {
-        //               id: 5,
-        //               label: "Add - Role Type",
-        //             },
-        //             {
-        //               id: 6,
-        //               label: "Update - Role Type",
-        //             },
-        //           ],
-        //         },
-        //         {
-        //           id: 3,
-        //           label: "Role List",
-        //           children: [
-        //             {
-        //               id: 7,
-        //               label: "Add - Role",
-        //             },
-        //             {
-        //               id: 8,
-        //               label: "Update - Role",
-        //             },
-        //           ],
-        //         },
-        //         {
-        //           id: 4,
-        //           label: "User List",
-        //           children: [
-        //             {
-        //               id: 9,
-        //               label: "Add - User",
-        //             },
-        //             {
-        //               id: 10,
-        //               label: "Update - User",
-        //             },
-        //           ],
-        //         },
-        //       ],
-        //     },
-        //   ],
-        // },
-      ],
+      permissions: [],
 
       ticked: [],
 
@@ -271,7 +219,6 @@ export default {
       roleTypes: [],
     };
   },
-
   created() {
     this.queryData();
 
@@ -288,6 +235,11 @@ export default {
   },
 
   methods: {
+    methods: {
+      checkPermission(permission) {
+        return useUserStore().checkPermission(permission);
+      },
+    },
     queryData() {
       const vm = this;
 
@@ -339,11 +291,27 @@ export default {
     },
 
     updateData(id) {
+      this.setAllUnselectable(this.permissions, true);
       this.modalFormOptions.action = "Update";
-
       this.populateFields(id);
     },
 
+    viewData(id) {
+      this.setAllUnselectable(this.permissions, false);
+      this.modalFormOptions.action = "View";
+      this.populateFields(id);
+    },
+
+    setAllUnselectable(permissions, flag){
+      if(permissions == null || permissions.length == 0){
+        return;
+      }
+      permissions.forEach((node) => {
+        node.selectable = flag;
+        node.tickable = flag;
+        this.setAllUnselectable(node.children);
+      })
+    },
     onSubmit(id) {
       if (this.modalFormOptions.action === "View") return;
 
@@ -371,6 +339,7 @@ export default {
     },
 
     addData() {
+      this.setAllUnselectable(this.permissions, true);
       this.modalFormOptions.action = "Add";
       this.modalFormOptions.id = null;
 

@@ -55,9 +55,9 @@ import { useUserStore } from "stores/user";
 
 import { exportFile, date } from "quasar";
 
+
 export default {
   components: { FilterOptions, GenericTable, GenericPagination },
-
   data() {
     return {
       filterFields: [
@@ -102,7 +102,22 @@ export default {
       total: 0,
     };
   },
-
+  mounted() {
+    if (!this.checkPermission("ticketing.update")) {
+      this.tableData.columns = [
+        { id: "ticketId", label: "TICKET ID", sortable: true },
+        { id: "status", label: "Status", sortable: true },
+        { id: "department", label: "Department", sortable: true },
+        { id: "type", label: "Type", sortable: true },
+        {
+          id: "createdDate",
+          label: "Created Date",
+          sortable: true,
+        },
+        { id: "responder", label: "Responder", sortable: true },
+      ];
+    }
+  },
   computed: {
     totalPages() {
       const perPage = this.$route.query.per_page || 10;

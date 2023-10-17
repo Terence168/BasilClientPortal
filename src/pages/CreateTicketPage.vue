@@ -49,7 +49,7 @@
         <!-- Add ticket  -->
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Organization:&nbsp;</div>
-          <div class="col-auto">
+          <div class="col-auto" v-if="clientUser">
             <q-input
               :model-value="companyName"
               disable
@@ -57,11 +57,31 @@
               dense
             />
           </div>
+          <div class="col-auto" v-if="!clientUser">
+            <q-select
+              style="min-width: 200px"
+              label="Please select"
+              v-model="custType"
+              :options="custTypeOpt"
+              @filter="populateCustTypeOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
         </div>
 
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Email:&nbsp;</div>
-          <div class="col-auto">
+          <div class="col-auto" >
             <q-input
               :model-value="userEmail"
               disable
@@ -97,6 +117,52 @@
               v-model="keyType"
               :options="keyTypeOpt"
               @filter="populateKeyTypeOpt"
+              @input-value="populateKcvOpt"
+              @update:model-value="populateKcvOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null">KCV:&nbsp;</div>
+          <div class="col-auto" v-show="keyType != null">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="kcv"
+              :options="kcvOpt"
+              @input-value="populateKsiOpt"
+              @update:model-value="populateKsiOpt"
+              dense
+              emit-value
+              map-options
+            >
+              <template v-slot:no-option>
+                <q-item>
+                  <q-item-section class="text-grey">
+                    No results
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null && kcv != null">KSI:&nbsp;</div>
+          <div class="col-auto"  v-show="keyType != null && kcv != null">
+            <q-select
+              ref="testKeyTypeSelect"
+              style="min-width: 200px"
+              label="Please select"
+              v-model="ksi"
+              :options="ksiOpt"
               dense
               emit-value
               map-options
@@ -150,11 +216,9 @@
             @click="deleteTrackingNum(index)"
           />
         </div>
-
         <div class="q-py-md text-subtitle1 text-weight-bold">
           Ticket Serial Numbers
         </div>
-
         <div class="row items-start">
           <!-- Add Serial Number -->
           <q-btn
@@ -335,11 +399,14 @@ export default {
     ...mapWritableState(useCreateTicketStore, [
       "orderType",
       "keyType",
+      "kcv",
+      "ksi",
       "trackingNums",
       "inputValue",
       "originalRMA",
       "address",
-      "encrypt"
+      "encrypt",
+      "custType",
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
@@ -347,7 +414,11 @@ export default {
       "getSerials",
       "getAllSerials",
       "getTrackingNums",
+      "custTypeOpt",
+      "kcvOpt",
+      "ksiOpt"
     ]),
+    ...mapState(useUserStore, ["clientUser"]),
     isEncrypted(){
       return this.encrypt != null && this.encrypt === "yes";
     },
@@ -372,6 +443,9 @@ export default {
       "resetTicket",
       "populateOrderTypeOpt",
       "populateKeyTypeOpt",
+      "populateCustTypeOpt",
+      "populateKcvOpt",
+      "populateKsiOpt",
       "addSerial",
       "addSerialList",
       "updateSerial",
@@ -449,7 +523,15 @@ export default {
         this.serialsSubmitting = false;
         return;
       }
-
+      //no test key select when user select encrypted
+      if(this.isEncrypted && this.ksi === null){
+        Notify.create({
+          type: "negative",
+          message: "Please Select an Unique Key for Encryption",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
       const trackingNumbers = this.getTrackingNums.filter(t => t!= "" && t.length > 0);
       const actionURL = "/ticketing/submitTicket";
 
@@ -470,15 +552,14 @@ export default {
       const payload = {
         encrypt: this.encrypt,
         orderType: this.orderType,
-        testKeyType:this.isEncrypted? this.keyTypeOpt[this.keyType].label:null,
+        testKeyType:this.isEncrypted? this.ksi:null,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
         xaOID: this.address.xaOid,
       };
-
+      
       const vm = this;
-      console.log(payload);
       this.$api
         .post(actionURL, payload, {
           headers: {

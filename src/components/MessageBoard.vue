@@ -38,7 +38,7 @@
           send: {
             tip: 'reply',
             icon: 'reply',
-            label: 'send',
+            label: 'Send Comments',
             handler: handleSendComment,
           },
         }"
@@ -120,7 +120,7 @@ export default {
       this.$emit("add-comment", comment);
     },
     checkAckPermission() {
-      return useUserStore().checkPermission("ticketing.edit.acknowledge");
+      return useUserStore().checkPermission("ticketing.ack");
     },
     scrollToBottom() {
       const scrollArea = this.$refs.chatScroll;
