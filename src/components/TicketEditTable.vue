@@ -29,6 +29,32 @@
             @click="handleRowClick($event, props.row)"
             :key="props.row.serialNumber"
           >
+            <q-td key="actions" :props="props">
+              <q-btn
+                v-if="showRemoveUnit"
+                flat
+                round
+                color="red-6"
+                icon="close"
+                @click="handleClickRemoveUnit"
+              ></q-btn>
+              <q-btn
+              v-if="showUpdateUnit"
+                flat
+                round
+                color="green-6"
+                icon="edit"
+                @click="handleClickUpdateUnit"
+              ></q-btn>
+              <q-btn
+              v-if="showViewUnit"
+                flat
+                round
+                color="yellow-9"
+                icon="visibility"
+                @click="handleClickViewUnit($event, props.row)"
+              ></q-btn>
+            </q-td>
             <q-td key="cosmetic" :props="props">
               <q-checkbox
                 v-model="props.row.cosmetic"
@@ -81,7 +107,7 @@
         </template>
       </q-table>
     </div>
-    <PopUpBtns
+    <!-- <PopUpBtns
       ref="popupBtns"
       :showViewUnit="showViewUnit"
       :showUpdateUnit="showUpdateUnit"
@@ -89,7 +115,7 @@
       @popup-remove-sn="handleClickRemoveUnit"
       @popup-update-sn="handleClickUpdateUnit"
       @popup-view-sn="handleClickViewUnit"
-    />
+    /> -->
     <!-- View Serial Details -->
     <BaseModal
       v-model:show="showDetailModal"
@@ -119,7 +145,6 @@
 <script>
 import { mapActions, mapState, mapWritableState } from "pinia";
 import { useEditTicketStore } from "src/stores/editTicket";
-import PopUpBtns from "./PopUpBtns.vue";
 import BaseModal from "./BaseModal.vue";
 import EditModal from "./EditModal.vue";
 import TicketDetailForm from "./TicketDetailForm.vue";
@@ -138,12 +163,22 @@ export default {
     "containsXrefMaterials",
     "inputValue",
     "encrypt",
+    "showViewUnit",
+    "showUpdateUnit",
+    "showRemoveUnit",
   ],
-  components: { PopUpBtns, EditModal, BaseModal, TicketDetailForm },
+  components: { EditModal, BaseModal, TicketDetailForm },
   emits: ["add-sn", "update-sn", "remove-sn"],
   data() {
     return {
       columns: [
+        {
+          name: "actions",
+          align: "center",
+          label: "Actions",
+          field: "actions",
+          sortable: false,
+        },
         {
           name: "cosmetic",
           align: "center",
@@ -217,14 +252,14 @@ export default {
         },
         submitAction: "add",
       },
-      showRemoveUnit: false,
-      showUpdateUnit: false,
-      showViewUnit: false,
+      // showRemoveUnit: false,
+      // showUpdateUnit: false,
+      // showViewUnit: false,
       details: {},
     };
   },
   mounted() {
-    window.addEventListener("click", this.handleGlobalClick);
+    // window.addEventListener("click", this.handleGlobalClick);
   },
   computed: {
     serials() {
@@ -293,20 +328,20 @@ export default {
       "addSN",
     ]),
     handleRowClick(evt, row) {
-      if (row.pxmOID === null && row.xmOID === null) {
-        //in create ticket page
-        this.showRemoveUnit = true;
-        this.showUpdateUnit = true;
-        this.showViewUnit = false;
-      } else {
-        this.showRemoveUnit = false;
-        this.showUpdateUnit = true;
-        this.showViewUnit = true;
-      }
-      if (this.containsXrefMaterials) {
-        this.showRemoveUnit = false;
-      }
-      this.$refs.popupBtns.addPopupBtns(evt);
+      // if (row.pxmOID === null && row.xmOID === null) {
+      //   //in create ticket page
+      //   this.showRemoveUnit = true;
+      //   this.showUpdateUnit = true;
+      //   this.showViewUnit = false;
+      // } else {
+      //   this.showRemoveUnit = false;
+      //   this.showUpdateUnit = true;
+      //   this.showViewUnit = true;
+      // }
+      // if (this.containsXrefMaterials) {
+      //   this.showRemoveUnit = false;
+      // }
+      // this.$refs.popupBtns.addPopupBtns(evt);
       this.modalState.serialData = row;
     },
     handleClickAddUnit() {
@@ -331,8 +366,8 @@ export default {
       const sn = this.modalState.serialData.serialNumber;
       this.$emit("remove-sn", { sn });
     },
-    handleClickViewUnit() {
-      const { xmOID, pxmOID } = this.modalState.serialData;
+    handleClickViewUnit(evt, row) {
+      const { xmOID, pxmOID } = row;
       const id = xmOID === null ? pxmOID : xmOID;
       const link = "/ticketing/viewDetails?id=" + id;
       api
@@ -354,17 +389,17 @@ export default {
           });
         });
     },
-    handleGlobalClick(event) {
-      // Handle the global click event here
-      const btns = this.$refs["popupBtns"];
-      if (btns != null) {
-        const serials = document.getElementById("serials");
-        if (serials != null && !serials.contains(event.target)) {
-          //click out of serials
-          this.$refs.popupBtns.removePopupBtns();
-        }
-      }
-    },
+    // handleGlobalClick(event) {
+    //   // Handle the global click event here
+    //   const btns = this.$refs["popupBtns"];
+    //   if (btns != null) {
+    //     const serials = document.getElementById("serials");
+    //     if (serials != null && !serials.contains(event.target)) {
+    //       //click out of serials
+    //       this.$refs.popupBtns.removePopupBtns();
+    //     }
+    //   }
+    // },
     /**
      * Handler for child component: EditModal
      */
