@@ -20,6 +20,7 @@ import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,23 +29,28 @@ import org.apache.commons.lang3.StringUtils;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @AllArgsConstructor
+@NoArgsConstructor
 @ApiModel(value="Customer Object")
 public class Customer{
 
     private Long id;
     private String customerName;
+    private String contactName;
+
     private String address1;
     private String address2;
     private String city;
+
     private String state;
     private String zip;
     private String country;
-    private String contactName;
+
     private String contactPhone;
     private String storeNumber;
     private Integer clientGroup;
     private Integer payAfter;
     private Integer version;
+
 
     public boolean isInvalidCustomer() {
         return StringUtils.isAnyEmpty(

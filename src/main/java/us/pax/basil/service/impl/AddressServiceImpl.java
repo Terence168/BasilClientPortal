@@ -2,6 +2,7 @@ package us.pax.basil.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.entity.customer.Address;
 import us.pax.basil.mapper.AddressMapper;
 import us.pax.basil.security.CustomUserDetails;
@@ -71,5 +72,31 @@ public class AddressServiceImpl implements AddressService {
         }
         
         return 0;
+    }
+
+    @Override
+    public Address findDefaultAddress(int mcOid) {
+        Address address = addressMapper.getDefault(mcOid);
+        return address;
+    }
+
+    @Override
+    public QueryResultDTO updateDefault(int xaOid) {
+        try{
+            CustomUserDetails user = AuthUtil.getUser();
+            assert user != null;
+            Integer mcOid = user.getCompanyId();
+            Address record = addressMapper.findById(xaOid);
+
+            if (record != null && user.canViewOrEditOtherCustomersRecords(record.getMcOid())) {
+                addressMapper.updateDefault(xaOid, mcOid);
+                return new QueryResultDTO(null, 0, "Update default address successfully");
+            }
+            else{
+                return new QueryResultDTO(null, 0, "Fail to update default address");
+            }
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1, "Fail to update default address");
+        }
     }
 }

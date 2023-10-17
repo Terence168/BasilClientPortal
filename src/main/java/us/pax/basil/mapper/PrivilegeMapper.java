@@ -20,6 +20,7 @@ import java.util.Map;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.privilege.Role;
 import us.pax.basil.entity.privilege.RoleType;
 import us.pax.basil.entity.privilege.UserQuery;
@@ -51,4 +52,6 @@ public interface PrivilegeMapper extends BaseMapper<RoleType> {
     List<Integer> getUserRoles(Integer id);
     void updateUser(User user);
     void changePassword(Integer id, String newPassword);
+    Customer getCustomer(Integer id);
+    void updateCustomer(Customer customer);
 }

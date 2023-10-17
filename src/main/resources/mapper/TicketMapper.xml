@@ -262,10 +262,14 @@
         XA_OID as xaOID,
         RMA_NUMBER as originalRMA,
         ZOHO_ENCRYPT as encrypt,
-        TEST_KEY_TYPE as testKeyType,
+        mo.TEST_KEY_TYPE as keyIndex,
+        mk.key_Type as keyType,
+        COALESCE(mk.KCV, 'N/A') as kcv,
+        COALESCE(mk.KSI, 'N/A') as ksi,
         ACKNOWLEDGED as acknowledged
         from BASIL_ODS_PRD.MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
+        left join BASIL_SEC_PRD.MASTER_KEY as mk on mk.key_Index = mo.test_key_type
         <where>
             <if test="id !=null">
                 mo.MO_OID = #{id}
@@ -280,10 +284,14 @@
         XA_OID as xaOID,
         RMA_NUMBER as originalRMA,
         ZOHO_ENCRYPT as encrypt,
-        TEST_KEY_TYPE as testKeyType,
+        mo.TEST_KEY_TYPE as keyIndex,
+        mk.key_Type as keyType,
+        COALESCE(mk.KCV, 'N/A') as kcv,
+        COALESCE(mk.KSI, 'N/A') as ksi,
         ACKNOWLEDGED as acknowledged
         from BASIL_SEC_PRD.PREP_MASTER_ORDER as mo
         left join BASIL_ODS_PRD.MASTER_CUSTOMER as mc on mc.mc_oid = mo.mc_oid
+        left join BASIL_SEC_PRD.MASTER_KEY as mk on mk.key_Index = mo.test_key_type
         <where>
             <if test="id !=null">
                 mo.MO_OID = #{id}
@@ -909,9 +917,24 @@
         WHERE MO_OID = #{moOID}
     </update>
 
+    <select id="getAllKeys" resultType="us.pax.basil.entity.ticket.Key">
+        SELECT distinct KEY_INDEX as keyIndex, Key_Type as keyType, KCV as kcv, KSI as ksi
+        FROM BASIL_SEC_PRD.MASTER_KEY;
+    </select>
 
-    <select id="getAllKeyType" resultType="String">
-        select distinct KEY_TYPE from BASIL_SEC_PRD.MASTER_KEY
+    <select id="getAllKeyType" resultType="us.pax.basil.entity.ticket.Key">
+        SELECT distinct Key_Type as keyType
+        FROM BASIL_SEC_PRD.MASTER_KEY
+    </select>
+
+    <select id="getAllKcv" resultType="us.pax.basil.entity.ticket.Key">
+        SELECT distinct KCV as kcv
+        FROM BASIL_SEC_PRD.MASTER_KEY
+        <where>
+            <if test="keyType !=null">
+                KEY_Type = {keyType}
+            </if>
+        </where>
     </select>
 
     <update id="ackPrepMasterTicket">
@@ -963,6 +986,25 @@
             </if>
         </where>
         limit 1
+    </select>
+
+    <select id="getAllCustomerOrg" resultType="us.pax.basil.entity.customer.Customer">
+        SELECT distinct
+        MC_OID as id,
+        CUSTOMER_ORGANIZATION as customerName,
+        CUST_CONTACT_NAME as contactName,
+        CUST_ADDRESS as address1,
+        CUST_ADDRESS2 as address2,
+        CITY as city,
+        STATE as state,
+        ZIP_CODE as zip,
+        COUNTRY as country,
+        STORE_NUMBER as storeNumber,
+        CLIENT_GROUP as clientGroup,
+        PAY_AFTER as payAfter,
+        VERSION as version
+        FROM  BASIL_ODS_PRD.MASTER_CUSTOMER
+        ORDER BY CUSTOMER_ORGANIZATION
     </select>
 </mapper>
 

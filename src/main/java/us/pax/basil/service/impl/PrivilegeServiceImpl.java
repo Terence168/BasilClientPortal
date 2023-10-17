@@ -18,22 +18,30 @@ package us.pax.basil.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.apache.xalan.lib.sql.ObjectArray;
+import software.amazon.awssdk.services.ses.endpoints.internal.Value;
 import us.pax.basil.constant.ClientGroupConstant;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PrivilegeConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
+import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.customer.Company;
+import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.privilege.*;
 import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.RoleEntityMapper;
 import us.pax.basil.mapper.RoleTypeMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
+import us.pax.basil.service.AddressService;
 import us.pax.basil.service.PrivilegeService;
 import us.pax.basil.utils.AuthUtil;
 import us.pax.basil.utils.ColumnMapping;
@@ -71,7 +79,10 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     RoleTypeMapper roleTypeMapper;
     @Autowired(required=false)
     RoleEntityMapper roleMapper;
+    @Autowired
+    private AddressService addressService;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
     //
     // Add() - Add customer information parameters passed in.
     //
@@ -371,6 +382,10 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             if (user.getStandardUser() == null)
             	user.setStandardUser(0);
 
+            if(user.getId() == null){
+                user.setId(currentUser.getUserId());
+            }
+
             userMapper.updateUser(user);
 
             privilegeMapper.deleteUserRoles(user.getId());
@@ -399,7 +414,6 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
     @Override
     public SqlResultDTO changePassword(PasswordChange passwordChange) {
         CustomUserDetails userDetails = AuthUtil.getUser();
-
         try {
             PasswordEncoder p = new BCryptPasswordEncoder();
 
@@ -425,16 +439,24 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
         try {
             List<Map<String, Object>> privileges = privilegeMapper.queryAllPrivileges();
             Privilege privilege_root = new Privilege(0, "All Permissions", null);
+            Map<Integer, Privilege> privilegeMap = new HashMap<>();
+            privilegeMap.put(0, privilege_root);
+            for (Map<String, Object> privilege : privileges) {
+                int id = (int) privilege.get("P_OID");
+                String name = (String) privilege.get("NAME");
+                Privilege privilegeCurr = new Privilege(id, name, null);
+                privilegeMap.put(id, privilegeCurr);
+            }
+
             for (Map<String, Object> privilege : privileges) {
                 int id = (int) privilege.get("P_OID");
                 int parentId = (int) privilege.get("PARENT_OID");
-                String name = (String) privilege.get("NAME");
-                Privilege privilege_child = new Privilege(id, name, null);
-                Privilege privilege_parent = privilege_root.findPrivilege(parentId);
-                if (privilege_parent != null) {
-                    privilege_parent.addChild(privilege_child);
-                }
+                Privilege privilege_parent = privilegeMap.get(parentId);
+                Privilege privilege_child = privilegeMap.get(id);
+                assert privilege_parent != null;
+                privilege_parent.addChild(privilege_child);
             }
+
             returnArray.add(privilege_root.toMap());
             return new QueryResultArrayDTO(returnArray, privileges.size(), 0, "");
         } catch (Exception e) {
@@ -451,22 +473,29 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             CustomUserDetails user = AuthUtil.getUser();
             Privilege privilege_root = new Privilege(0, "All Permissions", null);
             int cnt = 1;
+            Map<Integer, Privilege> privilegeMap = new HashMap<>();
+            privilegeMap.put(0, privilege_root);
+            for (Map<String, Object> privilege : privileges) {
+                int id = (int) privilege.get("P_OID");
+                String name = (String) privilege.get("NAME");
+                Privilege privilegeCurr = new Privilege(id, name, null);
+                privilegeMap.put(id, privilegeCurr);
+            }
+
             for (Map<String, Object> privilege : privileges) {
                 int id = (int) privilege.get("P_OID");
                 int parentId = (int) privilege.get("PARENT_OID");
-                String name = (String) privilege.get("NAME");
+                Privilege privilege_parent = privilegeMap.get(parentId);
+                Privilege privilege_child = privilegeMap.get(id);
                 int access_control = (int) privilege.get("ACCESS_CONTROL");
-                Privilege privilege_child = new Privilege(id, name, null);
-                Privilege privilege_parent = privilege_root.findPrivilege(parentId);
-                if (privilege_parent != null) {
-                    assert user != null;
-                    if ((access_control & 1) != 0 && user.isClientUser()) {
-                        privilege_parent.addChild(privilege_child);
-                        ++cnt;
-                    } else if ((access_control & 2) != 0 && !user.isClientUser()) {
-                        privilege_parent.addChild(privilege_child);
-                        ++cnt;
-                    }
+                assert privilege_parent != null;
+                assert user != null;
+                if ((access_control & 1) != 0 && user.isClientUser()) {
+                    privilege_parent.addChild(privilege_child);
+                    ++cnt;
+                } else if ((access_control & 2) != 0 && !user.isClientUser()) {
+                    privilege_parent.addChild(privilege_child);
+                    ++cnt;
                 }
             }
             returnArray.add(privilege_root.toMap());
@@ -475,4 +504,40 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
+
+    @Override
+    public QueryResultDTO updateCustomer(Customer customer) {
+        try{
+            privilegeMapper.updateCustomer(customer);
+            return new QueryResultDTO(null, 0,  "");
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1,  e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultDTO getCustomer() {
+        try{
+            CustomUserDetails userDetails = AuthUtil.getUser();
+            Integer id = userDetails.getCompanyId();
+            Customer customer = privilegeMapper.getCustomer(id);
+            Map<String, Object> map = null;
+            if(customer != null){
+                map = objectMapper.convertValue(customer, Map.class);
+            }
+            Address defaultAddress = addressService.findDefaultAddress(id);
+            if(defaultAddress != null){
+                Map<String, Object> addressMap = objectMapper.convertValue(defaultAddress, Map.class);
+                map.put("address", addressMap);
+            }
+            else{
+                map.put("address", null);
+            }
+            return new QueryResultDTO(map, 0,  "");
+        }catch (Exception e){
+            return new QueryResultDTO(null, -1,  e.getMessage());
+        }
+    }
+
+
 }

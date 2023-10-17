@@ -18,6 +18,7 @@ package us.pax.basil.mapper;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import software.amazon.awssdk.services.ses.endpoints.internal.Value;
 import us.pax.basil.dto.input.UserCreateDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Company;
@@ -69,4 +70,6 @@ public interface UserMapper extends BaseMapper<User> {
                          Integer company,
                          Integer status,
                          String email);
+    void updateUserInfo(User user, Integer userId);
+    void updateUserEmail(String email, Integer userId);
 }

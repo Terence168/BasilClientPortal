@@ -7,6 +7,7 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.Response;
@@ -15,6 +16,7 @@ import us.pax.basil.dto.output.*;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.customer.Company;
+import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.ticket.*;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.mapper.UserMapper;
@@ -37,6 +39,7 @@ import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -77,6 +80,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                                            String createdDate,
                                            String serialNumber,
                                            String customerId) {
+        CustomUserDetails user = AuthUtil.getUser();
+        assert user != null;
+
+        if (user.isClientUser()) {
+            return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the ticket");
+        }
         String[] createdDates;
         String createdFromDate = null;
         String createdToDate = null;
@@ -87,7 +96,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             createdToDate = createdDates[1];
         }
 
-        CustomUserDetails user = AuthUtil.getUser();
         String companyId = null;
 
         if (user != null) {
@@ -199,6 +207,10 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO viewTicketDetails(Integer id) {
+        String ticketId = String.valueOf(id);
+        if(!userHasAccess(ticketId)){
+            return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the ticket");
+        }
         try {
             ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
             List<RepairRecord> repairRecords = ticketMapper.getRepairDetail(id);
@@ -348,24 +360,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
     }
 
-    @Override
-    public QueryResultArrayDTO queryKeyType() {
-        try {
-            List<String> keyTypeList = ticketMapper.getAllKeyType();
-            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
-            for(int i = 0; i < keyTypeList.size(); ++i){
-                Map<String, Object> mm = new LinkedHashMap<>();
-                mm.put(DropDownConstant.DROPDOWN_VALUE, i);
-                mm.put(DropDownConstant.DROPDOWN_LABEL, keyTypeList.get(i));
-                jsonArray.add(mm);
-            }
-            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
-        } catch (Exception e) {
-            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
-        }
-    }
 
     public QueryResultDTO viewEditTicket(String id) {
+        if(!userHasAccess(id)){
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try {
             TicketInfo ticket = ticketMapper.existingMasterOrder(id); //existing check BASIL_ODS_PRD.XREF_MATERIALS\
             Integer companyId;
@@ -377,6 +376,19 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     if(ticket.getEncrypt()== null){
                         ticket.setEncrypt("no");
                     }
+
+                    if(ticket.getKeyType() == null || ticket.getKeyType().length() == 0){
+                        ticket.setKeyType("N/A");
+                    }
+
+                    if(ticket.getKcv() == null || ticket.getKcv().length() == 0){
+                        ticket.setKcv("N/A");
+                    }
+
+                    if(ticket.getKsi() == null || ticket.getKsi().length() == 0){
+                        ticket.setKsi("N/A");
+                    }
+
                     List<SNInfo> prefDevices = ticketMapper.getSecMaterials(id, companyId);
                     List<SNInfo> xrefDevices = ticketMapper.getOdsMaterials(id, companyId);
 
@@ -401,7 +413,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if (ticket != null) {
                 if (ticket.getXaOID() != null) {
                     Address address = addressService.findById(ticket.getXaOID());
-                    ticket.setAddress(address);
+                    if(address != null)
+                        ticket.setAddress(address);
                 }
 
                 if (ticket.getSubmitterID() != null) {
@@ -446,6 +459,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO getResponse(String id) {
+        if(!userHasAccess(id)){
+            return new QueryResultArrayDTO(null, 0,-1, "Don't have access to the ticket");
+        }
         try {
             ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
 
@@ -466,6 +482,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO) {
+        if(!userHasAccess(id)){
+            return new QueryResultArrayDTO(null, 0,-1, "Don't have access to the ticket");
+        }
         try {
             //update tracking number part
             if (ticketEditDTO.isFromMaster()) {
@@ -496,29 +515,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 }
             }
 
-            if (ticketEditDTO.getDeleteSerial().size() > 0) {
-                ticketMapper.deletePrep_Xref_Materials(ticketEditDTO.getDeleteSerial());
-                List<Integer> pxmOIDs = ticketEditDTO.getDeleteSerial().stream().map(Integer::parseInt)
-                        .collect(Collectors.toList());
-                invoiceService.deleteInvoiceList(pxmOIDs);
-                //ticketMapper.deleteXref_Materials(ticketEditDTO.getDeleteSerial());
-            }
-            //update serials number part
-            if (ticketEditDTO.getAddSerial().size() > 0) {
-                for (SNsInsertionObject snsObject : ticketEditDTO.getAddSerial()) {
-                    snsObject.setMoOID(Integer.valueOf(id));
-                }
-                ticketMapper.insertPrep_Xref_Materials(ticketEditDTO.getAddSerial());
-                List<Integer> pxmOidList = new ArrayList<>();
-                ticketEditDTO.getAddSerial().stream().forEach(s -> pxmOidList.add(s.getXmOID()));
-                invoiceService.insertInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
-            }
-            if (ticketEditDTO.getUpdateSerial().size() > 0) {
-                ticketMapper.updatePrep_Xref_Materials(ticketEditDTO.getUpdateSerial());
-                ticketMapper.updateXref_Materials(ticketEditDTO.getUpdateSerial());
-                List<Integer> pxmOidList = ticketEditDTO.getUpdateSerial().stream().map(s -> Integer.valueOf(s.getXmOID())).collect(Collectors.toList());
-                invoiceService.updateInvoiceList(pxmOidList, ticketEditDTO.getMcOID());
-            }
             return new QueryResultArrayDTO(null, 0, 0, "");
         } catch (Exception e) {
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
@@ -753,6 +749,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     public QueryResultDTO ackTicket(Long moOID){
+        CustomUserDetails user = AuthUtil.getUser();
+        assert user != null;
+
+        if (user.isClientUser()) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try{
             ticketMapper.ackMasterTicket(moOID);
             ticketMapper.ackPrepMasterTicket(moOID);
@@ -763,6 +765,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
 
     public QueryResultDTO unAckTicket(Long moOID){
+        if(!userHasAccess(String.valueOf(moOID))){
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try{
             ticketMapper.unAckMasterTicket(moOID);
             ticketMapper.unAckPrepMasterTicket(moOID);
@@ -774,6 +779,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultDTO getTicketAckStatus(Long moOID) {
+        if(!userHasAccess(String.valueOf(moOID))){
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
         try{
             List<Integer> list = ticketMapper.getTicketAckStatus(moOID);
             if(list.size() != 1){
@@ -786,5 +794,147 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }catch (Exception e){
             return new QueryResultDTO(null, -1, e.getMessage());
         }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryCustomerOrg() {
+        try{
+            CustomUserDetails user = AuthUtil.getUser();
+            assert user != null;
+            //user is client and has same mcoid with ticket or user is pax employee
+            if (user.isClientUser()) {
+                return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the resource.");
+            }
+            List<Customer> customers = ticketMapper.getAllCustomerOrg();
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Customer customer : customers){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, customer.getId());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, customer.getCustomerName());
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryKeyType() {
+        try {
+            List<String> keys = ticketMapper.getAllKeyType();
+            ArrayList<Map<String, Object>> jsonArray = new ArrayList<>();
+
+            for(int i = 0; i < keys.size(); ++i){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, i);
+                mm.put(DropDownConstant.DROPDOWN_LABEL, keys.get(i));
+                jsonArray.add(mm);
+            }
+            return new QueryResultArrayDTO(jsonArray, jsonArray.size(), 0, "");
+        } catch (Exception e) {
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryKeyKcv(String keyType) {
+        try{
+            List<Key> keys = ticketMapper.getAllKey(keyType, null);
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Key key: keys){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, key.getKeyIndex());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, key.getKcv());
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryKeyKsi(String keyType, String kcv) {
+        try{
+            List<Key> keys = ticketMapper.getAllKey(keyType, kcv);
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Key key: keys){
+                Map<String, Object> mm = new LinkedHashMap<>();
+                mm.put(DropDownConstant.DROPDOWN_VALUE, key.getKeyIndex());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, key.getKsi());
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultArrayDTO queryKey() {
+        try{
+            List<Key> keys = ticketMapper.getAllKeys();
+
+            ArrayList<Map<String, Object>> result = new ArrayList<>();
+            for(Key key: keys){
+                if(key.getKeyType() == null || key.getKeyType().length() == 0){
+                    key.setKeyType("N/A");
+                }
+
+                if(key.getKcv() == null || key.getKcv().length() == 0){
+                    key.setKcv("N/A");
+                }
+
+                if(key.getKsi() == null || key.getKsi().length() == 0){
+                    key.setKsi("N/A");
+                }
+
+                Map<String, Object> mm = new LinkedHashMap<>();
+                Map<String, Object> keyMap = objectMapper.convertValue(key, Map.class);
+
+                mm.put(DropDownConstant.DROPDOWN_VALUE, key.getKeyIndex());
+                mm.put(DropDownConstant.DROPDOWN_LABEL, keyMap);
+                result.add(mm);
+            }
+            return new QueryResultArrayDTO(result, result.size(), 0, "");
+        }
+        catch (Exception e){
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    private Boolean userHasAccess(String id){
+        CustomUserDetails user = AuthUtil.getUser();
+        assert user != null;
+        //user is client and has same mcoid with ticket or user is pax employee
+        if (user.isClientUser() && hasAccessToTicket(id) || !user.isClientUser()) {
+            return true;
+        }
+        return false;
+    }
+
+    private Boolean hasAccessToTicket(String tickId){
+        CustomUserDetails user = AuthUtil.getUser();
+        String customerId = String.valueOf(user.getUserId());
+        String userMcoId = null;
+        if (user != null) {
+            if (user.getStandardUser() == 1)
+                userMcoId = String.valueOf(user.getCompanyId());
+            else {
+                userMcoId = customerId;
+            }
+        }
+        TicketInfo ticket = ticketMapper.existingMasterOrder(tickId);
+        if (ticket == null) {
+            ticket = ticketMapper.existingPREPMasterOrder(tickId);
+        }
+        return ticket != null && user != null && ticket.getMcOID().equals(userMcoId);
     }
 }

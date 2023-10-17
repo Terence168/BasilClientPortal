@@ -6,6 +6,7 @@ import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.boot.actuate.integration.IntegrationGraphEndpoint;
 import us.pax.basil.dto.output.SubmitTicketDTO;
+import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
@@ -108,7 +109,12 @@ public interface TicketMapper extends BaseMapper<Integer> {
 //            TicketEditDTO ticketEditDTO, String id);
     void updatePrepMasterOrder(Integer typeOfRepair, String originalRMA,  String moOID, Integer xaOID, String testKeyType);
 
+    List<Key> getAllKeys();
     List<String> getAllKeyType();
+    List<String> getAllKcv(String keyType);
+
+    List<Key> getAllKsi(String keyType, String kcv);
+    List<Key> getAllKey(String keyType, String kcv);
 
     void ackMasterTicket(Long moOID);
     void unAckMasterTicket(Long moOID);
@@ -116,4 +122,7 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void unAckPrepMasterTicket(Long moOID);
 
     List<Integer> getTicketAckStatus(Long moOID);
+
+    List<Customer> getAllCustomerOrg();
+
 }

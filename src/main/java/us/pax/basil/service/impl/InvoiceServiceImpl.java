@@ -30,6 +30,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public QueryResultDTO insertInvoiceList(List<Integer> pxmOidList, Integer companyId) {
         try {
+
             invoiceMapper.insertSecInvoiceList(pxmOidList, companyId);
             return new QueryResultDTO(null, 0, "");
         } catch (Exception e) {

@@ -71,4 +71,13 @@ public interface TicketService extends IService<Integer>{
     QueryResultDTO ackTicket(Long moOID);
     QueryResultDTO unAckTicket(Long moOID);
     QueryResultDTO getTicketAckStatus(Long moOID);
+
+    QueryResultArrayDTO queryCustomerOrg();
+
+    QueryResultArrayDTO queryKeyKcv(String keyType);
+
+    QueryResultArrayDTO queryKeyKsi(String keyType, String kcv);
+
+    QueryResultArrayDTO queryKey();
+
 }

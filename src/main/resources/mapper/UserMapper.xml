@@ -260,19 +260,37 @@
 			U_OID=#{id};
     </select>
     
-    <update id="updateUser" parameterType="us.pax.basil.entity.User">
+    <update id="updateUserInfo" parameterType="us.pax.basil.entity.User">
     	UPDATE BASIL_SEC_PRD.USERS
-    	SET 
-    		NAME=#{name}, 
-    		EMAIL=#{email},
-    		STATUS=#{status},
-    		STANDARD_USER=#{standardUser},
-      		<if test="companyId != null">
-			COMPANY_ID=#{companyId},
+    	SET
+			<if test="user.name != null">
+				NAME=#{user.name},
+			</if>
+    		<if test="user.email != null">
+				EMAIL=#{user.email},
+			</if>
+    		<if test="user.status != null">
+				STATUS=#{user.status},
+			</if>
+			<if test="user.standardUser != null">
+				STANDARD_USER=#{user.standardUser},
+			</if>
+      		<if test="user.companyId != null">
+			COMPANY_ID=#{user.companyId},
 			</if>
     		MODIFIED=CURRENT_TIMESTAMP()
    		WHERE 
-   			U_OID=#{id};
+   			U_OID=#{userId};
     </update>
-    
+
+	<update id="updateUserEmail">
+		UPDATE BASIL_SEC_PRD.USERS
+		SET
+		<if test="user.email != null">
+			EMAIL=#{email},
+		</if>
+		MODIFIED=CURRENT_TIMESTAMP()
+		WHERE
+		U_OID=#{userId};
+	</update>
 </mapper>

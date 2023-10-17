@@ -18,11 +18,13 @@ package us.pax.basil.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import lombok.extern.log4j.Log4j2;
+import software.amazon.awssdk.services.ses.endpoints.internal.Value;
 import us.pax.basil.constant.ClientGroupConstant;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PasswordConstant;
 import us.pax.basil.constant.StatusConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Company;
@@ -206,13 +208,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 			                              Integer status) {
 		
 		try {
-			Integer total = userMapper.getListCount(name, company, status, email);
+            CustomUserDetails currUser = AuthUtil.getUser();
+            Integer companyId = null;
+
+            if (currUser != null)
+                if(currUser.getStandardUser() == 1){
+                    if(company != null){
+                        return new QueryResultArrayDTO(null, 0, -1, "Don't have access it.");
+                    }
+                    companyId = currUser.getCompanyId();
+                }
+                else {
+                    companyId = company;
+                }
+
+			Integer total = userMapper.getListCount(name, companyId, status, email);
 	
 			List<User> userList = userMapper.queryList((currentPage-1) * sizePerPage, 
 					                                   sizePerPage, 
 					                                   sortColumns, 
 					                                   name, 
-					                                   company, 
+					                                   companyId,
 					                                   email, 
 					                                   status);
 			
@@ -359,4 +375,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
 	}
+
+    @Override
+    public QueryResultDTO updateUserInfo(User user, Integer userId) {
+        try {
+
+            User userAccount = userMapper.getUserByEmail(user.getEmail());
+
+            if (userAccount != null) {
+                return new QueryResultDTO(null, -300, "Email already exists");
+            }
+
+            userMapper.updateUserInfo(user, userId);
+
+            return new QueryResultDTO(null, 0,  "");
+        }catch(Exception e) {
+            return new QueryResultDTO(null, 0, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultDTO updateUserEmail(String email) {
+        try {
+
+            User userAccount = userMapper.getUserByEmail(email);
+
+            if (userAccount != null) {
+                return new QueryResultDTO(null, -300, "Email already exists");
+            }
+            CustomUserDetails customUserDetails = AuthUtil.getUser();
+            Integer userId = customUserDetails.getUserId();
+            User user = new User();
+            user.setEmail(email);
+            userMapper.updateUserInfo(user, userId);
+
+            return new QueryResultDTO(null, 0,  "");
+        }catch(Exception e) {
+            return new QueryResultDTO(null, 0, e.getMessage());
+        }
+    }
 }

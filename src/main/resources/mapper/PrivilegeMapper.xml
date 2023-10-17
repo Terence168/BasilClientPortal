@@ -174,9 +174,52 @@
     </update>
 
     <update id="changePassword" >
-    	UPDATE BASIL_ODS_PRD.EMPLOYEE_MASTER
+    	UPDATE BASIL_SEC_PRD.USERS
     	SET
-    		PASSWORD=#{newPassword,jdbcType=VARCHAR}
-   		WHERE EMP_OID=#{id,jdbcType=INTEGER};
+    		PASSWORD=#{newPassword}
+   		WHERE U_OID=#{id};
     </update>
+
+	<select id="getCustomer" resultType="us.pax.basil.entity.customer.Customer">
+		SELECT
+		MC_OID as id,
+		CUSTOMER_ORGANIZATION as customerName,
+		CUST_CONTACT_NAME as contactName,
+		CUST_ADDRESS as address1,
+		CUST_ADDRESS2 as address2,
+		CITY as city,
+		STATE as state,
+		ZIP_CODE as zip,
+		COUNTRY as country,
+		STORE_NUMBER as storeNumber,
+		CLIENT_GROUP as clientGroup,
+		PAY_AFTER as payAfter,
+		VERSION as version
+		FROM  BASIL_ODS_PRD.MASTER_CUSTOMER
+		<where>
+			MC_OID = #{id}
+		</where>
+	</select>
+
+	<update id="updateCustomer" parameterType="us.pax.basil.entity.customer.Customer">
+		UPDATE BASIL_ODS_PRD.MASTER_CUSTOMER
+		<set>
+			<if test="customerName != null">CUSTOMER_ORGANIZATION = #{customerName},</if>
+			<if test="contactName != null">CUST_CONTACT_NAME = #{contactName},</if>
+			<if test="address1 != null">CUST_ADDRESS = #{address1},</if>
+			<if test="address2 != null">CUST_ADDRESS2 = #{address2},</if>
+			<if test="city != null">CITY = #{city},</if>
+			<if test="state != null">STATE = #{state},</if>
+			<if test="zip != null">ZIP_CODE = #{zip},</if>
+			<if test="country != null">COUNTRY = #{country},</if>
+			<if test="storeNumber != null">STORE_NUMBER = #{storeNumber},</if>
+			<if test="clientGroup != null">CLIENT_GROUP = #{clientGroup},</if>
+			<if test="payAfter != null">PAY_AFTER = #{payAfter},</if>
+			<if test="version != null">VERSION = #{version}</if>
+		</set>
+		<where>
+			MC_OID = #{id}
+		</where>
+	</update>
+
 </mapper>
