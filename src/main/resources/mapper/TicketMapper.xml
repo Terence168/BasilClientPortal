@@ -744,8 +744,8 @@
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
             useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, RMA_NUMBER, SUBMITTER_ID, XA_OID, TEST_KEY_TYPE, ZOHO_ENCRYPT)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, #{rmaNumber}, #{submitterID}, #{xaOID}, #{testKeyType}, #{encrypt})
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, ORDER_DEPT, RMA_NUMBER, SUBMITTER_ID, XA_OID, TEST_KEY_TYPE, ZOHO_ENCRYPT)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, 8, #{rmaNumber}, #{submitterID}, #{xaOID}, #{testKeyType}, #{encrypt})
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="xmOID"
