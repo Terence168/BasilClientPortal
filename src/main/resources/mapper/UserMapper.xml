@@ -293,4 +293,19 @@
 		WHERE
 		U_OID=#{userId};
 	</update>
+
+	<update id="updateUser" parameterType="us.pax.basil.entity.User">
+		UPDATE BASIL_SEC_PRD.USERS
+		SET
+		NAME=#{name},
+		EMAIL=#{email},
+		STATUS=#{status},
+		STANDARD_USER=#{standardUser},
+		<if test="companyId != null">
+			COMPANY_ID=#{companyId},
+		</if>
+		MODIFIED=CURRENT_TIMESTAMP()
+		WHERE
+		U_OID=#{id};
+	</update>
 </mapper>
