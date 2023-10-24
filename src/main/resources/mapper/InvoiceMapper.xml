@@ -1,23 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="us.pax.basil.mapper.InvoiceMapper">
+
     <insert id="insertSecInvoiceList" parameterType="java.util.List" useGeneratedKeys="true">
         INSERT INTO BASIL_SEC_PRD.FACT_INVOICE (XM_OID, PXM_OID, MO_OID, COSMETIC, DIAGNOSTIC, MINOR, CREATE_DATE,
         INV1_ITEM_TOTAL)
 
-        SELECT *, (cosmeticInvoice + diagnosticInvoice + minorInvoice) unitInvoice
+        SELECT *, (cosmeticInvoice + diagnosticInvoice + minorInvoice + keyInjection) unitInvoice
         FROM (SELECT NULL,
         t1.XM_OID,
         t1.MO_OID,
         IF(cosmetic = 890 AND orderType = 3, t1.cosmeticPrice, 0.00)                  cosmeticInvoice,
         IF(orderType = 7, t1.diagnosticPrice, 0.00)                                   diagnosticInvoice,
         IF(orderType = 3 AND warrantyStatus != 'Under Warranty', t1.minorPrice, 0.00) minorInvoice,
+        t1.keyInjection                                                               keyInjection,
         NOW()
         FROM (SELECT xm.XM_OID,
         xm.MO_OID,
         CAST(COALESCE(rc1.COSMETIC, rc2.COSMETIC, 0.00) AS DECIMAL(6, 2))     cosmeticPrice,
         CAST(COALESCE(rc1.DIAGNOSTIC, rc2.DIAGNOSTIC, 0.00) AS DECIMAL(6, 2)) diagnosticPrice,
         CAST(COALESCE(rc1.MINOR, rc2.MINOR, 0.00) AS DECIMAL(6, 2))           minorPrice,
+        CAST(COALESCE(rc1.KEY_INJECTION, rc2.KEY_INJECTION, 0.00) AS DECIMAL(6, 2))           keyInjection,
         xm.COSMETIC                              as                           cosmetic,
         CASE
         WHEN msn.WARRANTY_END_DATE IS NULL AND msn.WARRANTY_VOIDED_DATE IS NULL THEN 'N/A'
@@ -88,6 +91,7 @@
     </insert>
     <select id="getInvoiceByMoOID" resultType="us.pax.basil.entity.invoice.Invoice">
         select FI_OID as fiOID, XM_OID as xmOID, PXM_OID as pxmOID, MO_OID as moOID, DIAGNOSTIC as diagnostic,
+        KEY_Injection as keyInjection,
         COSMETIC as cosmetic, MINOR as minor, CREATED_DATE as createDate, UPDATE_DATE as updateDate
         from BASIL_SEC_PRD.FACT_INVOICE
         where MO_OID = #{moOID}
