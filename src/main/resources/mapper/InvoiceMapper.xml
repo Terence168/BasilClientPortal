@@ -3,7 +3,7 @@
 <mapper namespace="us.pax.basil.mapper.InvoiceMapper">
 
     <insert id="insertSecInvoiceList" parameterType="java.util.List" useGeneratedKeys="true">
-        INSERT INTO BASIL_SEC_PRD.FACT_INVOICE (XM_OID, PXM_OID, MO_OID, COSMETIC, DIAGNOSTIC, MINOR, CREATE_DATE,
+        INSERT INTO BASIL_SEC_PRD.FACT_INVOICE (XM_OID, PXM_OID, MO_OID, COSMETIC, DIAGNOSTIC, MINOR, KEY_INJECTION, CREATE_DATE,
         INV1_ITEM_TOTAL)
 
         SELECT *, (cosmeticInvoice + diagnosticInvoice + minorInvoice + keyInjection) unitInvoice
@@ -13,7 +13,7 @@
         IF(cosmetic = 890 AND orderType = 3, t1.cosmeticPrice, 0.00)                  cosmeticInvoice,
         IF(orderType = 7, t1.diagnosticPrice, 0.00)                                   diagnosticInvoice,
         IF(orderType = 3 AND warrantyStatus != 'Under Warranty', t1.minorPrice, 0.00) minorInvoice,
-        t1.keyInjection                                                               keyInjection,
+        IF(encrypt = "yes", t1.keyInjection, 0.00)                                          keyInjection,
         NOW()
         FROM (SELECT xm.XM_OID,
         xm.MO_OID,
@@ -29,7 +29,8 @@
         ELSE 'Out Of Warranty'
         END                                  AS                           warrantyStatus,
 
-        COALESCE(mo1.ORDER_TYPE, mo2.ORDER_TYPE) AS                           orderType
+        COALESCE(mo1.ORDER_TYPE, mo2.ORDER_TYPE) AS                           orderType,
+        COALESCE(mo1.ZOHO_ENCRYPT, mo2.ZOHO_ENCRYPT) AS                           encrypt
         FROM BASIL_SEC_PRD.PREP_XREF_MATERIALS xm
         LEFT JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
         LEFT JOIN BASIL_ODS_PRD.MASTER_PART mp USING (PART_OID)
@@ -91,7 +92,7 @@
     </insert>
     <select id="getInvoiceByMoOID" resultType="us.pax.basil.entity.invoice.Invoice">
         select FI_OID as fiOID, XM_OID as xmOID, PXM_OID as pxmOID, MO_OID as moOID, DIAGNOSTIC as diagnostic,
-        KEY_Injection as keyInjection,
+        KEY_INJECTION as keyInjection,
         COSMETIC as cosmetic, MINOR as minor, CREATED_DATE as createDate, UPDATE_DATE as updateDate
         from BASIL_SEC_PRD.FACT_INVOICE
         where MO_OID = #{moOID}
