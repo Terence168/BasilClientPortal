@@ -17,4 +17,5 @@ public class Invoice {
     private Date create_date;
     private Date update_date;
     private Float inv1ItemTotal;
+    private Float KeyInjection;
 }
