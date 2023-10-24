@@ -89,11 +89,13 @@
             type="radio"
             v-model="ticketInfo.encrypt"
             value="yes"
+            disabled
           />&nbsp;Yes&nbsp;&nbsp;
           <input
             type="radio"
             v-model="ticketInfo.encrypt"
             value="no"
+            disabled
           />&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
@@ -110,6 +112,7 @@
               dense
               emit-value
               map-options
+              disable
             >
               <template v-slot:no-option>
                 <q-item>
@@ -138,6 +141,7 @@
               dense
               emit-value
               map-options
+              disable
             >
               <template v-slot:no-option>
                 <q-item>
@@ -167,6 +171,7 @@
               dense
               emit-value
               map-options
+              disable
             >
               <template v-slot:no-option>
                 <q-item>
@@ -228,6 +233,9 @@
           :rows="getSerialsByTicketId(ticketId)"
           :inputValue="inputValue"
           :encrypt="ticketInfo.encrypt"
+          :showRemoveUnit="false"
+          :showUpdateUnit="false"
+          :showViewUnit="true"
           @add-sn="handleAddSN"
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
@@ -359,7 +367,7 @@ export default {
     this.$watch(
       () => this.$route.params,
       () => {
-        if (this.$route.name !== "edit-ticket" ) {
+        if (this.$route.name !== "edit-ticket") {
           return;
         }
         this.isLoading = true;
@@ -375,7 +383,7 @@ export default {
             const ticketInfo = values[0];
             const comments = values[1];
             const ack = values[2];
-
+            
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
 
