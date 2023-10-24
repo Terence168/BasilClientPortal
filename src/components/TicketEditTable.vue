@@ -295,17 +295,22 @@ export default {
           }
         });
       }
-      if (
-        this.orderType === 65 &&
-        this.encrypt != null &&
-        this.encrypt === "yes"
-      ) {
-        //decommissioned
+      // if (
+      //   this.orderType === 65 &&
+      //   this.encrypt != null &&
+      //   this.encrypt === "yes"
+      // ) {
+      //   //decommissioned
+      //   serials.forEach((s) => {
+      //     if (s.valid === true) {
+      //       amt = amt + (s.keyInjection == null ? 0 : s.keyInjection);
+      //     }
+      //   });
+      // }
+      if(this.encrypt === "yes"){
         serials.forEach((s) => {
-          if (s.valid === true) {
-            amt = amt + (s.keyInjection == null ? 0 : s.keyInjection);
-          }
-        });
+          amt = amt + (s.keyInjection == null ? 0 : s.keyInjection);
+        })
       }
       serials.forEach((s) => {
         {
@@ -315,6 +320,7 @@ export default {
           }
         }
       });
+
       return amt;
     },
   },

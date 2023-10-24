@@ -89,11 +89,13 @@
             type="radio"
             v-model="ticketInfo.encrypt"
             value="yes"
+            disabled
           />&nbsp;Yes&nbsp;&nbsp;
           <input
             type="radio"
             v-model="ticketInfo.encrypt"
             value="no"
+            disabled
           />&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
@@ -110,6 +112,7 @@
               dense
               emit-value
               map-options
+              disable
             >
               <template v-slot:no-option>
                 <q-item>
@@ -138,6 +141,7 @@
               dense
               emit-value
               map-options
+              disable
             >
               <template v-slot:no-option>
                 <q-item>
@@ -167,6 +171,7 @@
               dense
               emit-value
               map-options
+              disable
             >
               <template v-slot:no-option>
                 <q-item>

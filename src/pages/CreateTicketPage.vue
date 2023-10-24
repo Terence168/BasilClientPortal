@@ -535,6 +535,7 @@ export default {
         this.serialsSubmitting = false;
         return;
       }
+      
       const trackingNumbers = this.getTrackingNums.filter(t => t!= "" && t.length > 0);
       const actionURL = "/ticketing/submitTicket";
 
