@@ -15,7 +15,7 @@
               >
                 <div class="col text-center">
                   <div class="text-h4 text-weight-medium text-primary">
-                    {{ details.status }}
+                    {{ details.status === null? "Unit Not Received" : details.status}}
                   </div>
                   <div class="text-body2 text-grey-6">United Status</div>
                 </div>
@@ -54,10 +54,10 @@
               details.statusItems[index].completed ? 'bg-primary' : 'bg-grey-6'
             "
           >
-            <div class="col-auto">
+            <div class="col-auto ">
               <q-icon
                 class="text-white"
-                :name="details.statusItems[index] ? 'done' : 'access_time'"
+                :name="details.statusItems[index].completed ? 'done' : 'access_time'"
                 size="md"
               ></q-icon>
             </div>
@@ -69,6 +69,8 @@
           ></div>
         </li>
       </ul>
+
+      
     </div>
     
     <div class="row q-col-gutter-x-md text-body1">
@@ -130,7 +132,7 @@
           <div>{{ details.warrantyStatus }}</div>
         </div>
       </div>
-      <div class="col-6 q-gutter-y-md">
+      <div class="col-6 q-gutter-y-md ">
         <div class="row">
           <div class="text-grey-6">Repaired by:&nbsp;</div>
           <div>{{ details.assignee }}</div>
@@ -187,7 +189,7 @@
         </div>
       </div>
     </div>
-    <div class="row q-mt-lg text-body1">
+    <div class="row q-mt-lg text-body1 ">
       <div class="text-grey-6">Customer Reported Issue Reproduced:&nbsp;</div>
       <div>{{ details.customerIssueReproduced }}</div>
     </div>
@@ -244,3 +246,33 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+ul {
+  padding: 0;
+  width: 100%;
+  list-style: none;
+}
+ul > li {
+  padding-top: 50px;
+}
+.timeline-dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  z-index: 1;
+  border-radius: 100%;
+  transform: translateX(-50%);
+  border: 3px solid white;
+}
+.connector {
+  position: absolute;
+  top: 23px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  transform: translateY(-50%);
+}
+</style>
