@@ -150,6 +150,7 @@ export const useEditTicketStore = defineStore("editTicket", {
             oldSerial.customerReportedIssueExt =
               serial.customerReportedIssueExt;
             oldSerial.customerTerminalID = serial.customerTerminalID;
+            oldSerial.customerRMA = serial.customerRMA;
             oldSerial.isUpdate = true;
           }
         });

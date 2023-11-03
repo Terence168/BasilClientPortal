@@ -97,6 +97,9 @@
             <q-td key="terminalID" :props="props">
               {{ props.row.customerTerminalID }}
             </q-td>
+            <q-td key="customerRMA" :props="props">
+              {{ props.row.customerRMA }}  
+            </q-td>
             <q-td key="warrantyStatus" :props="props">
               {{ props.row.warrantyStatus }}
             </q-td>
@@ -233,6 +236,13 @@ export default {
           align: "center",
           label: "Customer ID",
           field: "terminalID",
+          sortable: false,
+        },
+        {
+          name: "customerRMA",
+          align: "center",
+          label: "customerRMA",
+          field: "customerRMA",
           sortable: false,
         },
         {

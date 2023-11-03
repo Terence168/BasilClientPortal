@@ -31,7 +31,14 @@
           class="col q-mt-sm q-mb-sm"
           outlined
           v-model="newSerial.customerTerminalID"
-          label="Customer Terminal ID"
+          label="Customer Terminal ID(Optional)"
+          dense
+        />
+        <q-input
+          class="col q-mt-sm q-mb-sm"
+          outlined
+          v-model="newSerial.customerRMA"
+          label="Customer RMA(Optional)"
           dense
         />
         <div class="row justify-center q-mt-md">
@@ -77,6 +84,7 @@ export default {
         serialNumber: null,
         customerTerminalIDterminalID: null,
         customerReportedIssueExt: null,
+        customerRMA:null,
       },
       loading: false,
       show: true,

@@ -22,6 +22,9 @@ export const useCreateTicketStore = defineStore("createTicket", {
     ksi:null,
     ksiOpt:null,
 
+    kcvksi:null,
+    kcvksiOpt:null,
+
     encrypt:null,
     custType:null,
     custTypeOpt:null,
@@ -89,6 +92,25 @@ export const useCreateTicketStore = defineStore("createTicket", {
             message: "Key Type Dropdown cannot be populated",
           });
         });
+    },
+    populateKcvksiOpt(){
+      this.kcvksi = null;
+
+      if(this.keyType != null){
+        const kcvksi = this.keys.filter((key) => key.label.keyType == this.keyType);
+        const kcvArrays = [];
+        kcvksi.forEach((key) => {
+          const data = {
+            "value":key.label.keyIndex,
+            "label":key.label.kcv + " - " + key.label.ksi,
+            "comment":key.label.comment
+          }
+          kcvArrays.push(data);
+        })
+
+        this.kcvksiOpt = kcvArrays;
+      }
+      
     },
     populateKcvOpt(_, update){
       this.kcv = null;
