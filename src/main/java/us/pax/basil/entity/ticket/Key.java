@@ -14,4 +14,5 @@ public class Key{
     private String kcv;
     private String ksi;
     private String keyType;
+    private String comment;
 }
