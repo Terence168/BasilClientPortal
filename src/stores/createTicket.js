@@ -211,7 +211,6 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .get(link)
         .then((response) => {
           this.custTypeOpt = response.data.data;
-          console.log(this.custTypeOpt);
         })
         .catch(function (error) {
           console.log(error);
@@ -242,6 +241,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         if (serial != null) {
           serial.customerReportedIssueExt = serialData.customerReportedIssueExt;
           serial.customerTerminalID = serialData.customerTerminalID;
+          serial.customerRMA = serialData.customerRMA;
           this.serials.unshift(serial);
         }
       });
@@ -259,6 +259,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         if (serial != null) {
           serial.customerReportedIssueExt = serialData.customerReportedIssueExt;
           serial.customerTerminalID = serialData.customerTerminalID;
+          serial.customerRMA = serialData.customerRMA;
           const index = this.serials.findIndex(
             (s) => oldSerialNumber === s.serialNumber
           );

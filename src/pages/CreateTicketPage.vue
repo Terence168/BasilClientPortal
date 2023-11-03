@@ -588,6 +588,7 @@ export default {
       };
       
       const vm = this;
+
       this.$api
         .post(actionURL, payload, {
           headers: {

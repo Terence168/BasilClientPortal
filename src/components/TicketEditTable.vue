@@ -22,6 +22,7 @@
           <q-th key="version">Version</q-th>
           <q-th key="customerReportedIssue">Reported Issue</q-th>
           <q-th key="terminalID">Customer ID</q-th>
+          <q-th key="customerRMA">Customer RMA</q-th>
           <q-th key="warrantyStatus">Warranty Status</q-th>
           <q-th key="warrantyExpDate">Warranty Expire Date</q-th>          
         </q-tr>
@@ -271,6 +272,7 @@ export default {
           serialNumber: null,
           terminalID: null,
           customerReportedIssue: null,
+          customerRMA:null,
         },
         submitAction: "add",
       },
@@ -307,7 +309,7 @@ export default {
               t.serialNumber.includes(this.inputValue)) ||
             (t.model != null && t.model.includes(this.inputValue)) ||
             (t.customerReportedIssueExt != null &&
-              t.customerReportedIssueExt.includes(this.inputValue))
+              t.customerReportedIssueExt.includes(this.inputValue)) 
         );
       }
       return serials;
@@ -380,6 +382,7 @@ export default {
         serialNumber: null,
         terminalID: null,
         customerReportedIssue: null,
+        customerRMA:null,
       };
       this.$refs.editModal.displayEditModal();
     },
