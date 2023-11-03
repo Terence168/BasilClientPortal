@@ -100,7 +100,13 @@
         </div>
         <div class="row items-center" v-show="isEncrypted">
           <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
-          <div class="col-auto">
+          <q-input
+              :model-value="ticketInfo.keyType"
+              disable
+              style="min-width: 200px"
+              dense
+            />
+          <!-- <div class="col-auto">
             <q-select
               ref="testKeyTypeSelect"
               style="min-width: 200px"
@@ -122,14 +128,20 @@
                 </q-item>
               </template>
             </q-select>
-          </div>
+          </div> -->
           <div
             class="col-auto q-mr-sm q-ml-sm"
             v-show="ticketInfo.keyType != null"
           >
-            KCV:&nbsp;
+            KCV - KSI:&nbsp;
           </div>
-          <div class="col-auto" v-show="ticketInfo.keyType != null">
+          <q-input
+              :model-value="ticketInfo.kcv+' - '+ ticketInfo.ksi"
+              disable
+              style="min-width: 200px"
+              dense
+            />
+          <!-- <div class="col-auto" v-show="ticketInfo.keyType != null">
             <q-select
               ref="testKeyTypeSelect"
               style="min-width: 200px"
@@ -181,7 +193,7 @@
                 </q-item>
               </template>
             </q-select>
-          </div>
+          </div> -->
         </div>
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">

@@ -2,7 +2,7 @@
     <BaseModal v-bind:title="title" :width="500" @update:show="resetModal" v-bind:show="withClient">
       <q-form ref="modalForm" @submit.prevent="handleSubmitForm">
         <q-input
-          class="col q-mb-sm"
+          class="col"
           outlined
           v-model="newSerial.serialNumber"
           label="Serial Number"
@@ -14,9 +14,8 @@
           :disable="containsXrefMaterials === null ? false : containsXrefMaterials"
         />
         <q-input
-          class="col q-mt-sm q-mb-sm"
+          class="col"
           outlined
-          autogrow
           v-model="newSerial.customerReportedIssueExt"
           label="Customer Reported Issue"
           lazy-rules
@@ -28,14 +27,14 @@
           ]"
         />
         <q-input
-          class="col q-mt-sm q-mb-sm"
+          class="col q-mb-md"
           outlined
           v-model="newSerial.customerTerminalID"
           label="Customer Terminal ID(Optional)"
           dense
         />
         <q-input
-          class="col q-mt-sm q-mb-sm"
+          class="col q-mb-sm"
           outlined
           v-model="newSerial.customerRMA"
           label="Customer RMA(Optional)"

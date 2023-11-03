@@ -211,6 +211,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
         .get(link)
         .then((response) => {
           this.custTypeOpt = response.data.data;
+          console.log(this.custTypeOpt);
         })
         .catch(function (error) {
           console.log(error);

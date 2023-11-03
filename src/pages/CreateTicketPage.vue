@@ -551,7 +551,7 @@ export default {
         return;
       }
       //no test key select when user select encrypted
-      if(this.isEncrypted && (this.ksi === null || this.kcv === null || this.keyType === null)){
+      if(this.isEncrypted && (this.kcvksi === null || this.keyType === null)){
         Notify.create({
           type: "negative",
           message: "Please Select an Unique Key for Encryption",
