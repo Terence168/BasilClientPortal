@@ -918,7 +918,7 @@
     </update>
 
     <select id="getAllKeys" resultType="us.pax.basil.entity.ticket.Key">
-        SELECT distinct KEY_INDEX as keyIndex, Key_Type as keyType, KCV as kcv, KSI as ksi
+        SELECT distinct KEY_INDEX as keyIndex, Key_Type as keyType, KCV as kcv, KSI as ksi, Comments as comment
         FROM BASIL_SEC_PRD.MASTER_KEY;
     </select>
 

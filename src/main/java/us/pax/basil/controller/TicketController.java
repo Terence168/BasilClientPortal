@@ -54,7 +54,7 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    //submit the ticket
+
     @PreAuthorize("hasAuthority('ticketing.add')")
     @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25viewEditTicket?id=189
     public QueryResultDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
@@ -151,7 +151,6 @@ public class TicketController {
      * Message board in edit ticket. both pax employee and user under this company can see it.
      * */
     @PreAuthorize("hasAnyAuthority('ticketing.update')")
-//    @PreAuthorize("hasAuthority('ticketing.update')")
     @GetMapping("/{ticketId}/response")
     public QueryResultArrayDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId) {
         return ticketService.getResponse(String.valueOf(ticketId));
@@ -178,7 +177,7 @@ public class TicketController {
     /**
      * Message board in edit ticket. client and pax employee can unack a ticket.
      * */
-    @PreAuthorize("hasAnyAuthority('ticketing.unack')")
+    @PreAuthorize("hasAnyAuthority('ticketing.ack')")
     @PutMapping("/{ticketId}/unacknowledged")
     public QueryResultDTO unacknowledgeTicket(@PathVariable("ticketId")Long ticketId){
         return ticketService.unAckTicket(ticketId);
