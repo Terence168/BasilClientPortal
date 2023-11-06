@@ -54,7 +54,7 @@ public class TicketController {
                                                       ){
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
-    //submit the ticket
+
     @PreAuthorize("hasAuthority('ticketing.add')")
     @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")//BCP-25viewEditTicket?id=189
     public QueryResultDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion){
