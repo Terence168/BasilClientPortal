@@ -118,7 +118,7 @@
               :options="keyTypeOpt"
               @filter="populateKeyTypeOpt"
               @input-value="populateKcvOpt"
-              @update:model-value="populateKcvOpt"
+              @update:model-value="populateKcvksiOpt"
               dense
               emit-value
               map-options
@@ -132,7 +132,28 @@
               </template>
             </q-select>
           </div>
-          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null">KCV:&nbsp;</div>
+          <div class="col-auto q-mx-sm" v-show="keyType != null">KCV - KSI:&nbsp;</div>
+          <div class="col-auto  q-ml-sm" v-show="keyType != null">
+            <q-select
+              style="min-width: 200px"
+              v-model="kcvksi"
+              :options="kcvksiOpt"
+              label="Please select"
+              dense
+              clearable
+              options-selected-class="text-deep-orange"
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label caption>{{ scope.opt.comment }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
+          </div>
+          <!-- <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null">KCV:&nbsp;</div>
           <div class="col-auto" v-show="keyType != null">
             <q-select
               ref="testKeyTypeSelect"
@@ -154,8 +175,8 @@
                 </q-item>
               </template>
             </q-select>
-          </div>
-          <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null && kcv != null">KSI:&nbsp;</div>
+          </div> -->
+          <!-- <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null && kcv != null">KSI:&nbsp;</div>
           <div class="col-auto"  v-show="keyType != null && kcv != null">
             <q-select
               ref="testKeyTypeSelect"
@@ -175,7 +196,7 @@
                 </q-item>
               </template>
             </q-select>
-          </div>
+          </div> -->
         </div>
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">
@@ -410,6 +431,7 @@ export default {
       "address",
       "encrypt",
       "custType",
+      "kcvksi"
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
@@ -419,7 +441,8 @@ export default {
       "getTrackingNums",
       "custTypeOpt",
       "kcvOpt",
-      "ksiOpt"
+      "ksiOpt",
+      "kcvksiOpt"
     ]),
     ...mapState(useUserStore, ["clientUser"]),
     isEncrypted(){
@@ -449,6 +472,7 @@ export default {
       "populateCustTypeOpt",
       "populateKcvOpt",
       "populateKsiOpt",
+      "populateKcvksiOpt",
       "addSerial",
       "addSerialList",
       "updateSerial",
@@ -527,7 +551,7 @@ export default {
         return;
       }
       //no test key select when user select encrypted
-      if(this.isEncrypted && (this.ksi === null || this.kcv === null || this.keyType === null)){
+      if(this.isEncrypted && (this.kcvksi === null || this.keyType === null)){
         Notify.create({
           type: "negative",
           message: "Please Select an Unique Key for Encryption",
@@ -564,6 +588,7 @@ export default {
       };
       
       const vm = this;
+
       this.$api
         .post(actionURL, payload, {
           headers: {

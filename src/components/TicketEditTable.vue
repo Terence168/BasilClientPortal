@@ -9,6 +9,24 @@
         :rows-per-page-options="[10, 25, 50, 100]"
         id="serials"
       >
+      <template v-slot:header="props">
+        <q-tr :props="props">
+          <q-th key="cosmetic" >
+            <q-checkbox v-model="comesticAll" @update:model-value="selectAllCosmetic" :disable="showViewUnit">
+            </q-checkbox>
+            Cosmetic
+          </q-th>
+          <q-th key="action">Action</q-th>
+          <q-th key="serialNumber">Serial Number</q-th>
+          <q-th key="model">Model</q-th>
+          <q-th key="version">Version</q-th>
+          <q-th key="customerReportedIssue">Reported Issue</q-th>
+          <q-th key="terminalID">Customer ID</q-th>
+          <q-th key="customerRMA">Customer RMA</q-th>
+          <q-th key="warrantyStatus">Warranty Status</q-th>
+          <q-th key="warrantyExpDate">Warranty Expire Date</q-th>          
+        </q-tr>
+      </template>
         <template v-slot:bottom-row>
           <q-tr>
             <q-td colspan="100%">
@@ -17,7 +35,7 @@
               </div>
             </q-td>
           </q-tr> </template
-        >d
+        >
         <template v-slot:body="props">
           <q-tr
             v-if="!props.row.errorMsg"
@@ -29,6 +47,16 @@
             @click="handleRowClick($event, props.row)"
             :key="props.row.serialNumber"
           >
+          <q-td key="cosmetic" :props="props">
+              <q-checkbox
+                v-model="props.row.cosmetic"
+                @update:model-value="selectCosmetic"
+                :disable="
+                  containsXrefMaterials === null ? false : containsXrefMaterials
+                "
+              >
+              </q-checkbox>
+            </q-td>
             <q-td key="actions" :props="props">
               <q-btn
                 v-if="showRemoveUnit"
@@ -55,16 +83,6 @@
                 @click="handleClickViewUnit($event, props.row)"
               ></q-btn>
             </q-td>
-            <q-td key="cosmetic" :props="props">
-              <q-checkbox
-                v-model="props.row.cosmetic"
-                @update:model-value="props.row.isUpdate = true"
-                :disable="
-                  containsXrefMaterials === null ? false : containsXrefMaterials
-                "
-              >
-              </q-checkbox>
-            </q-td>
             <q-td key="serialNumber" :props="props">
               {{ props.row.serialNumber }}
             </q-td>
@@ -79,6 +97,9 @@
             </q-td>
             <q-td key="terminalID" :props="props">
               {{ props.row.customerTerminalID }}
+            </q-td>
+            <q-td key="customerRMA" :props="props">
+              {{ props.row.customerRMA }}  
             </q-td>
             <q-td key="warrantyStatus" :props="props">
               {{ props.row.warrantyStatus }}
@@ -107,15 +128,7 @@
         </template>
       </q-table>
     </div>
-    <!-- <PopUpBtns
-      ref="popupBtns"
-      :showViewUnit="showViewUnit"
-      :showUpdateUnit="showUpdateUnit"
-      :showRemoveUnit="showRemoveUnit"
-      @popup-remove-sn="handleClickRemoveUnit"
-      @popup-update-sn="handleClickUpdateUnit"
-      @popup-view-sn="handleClickViewUnit"
-    /> -->
+
     <!-- View Serial Details -->
     <BaseModal
       v-model:show="showDetailModal"
@@ -171,19 +184,22 @@ export default {
   emits: ["add-sn", "update-sn", "remove-sn"],
   data() {
     return {
+      countCosmeticAll:0,
+      selected:[],
+      comesticAll:false,
       columns: [
-        {
-          name: "actions",
-          align: "center",
-          label: "Actions",
-          field: "actions",
-          sortable: false,
-        },
         {
           name: "cosmetic",
           align: "center",
           label: "Cosmetic",
           field: "cosmetic",
+          sortable: false,
+        },
+        {
+          name: "actions",
+          align: "center",
+          label: "Actions",
+          field: "actions",
           sortable: false,
         },
         {
@@ -224,6 +240,13 @@ export default {
           sortable: false,
         },
         {
+          name: "customerRMA",
+          align: "center",
+          label: "customerRMA",
+          field: "customerRMA",
+          sortable: false,
+        },
+        {
           name: "warrantyStatus",
           align: "center",
           label: "Warranty Status",
@@ -249,6 +272,7 @@ export default {
           serialNumber: null,
           terminalID: null,
           customerReportedIssue: null,
+          customerRMA:null,
         },
         submitAction: "add",
       },
@@ -260,6 +284,20 @@ export default {
   },
   mounted() {
     // window.addEventListener("click", this.handleGlobalClick);
+    this.rows.forEach((r) => {
+      if(r.cosmetic === true){
+        this.countCosmeticAll += 1;
+      }
+      if(this.countCosmeticAll === this.rows.length){
+        this.comesticAll = true;
+      }
+      else if(this.countCosmeticAll === 0){
+        this.comesticAll = false;
+      }
+      else{
+        this.comesticAll = null;
+      }
+    })
   },
   computed: {
     serials() {
@@ -271,7 +309,7 @@ export default {
               t.serialNumber.includes(this.inputValue)) ||
             (t.model != null && t.model.includes(this.inputValue)) ||
             (t.customerReportedIssueExt != null &&
-              t.customerReportedIssueExt.includes(this.inputValue))
+              t.customerReportedIssueExt.includes(this.inputValue)) 
         );
       }
       return serials;
@@ -334,20 +372,6 @@ export default {
       "addSN",
     ]),
     handleRowClick(evt, row) {
-      // if (row.pxmOID === null && row.xmOID === null) {
-      //   //in create ticket page
-      //   this.showRemoveUnit = true;
-      //   this.showUpdateUnit = true;
-      //   this.showViewUnit = false;
-      // } else {
-      //   this.showRemoveUnit = false;
-      //   this.showUpdateUnit = true;
-      //   this.showViewUnit = true;
-      // }
-      // if (this.containsXrefMaterials) {
-      //   this.showRemoveUnit = false;
-      // }
-      // this.$refs.popupBtns.addPopupBtns(evt);
       this.modalState.serialData = row;
     },
     handleClickAddUnit() {
@@ -358,6 +382,7 @@ export default {
         serialNumber: null,
         terminalID: null,
         customerReportedIssue: null,
+        customerRMA:null,
       };
       this.$refs.editModal.displayEditModal();
     },
@@ -395,17 +420,7 @@ export default {
           });
         });
     },
-    // handleGlobalClick(event) {
-    //   // Handle the global click event here
-    //   const btns = this.$refs["popupBtns"];
-    //   if (btns != null) {
-    //     const serials = document.getElementById("serials");
-    //     if (serials != null && !serials.contains(event.target)) {
-    //       //click out of serials
-    //       this.$refs.popupBtns.removePopupBtns();
-    //     }
-    //   }
-    // },
+
     /**
      * Handler for child component: EditModal
      */
@@ -454,6 +469,32 @@ export default {
       });
 
       this.details.statusItems = statusItems;
+    },
+    selectAllCosmetic(value, evt){
+      if(value === true){
+        this.countCosmeticAll = this.rows.length;
+      }
+      else{
+        this.countCosmeticAll = 0;
+      }
+      this.rows.forEach((r) => r.cosmetic = value);
+    },
+    selectCosmetic(value, evt){
+      if(value === true){
+        this.countCosmeticAll += 1;
+      }
+      else{
+        this.countCosmeticAll -= 1;
+      }
+      if(this.countCosmeticAll === this.rows.length){
+        this.comesticAll = true;
+        return;
+      }
+      if(this.countCosmeticAll === 0){
+        this.comesticAll = false;
+        return;
+      }
+      this.comesticAll = null;
     },
     getParseDate(timeStr) {
       return parseDate(timeStr);
