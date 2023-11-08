@@ -67,6 +67,7 @@
               dense
               emit-value
               map-options
+              use-input
             >
               <template v-slot:no-option>
                 <q-item>
@@ -81,7 +82,7 @@
 
         <div class="row items-center">
           <div class="col-auto q-mr-sm">Customer Email:&nbsp;</div>
-          <div class="col-auto" >
+          <div class="col-auto">
             <q-input
               :model-value="userEmail"
               disable
@@ -104,8 +105,12 @@
         </div>
         <div class="row items-center">
           Encrypt:&nbsp;
-          <input type="radio" v-model="encrypt" value="yes">&nbsp;Yes&nbsp;&nbsp;
-          <input type="radio" v-model="encrypt" value="no">&nbsp;No&nbsp;
+          <input
+            type="radio"
+            v-model="encrypt"
+            value="yes"
+          />&nbsp;Yes&nbsp;&nbsp;
+          <input type="radio" v-model="encrypt" value="no" />&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
           <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
@@ -132,8 +137,10 @@
               </template>
             </q-select>
           </div>
-          <div class="col-auto q-mx-sm" v-show="keyType != null">KCV - KSI:&nbsp;</div>
-          <div class="col-auto  q-ml-sm" v-show="keyType != null">
+          <div class="col-auto q-mx-sm" v-show="keyType != null">
+            KCV - KSI:&nbsp;
+          </div>
+          <div class="col-auto q-ml-sm" v-show="keyType != null">
             <q-select
               style="min-width: 200px"
               v-model="kcvksi"
@@ -299,7 +306,6 @@
                   <q-icon name="search" />
                 </template>
               </q-input>
-
             </div>
           </q-form>
           <q-btn
@@ -337,7 +343,7 @@
         <!-- Button for submit ticket -->
         <div class="row justify-center">
           <q-btn
-            class="col-auto "
+            class="col-auto"
             color="primary"
             @click="submitTicket"
             style="min-width: 200px"
@@ -367,18 +373,26 @@
     >
       <AddressGrid @selectShippingAddress="selectShippingAddress" />
     </BaseModal>
-    
-    <BaseModal :show="showHelpModal" title = "Mass Upoad Template" :width="500" @update:show="showHelpModal = false">
+
+    <BaseModal
+      :show="showHelpModal"
+      title="Mass Upoad Template"
+      :width="500"
+      @update:show="showHelpModal = false"
+    >
       <div class="row justify-center q-mt-md">
         <p class="text-center">
-          <strong> Please populate as many fields as applicable.<br><br>
-            Note that not all devices have a 2nd device SNs and it may
-            not be applicable to all devices. If the Customer ID field does
-            not apply to your company, please leave it blank.<br><br>
-            Here is a sample file if you'd like an example: 
+          <strong>
+            Please populate as many fields as applicable.<br /><br />
+            Note that not all devices have a 2nd device SNs and it may not be
+            applicable to all devices. If the Customer ID field does not apply
+            to your company, please leave it blank.<br /><br />
+            Here is a sample file if you'd like an example:
           </strong>
         </p>
-        <q-btn color="primary" @click="downloadSampleFile">Download Sample</q-btn>
+        <q-btn color="primary" @click="downloadSampleFile"
+          >Download Sample</q-btn
+        >
       </div>
     </BaseModal>
   </div>
@@ -414,8 +428,8 @@ export default {
       showAddressModal: false,
       fileUploading: false,
       updateOrAddLoading: false, //to control the update/add button's loading
-      serialsSubmitting: false,   
-      showHelpModal:false,   
+      serialsSubmitting: false,
+      showHelpModal: false,
     };
   },
 
@@ -431,7 +445,7 @@ export default {
       "address",
       "encrypt",
       "custType",
-      "kcvksi"
+      "kcvksi",
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
@@ -442,10 +456,10 @@ export default {
       "custTypeOpt",
       "kcvOpt",
       "ksiOpt",
-      "kcvksiOpt"
+      "kcvksiOpt",
     ]),
     ...mapState(useUserStore, ["clientUser"]),
-    isEncrypted(){
+    isEncrypted() {
       return this.encrypt != null && this.encrypt === "yes";
     },
     isReRepair() {
@@ -478,11 +492,11 @@ export default {
       "updateSerial",
       "removeSerial",
     ]),
-    downloadBlankTemplate(){
-      window.open('/blankFile.xlsx', '_self');
+    downloadBlankTemplate() {
+      window.open("/blankFile.xlsx", "_self");
     },
-    downloadSampleFile(){
-      window.open('/sampleFile.xlsx', '_self');
+    downloadSampleFile() {
+      window.open("/sampleFile.xlsx", "_self");
     },
     onFileSubmit(e) {
       if (!this.file) {
@@ -505,7 +519,7 @@ export default {
     showAddressGrid() {
       this.showAddressModal = true;
     },
-    handleClickHelpUnit(){
+    handleClickHelpUnit() {
       this.showHelpModal = true;
     },
     submitTicket() {
@@ -514,9 +528,9 @@ export default {
       //no serial
       if (serials === undefined || serials.length == 0) {
         Notify.create({
-            type: "negative",
-            message: "Please Add at Least One SN before Submitting.",
-          });
+          type: "negative",
+          message: "Please Add at Least One SN before Submitting.",
+        });
         this.serialsSubmitting = false;
         return;
       }
@@ -551,7 +565,7 @@ export default {
         return;
       }
       //no test key select when user select encrypted
-      if(this.isEncrypted && (this.kcvksi === null || this.keyType === null)){
+      if (this.isEncrypted && (this.kcvksi === null || this.keyType === null)) {
         Notify.create({
           type: "negative",
           message: "Please Select an Unique Key for Encryption",
@@ -559,8 +573,10 @@ export default {
         this.serialsSubmitting = false;
         return;
       }
-      
-      const trackingNumbers = this.getTrackingNums.filter(t => t!= "" && t.length > 0);
+
+      const trackingNumbers = this.getTrackingNums.filter(
+        (t) => t != "" && t.length > 0
+      );
       const actionURL = "/ticketing/submitTicket";
 
       const sNsInsertionObjects = serials.map((serial) => {
@@ -575,18 +591,17 @@ export default {
           serial.cosmetic === null || serial.cosmetic === false ? 891 : 890;
         return snObject;
       });
-      
 
       const payload = {
         encrypt: this.encrypt,
         orderType: this.orderType,
-        testKeyType:this.isEncrypted? this.ksi:null,
+        testKeyType: this.isEncrypted ? this.ksi : null,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
         xaOID: this.address.xaOid,
       };
-      
+
       const vm = this;
 
       this.$api
