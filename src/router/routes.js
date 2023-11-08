@@ -188,7 +188,12 @@ const routes = [
     name: "activate-user",
     component: () => import("pages/ActivateUserPage.vue"),
   },
-
+  
+  {
+    path:"/error-403",
+    name:"error-403",
+    component: () => import("pages/Error403.vue"),
+  },
   // Always leave this as last one,
   // but you can also remove it
   {

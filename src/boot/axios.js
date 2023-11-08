@@ -1,7 +1,8 @@
-import { boot } from "quasar/wrappers";
+import { boot, route } from "quasar/wrappers";
 import axios from "axios";
 import { useUserStore } from "stores/user";
 import { Notify } from "quasar";
+import { useDark } from "@vueuse/core";
 
 const uat = true;
 
@@ -38,13 +39,9 @@ export default boot(({ app, store }) => {
     function (response) {
       // Any status code that lie within the range of 2xx cause this function to trigger
       // Do something with response data
-      if (
-        user.loggedIn &&
-        (response.data.code === 40001 ||
-          response.data.errorMessage === "User login session expired.")
-      ) {
+      if (user.loggedIn && response.data.code === 40000) {
+        //user session expire, throw user to login page
         user.logout();
-
         Notify.create({
           type: "negative",
           message: "User session has expired",
@@ -52,6 +49,28 @@ export default boot(({ app, store }) => {
 
         return response;
       }
+
+      if (user.loggedIn && response.data.code === 40001) {
+        //unauthenicated, thow user to error 403 page
+        //this.router.push({ name: "error-403" });
+        user.toHomePage();
+        return Promise.reject(new Error("Not Authenticated"));
+      }
+
+      // if (
+      //   user.loggedIn &&
+      //   (response.data.code === 40001 ||
+      //     response.data.errorMessage === "User login session expired.")
+      // ) {
+      //   user.logout();
+
+      //   Notify.create({
+      //     type: "negative",
+      //     message: "User session has expired",
+      //   });
+
+      //   return response;
+      // }
 
       if (response.data.resultCode === 100) {
         Notify.create({

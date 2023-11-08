@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
+import { throttleFilter } from "@vueuse/core";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -91,6 +92,10 @@ export const useUserStore = defineStore("user", {
           });
         });
     },
+
+    toHomePage(){
+      this.router.push({ name: "error-403" });
+    }
   },
 
   persist: true,

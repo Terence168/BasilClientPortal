@@ -10,18 +10,16 @@
           indicator-color="primary"
           align="left"
         >
-          <q-tab name="RMAStatus" label="Ticket Status" @click="this.$router.push({name: 'status' })"/>
-          <q-tab name="Ticketing" label="Ticket Management" @click="this.$router.push({name: 'ticketing-queue'})"/>
+          <q-tab name="RMAStatus" label="Ticket Status"/>
+          <q-tab name="Ticketing" label="Ticket Management"/>
           <q-tab
             v-if="checkPermission('privilege')"
             name="privilege"
             label="Privilege"
-            @click="this.$router.push({name: 'role-type'})"
           />
           <q-tab
             name="Account"
             label="Account"
-            @click="this.$router.push({name: 'account-set'})"
           />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
