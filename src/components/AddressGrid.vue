@@ -121,6 +121,13 @@ export default {
     BaseModal,
   },
 
+  props: {
+    customer: {
+      type: Number,
+      default: null,
+    },
+  },
+
   data() {
     return {
       showModal: false,
@@ -231,7 +238,10 @@ export default {
 
     refreshAddresses() {
       this.$api
-        .get("customer/address")
+        .get(
+          "customer/address" +
+            (this.customer ? `?customer=${this.customer}` : "")
+        )
         .then((response) => {
           this.addresses = response.data;
         })

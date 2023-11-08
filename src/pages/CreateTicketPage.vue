@@ -371,7 +371,10 @@
       :width="972"
       @update:show="showAddressModal = false"
     >
-      <AddressGrid @selectShippingAddress="selectShippingAddress" />
+      <AddressGrid
+        :customer="custType"
+        @selectShippingAddress="selectShippingAddress"
+      />
     </BaseModal>
 
     <BaseModal
