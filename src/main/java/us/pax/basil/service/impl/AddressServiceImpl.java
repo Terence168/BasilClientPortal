@@ -17,12 +17,16 @@ public class AddressServiceImpl implements AddressService {
     private AddressMapper addressMapper;
 
     //TODO: Need to validate if user in the session == submitter.
-    public List<Address> findAll() {
+    public List<Address> findAll(Integer customer) {
         CustomUserDetails user = AuthUtil.getUser();
         assert user != null;
         
         if (user.isClientUser()) {
             return addressMapper.findAllByCompanyId(user.getCompanyId());
+        }
+        
+        if (customer != null) {
+            return addressMapper.findAllByCompanyId(customer);
         }
         
         return addressMapper.findAll();

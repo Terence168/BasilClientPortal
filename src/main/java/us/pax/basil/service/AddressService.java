@@ -6,7 +6,7 @@ import us.pax.basil.entity.customer.Address;
 import java.util.List;
 
 public interface AddressService {
-    List<Address> findAll();
+    List<Address> findAll(Integer customer);
     
     Address findById(int xaOid);
     

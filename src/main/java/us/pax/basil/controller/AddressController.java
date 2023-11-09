@@ -17,8 +17,8 @@ public class AddressController {
     private AddressService addressService;
     
     @GetMapping
-    public List<Address> findAll() {
-        return addressService.findAll();
+    public List<Address> findAll(@RequestParam(required = false) Integer customer) {
+        return addressService.findAll(customer);
     }
     
     @GetMapping("/{xaOid}")
