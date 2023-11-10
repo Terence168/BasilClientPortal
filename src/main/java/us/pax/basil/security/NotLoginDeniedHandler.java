@@ -32,6 +32,6 @@ public class NotLoginDeniedHandler implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
         log.error("Un-logged in accessing authorized resource: {}", httpServletRequest.getRequestURI());
-        ResponseUtil.out(httpServletResponse, Result.error(ResultEnum.FORBIDDEN));
+        ResponseUtil.out(httpServletResponse, Result.error(ResultEnum.SESSION_TIMEOUT));
     }
 }
