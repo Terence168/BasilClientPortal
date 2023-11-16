@@ -10,17 +10,15 @@
           indicator-color="primary"
           align="left"
         >
-          <q-tab name="RMAStatus" label="Ticket Status"/>
-          <q-tab name="Ticketing" label="Ticket Management"/>
+          <q-tab name="RMAStatus" label="Ticket Status" />
+          <q-tab name="Ticketing" label="Ticket Management" />
+          <q-tab name="Sales" label="Sales Management" />
           <q-tab
             v-if="checkPermission('privilege')"
             name="privilege"
             label="Privilege"
           />
-          <q-tab
-            name="Account"
-            label="Account"
-          />
+          <q-tab name="Account" label="Account" />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
           <div class="row">
@@ -168,6 +166,7 @@
 <script>
 import RMAStatusSubMenu from "src/components/RMAStatusSubMenu.vue";
 import TicketingSubMenu from "src/components/TicketingSubMenu.vue";
+import SalesSubMenu from "src/components/SalesSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
 import AccountSubMenu from "src/components/AccountSubMenu.vue";
 import BaseModal from "src/components/BaseModal.vue";
@@ -188,6 +187,7 @@ export default {
   components: {
     RMAStatusSubMenu,
     TicketingSubMenu,
+    SalesSubMenu,
     PrivilegeSubMenu,
     AccountSubMenu,
     BaseModal,

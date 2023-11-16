@@ -79,7 +79,7 @@
                 @click="$emit('view-data', row.id)"
               ></q-btn> -->
               <q-btn
-               v-if="checkPermission('privilege.user.update')"
+                v-if="checkPermission('privilege.user.update')"
                 flat
                 round
                 color="grey-6"
@@ -107,12 +107,16 @@
 
             <span
               style="cursor: pointer"
-              v-if="column.id === 'techNotes' || column.id === 'reportedIssue'"
+              v-if="
+                column.id === 'techNotes' ||
+                column.id === 'reportedIssue' ||
+                column.id === 'email'
+              "
             >
               {{ shortenText(row[column.id]) }}
               <q-tooltip
                 class="bg-primary text-body2 shadow-4"
-                max-width="500px"
+                max-width="1000px"
                 :offset="[10, 10]"
               >
                 {{ row[column.id] }}

@@ -125,16 +125,26 @@ const routes = [
             },
           },
           {
-            path:"edit/:ticketId",
-            name:"edit-ticket",
+            path: "edit/:ticketId",
+            name: "edit-ticket",
             component: () => import("pages/EditTicketPage.vue"),
             meta: {
               requiresAuth: true,
               permissions: ["rma.status"],
             },
-          }
+          },
         ],
       },
+
+      {
+        path: "/sales-order",
+        name: "sales-order",
+        component: () => import("pages/SalesOrderStatusPage.vue"),
+        meta: {
+          requiresAuth: true,
+        },
+      },
+
       {
         path: "/account",
         name: "account",
@@ -188,10 +198,10 @@ const routes = [
     name: "activate-user",
     component: () => import("pages/ActivateUserPage.vue"),
   },
-  
+
   {
-    path:"/error-403",
-    name:"error-403",
+    path: "/error-403",
+    name: "error-403",
     component: () => import("pages/Error403.vue"),
   },
   // Always leave this as last one,

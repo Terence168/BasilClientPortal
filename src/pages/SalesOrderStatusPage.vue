@@ -2,7 +2,7 @@
   <div class="q-mx-lg">
     <div class="generic-container">
       <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        Shipping
+        Sales Order Status
       </div>
 
       <q-separator />
@@ -82,29 +82,24 @@ export default {
 
       filterFields: [
         {
-          id: "rmaNumber",
-          label: "RMA Ticket Number",
+          id: "salesOrder",
+          label: "Sales Order Number",
           tooltip:
-            "Enter the RMA ticket number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact ticket number, no partials.\nExample: (159123, 236555)",
-        },
-        {
-          id: "serialNumber",
-          label: "Serial Number",
-          tooltip:
-            "Enter the terminal serial number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact serial number, no partials.\nExample: (300123456, 300123457)",
-        },
-        {
-          id: "partNumber",
-          label: "Model Number Short",
-          tooltip:
-            "Enter the model number prefix you are searching for.\nExample: A77",
+            "Enter Sales Order Number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact Sales Order Number, no partials.\nExample: (159123, 236555)",
         },
         {
           id: "shipDate",
           label: "Ship Date",
           type: "dateRange",
           tooltip:
-            "The date the repaired terminal was shipped to its assigned destination.\nDate Range: To view a date range, click the calendar icon.\nClick on the first date you want your date range to start, then click on the date you want it to end.\nOnce you have selected your date range, click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.\n\nSingle Date: Click on the calendar icon in the field and select the date on the calendar.\nClick the date twice and click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.",
+            "The date the order is expected to be shipped to its assigned destination.\nDate Range: To view a date range, click the calendar icon.\nClick on the first date you want your date range to start, then click on the date you want it to end.\nOnce you have selected your date range, click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.\n\nSingle Date: Click on the calendar icon in the field and select the date on the calendar.\nClick the date twice and click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.",
+        },
+        {
+          id: "createDate",
+          label: "Created Date",
+          type: "dateRange",
+          tooltip:
+            "The date the order was created.\nDate Range: To view a date range, click the calendar icon.\nClick on the first date you want your date range to start, then click on the date you want it to end.\nOnce you have selected your date range, click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.\n\nSingle Date: Click on the calendar icon in the field and select the date on the calendar.\nClick the date twice and click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.",
         },
         {
           id: "customerId",
@@ -115,23 +110,24 @@ export default {
 
       tableData: {
         columns: [
-          { id: "shipDate", label: "Ship Date", sortable: true },
-          { id: "partNumber", label: "Model Number Short", sortable: true },
-          { id: "serialNumber", label: "Serial Number", sortable: true },
-          { id: "rmaNumber", label: "RMA Ticket Number", sortable: true },
-          { id: "trackingNumber", label: "Tracking Number", sortable: true },
+          { id: "salesOrder", label: "Sales Order", sortable: true },
+          { id: "customerName", label: "Customer Name", sortable: true },
+          { id: "orderStatus", label: "Order Status", sortable: true },
+          { id: "orderDate", label: "Order Date", sortable: true },
           {
-            id: "reportedIssue",
-            label: "Customer Reported Issue",
+            id: "customerPONumber",
+            label: "Customer PO Number",
             sortable: true,
           },
-          {
-            id: "techNotes",
-            label: "Tech Notes",
-            sortable: true,
-          },
-          { id: "faultCode", label: "Primary Fault Code(s)", sortable: true },
-          { id: "customerOrganization", label: "Customer", sortable: true },
+          { id: "salesPersonName", label: "Sales Person Name", sortable: true },
+          //   { id: "contact", label: "Contact", sortable: true },
+          //   { id: "shipAddress1", label: "Ship Address 1", sortable: true },
+          //   { id: "shipAddress2", label: "Ship Address 2", sortable: true },
+          //   { id: "shipAddress3", label: "Ship Address 3", sortable: true },
+          //   { id: "shipAddress4", label: "Ship Address 4", sortable: true },
+          //   { id: "shipPostalCode", label: "Ship Postal Code", sortable: true },
+          { id: "email", label: "Email", sortable: true },
+          { id: "reqShipDate", label: "Requested Ship Date", sortable: true },
         ],
         rows: [],
       },
@@ -163,10 +159,10 @@ export default {
       const vm = this;
 
       this.$api
-        .get("/rma/shipped" + window.location.search)
+        .get("/sales-order" + window.location.search)
         .then(function (response) {
-          vm.tableData.rows = response.data.data;
-          vm.total = response.data.total;
+          vm.tableData.rows = response.data.data.salesOrders;
+          vm.total = response.data.data.total;
         })
         .catch(function (error) {
           // handle error
@@ -177,12 +173,14 @@ export default {
     excelExport() {
       this.exportInProgress = true;
       this.$api
-        .get("/rma/excel-export/shipping" + window.location.search, {
+        .get("/sales-order/excel-export" + window.location.search, {
           responseType: "blob",
         })
         .then((response) => {
           exportFile(
-            "shipping_" + date.formatDate(Date.now(), "YYYY-MM-DD") + ".xlsx",
+            "sales-order-" +
+              date.formatDate(Date.now(), "YYYY-MM-DD") +
+              ".xlsx",
             response.data
           );
         })
