@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.SalesOrderMapper">
+
+    <resultMap id="salesOrderResultMap" type="us.pax.basil.entity.salesorder.SalesOrder">
+        <result property="salesOrder" column="salesOrder"/>
+        <result property="customer" column="customer"/>
+        <result property="orderStatus" column="orderStatus"/>
+        <result property="orderDate" column="orderDate" javaType="java.time.LocalDate"/>
+        <result property="customerPONumber" column="customerPONumber"/>
+        <result property="moDescription" column="moDescription"/>
+        <result property="specialInstructions" column="specialInstructions"/>
+        <result property="salesPersonInitials" column="salesPersonInitials"/>
+        <result property="salesPersonName" column="salesPersonName"/>
+        <result property="contact" column="contact"/>
+        <result property="customerName" column="customerName"/>
+        <result property="shipAddress3Loc" column="shipAddress3Loc"/>
+        <result property="shipAddress1" column="shipAddress1"/>
+        <result property="shipAddress2" column="shipAddress2"/>
+        <result property="shipAddress3" column="shipAddress3"/>
+        <result property="shipAddress4" column="shipAddress4"/>
+        <result property="shipPostalCode" column="shipPostalCode"/>
+        <result property="email" column="email"/>
+        <result property="reqShipDate" column="reqShipDate" javaType="java.time.LocalDate"/>
+    </resultMap>
+
+    <select id="totalSalesOrders" resultType="integer">
+        SELECT COUNT(DISTINCT CAST(SALES_ORDER AS UNSIGNED))
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT
+        <where>
+            <if test="salesOrder != null">
+                CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+            </if>
+
+            <if test="poNumber != null">
+                AND CUSTOMER_PO_NUMBER = #{poNumber}
+            </if>
+
+            <if test="customerId != null">
+                AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
+            </if>
+            <if test="shipFromDate != null and shipToDate != null">
+                AND REQ_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+            </if>
+
+            <if test="createFromDate != null and createToDate != null">
+                AND ORDER_DATE BETWEEN #{createFromDate} AND #{createToDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="getSalesOrders" resultMap="salesOrderResultMap">
+        SELECT DISTINCT CAST(SALES_ORDER AS UNSIGNED) AS salesOrder,
+        CUSTOMER                      AS customer,
+        COALESCE(scav.VALUE, 'NONE')  AS orderStatus,
+        ORDER_DATE                    AS orderDate,
+        CUSTOMER_PO_NUMBER            AS customerPONumber,
+        MO_DESCRIPTION                AS moDescription,
+        SPECIAL_INSTRUCTIONS          AS specialInstructions,
+        SALES_PERSON_INITIALS         AS salesPersonInitials,
+        SALES_PERSON_NAME             AS salesPersonName,
+        CONTACT                       AS contact,
+        CUSTOMER_NAME                 AS customerName,
+        SHIP_ADDRESS_3_LOC            AS shipAddress3Loc,
+        SHIP_ADDRESS_1                AS shipAddress1,
+        SHIP_ADDRESS_2                AS shipAddress2,
+        SHIP_ADDRESS_3                AS shipAddress3,
+        SHIP_ADDRESS_4                AS shipAddress4,
+        SHIP_POSTAL_CODE              AS shipPostalCode,
+        EMAIL                         AS email,
+        REQ_SHIP_DATE                 AS reqShipDate
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav ON scav.SCV_OID = RAW_SYSPRO_INPUT.ORDER_STATUS
+        <where>
+            <if test="salesOrder != null">
+                CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+            </if>
+
+            <if test="poNumber != null">
+                AND CUSTOMER_PO_NUMBER = #{poNumber}
+            </if>
+
+            <if test="customerId != null">
+                AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
+            </if>
+            <if test="shipFromDate != null and shipToDate != null">
+                AND REQ_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+            </if>
+
+            <if test="createFromDate != null and createToDate != null">
+                AND ORDER_DATE BETWEEN #{createFromDate} AND #{createToDate}
+            </if>
+        </where>
+
+        <if test="sortColumns != null and sortColumns != ''">
+            ORDER BY ${sortColumns}
+        </if>
+        LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
+</mapper>
