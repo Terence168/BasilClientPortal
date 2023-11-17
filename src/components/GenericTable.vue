@@ -69,6 +69,16 @@
               </template>
             </span>
 
+            <span v-if="column.id === 'salesOrderDetails'">
+              <q-btn
+                flat
+                round
+                color="grey-6"
+                icon="manage_search"
+                @click="$emit('sales-order-details', row.salesOrder)"
+              ></q-btn>
+            </span>
+
             <span v-if="column.id === 'userActions'">
               <!-- <q-btn
                 v-if="checkPermission('privilege.user.update')"

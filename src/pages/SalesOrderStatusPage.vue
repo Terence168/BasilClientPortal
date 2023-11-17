@@ -34,19 +34,29 @@
             </template>
           </q-btn>
         </div>
-        <div v-if="total !== 0" class="q-pt-md">
-          <div class="row justify-center">
-            <GenericTable style="max-width: 100%" :tableData="tableData" />
-          </div>
+        <q-tab-panels v-model="panel" animated>
+          <q-tab-panel name="salesOrderTable">
+            <div v-if="total !== 0" class="q-pt-md">
+              <div class="row justify-center">
+                <GenericTable
+                  @sales-order-details="salesOrderDetails"
+                  style="max-width: 100%"
+                  :tableData="tableData"
+                />
+              </div>
 
-          <GenericPagination :pages="totalPages" :total="total" />
-        </div>
-        <div
-          v-else
-          class="q-pt-md text-subtitle1 text-weight-medium text-grey-6 text-center"
-        >
-          No data found for the current customer
-        </div>
+              <GenericPagination :pages="totalPages" :total="total" />
+            </div>
+            <div
+              v-else
+              class="q-pt-md text-subtitle1 text-weight-medium text-grey-6 text-center"
+            >
+              No data found for the current customer
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="other">Test</q-tab-panel>
+        </q-tab-panels>
       </div>
     </div>
   </div>
@@ -69,6 +79,8 @@ export default {
       showModal: false,
 
       exportInProgress: false,
+
+      panel: "salesOrderTable",
 
       modalFormOptions: {
         id: null,
@@ -110,24 +122,31 @@ export default {
 
       tableData: {
         columns: [
-          { id: "salesOrder", label: "Sales Order", sortable: true },
-          { id: "customerName", label: "Customer Name", sortable: true },
-          { id: "orderStatus", label: "Order Status", sortable: true },
-          { id: "orderDate", label: "Order Date", sortable: true },
+          { id: "salesOrderDetails", label: "", sortable: false },
+          { id: "salesOrder", label: "Sales Order", sortable: false },
+          { id: "customer", label: "Customer", sortable: false },
+          { id: "orderStatus", label: "Order Status", sortable: false },
+          { id: "orderDate", label: "Order Date", sortable: false },
           {
             id: "customerPONumber",
-            label: "Customer PO Number",
-            sortable: true,
+            label: "PO Number",
+            sortable: false,
           },
-          { id: "salesPersonName", label: "Sales Person Name", sortable: true },
-          //   { id: "contact", label: "Contact", sortable: true },
-          //   { id: "shipAddress1", label: "Ship Address 1", sortable: true },
-          //   { id: "shipAddress2", label: "Ship Address 2", sortable: true },
-          //   { id: "shipAddress3", label: "Ship Address 3", sortable: true },
-          //   { id: "shipAddress4", label: "Ship Address 4", sortable: true },
-          //   { id: "shipPostalCode", label: "Ship Postal Code", sortable: true },
-          { id: "email", label: "Email", sortable: true },
-          { id: "reqShipDate", label: "Requested Ship Date", sortable: true },
+          { id: "description", label: "Description", sortable: false },
+          {
+            id: "specialInstructions",
+            label: "Special Instructions",
+            sortable: false,
+          },
+          { id: "salesPerson", label: "Sales Person", sortable: false },
+          { id: "contact", label: "Contact", sortable: false },
+          {
+            id: "sysproCustomerName",
+            label: "Syspro Customer Name",
+            sortable: false,
+          },
+          { id: "shipAddress", label: "Ship Address", sortable: false },
+          { id: "reqShipDate", label: "Requested Ship Date", sortable: false },
         ],
         rows: [],
       },
@@ -191,6 +210,11 @@ export default {
         .finally(() => {
           this.exportInProgress = false;
         });
+    },
+
+    salesOrderDetails(id) {
+      this.panel = "other";
+      console.log(id);
     },
 
     checkPermission(permission) {
