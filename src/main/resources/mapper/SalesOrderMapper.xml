@@ -8,19 +8,12 @@
         <result property="orderStatus" column="orderStatus"/>
         <result property="orderDate" column="orderDate" javaType="java.time.LocalDate"/>
         <result property="customerPONumber" column="customerPONumber"/>
-        <result property="moDescription" column="moDescription"/>
+        <result property="description" column="description"/>
         <result property="specialInstructions" column="specialInstructions"/>
-        <result property="salesPersonInitials" column="salesPersonInitials"/>
-        <result property="salesPersonName" column="salesPersonName"/>
+        <result property="salesPerson" column="salesPerson"/>
         <result property="contact" column="contact"/>
-        <result property="customerName" column="customerName"/>
-        <result property="shipAddress3Loc" column="shipAddress3Loc"/>
-        <result property="shipAddress1" column="shipAddress1"/>
-        <result property="shipAddress2" column="shipAddress2"/>
-        <result property="shipAddress3" column="shipAddress3"/>
-        <result property="shipAddress4" column="shipAddress4"/>
-        <result property="shipPostalCode" column="shipPostalCode"/>
-        <result property="email" column="email"/>
+        <result property="sysproCustomerName" column="sysproCustomerName"/>
+        <result property="shipAddress" column="shipAddress"/>
         <result property="reqShipDate" column="reqShipDate" javaType="java.time.LocalDate"/>
     </resultMap>
 
@@ -51,26 +44,25 @@
 
     <select id="getSalesOrders" resultMap="salesOrderResultMap">
         SELECT DISTINCT CAST(SALES_ORDER AS UNSIGNED) AS salesOrder,
-        CUSTOMER                      AS customer,
-        COALESCE(scav.VALUE, 'NONE')  AS orderStatus,
+        mc.CUSTOMER_ORGANIZATION      AS customer,
+        scav.VALUE                    AS orderStatus,
         ORDER_DATE                    AS orderDate,
         CUSTOMER_PO_NUMBER            AS customerPONumber,
-        MO_DESCRIPTION                AS moDescription,
+        MO_DESCRIPTION                AS description,
         SPECIAL_INSTRUCTIONS          AS specialInstructions,
-        SALES_PERSON_INITIALS         AS salesPersonInitials,
-        SALES_PERSON_NAME             AS salesPersonName,
+        SALES_PERSON_NAME             AS salesPerson,
         CONTACT                       AS contact,
-        CUSTOMER_NAME                 AS customerName,
-        SHIP_ADDRESS_3_LOC            AS shipAddress3Loc,
-        SHIP_ADDRESS_1                AS shipAddress1,
-        SHIP_ADDRESS_2                AS shipAddress2,
-        SHIP_ADDRESS_3                AS shipAddress3,
-        SHIP_ADDRESS_4                AS shipAddress4,
-        SHIP_POSTAL_CODE              AS shipPostalCode,
-        EMAIL                         AS email,
+        CUSTOMER_NAME                 AS sysproCustomerName,
+        CONCAT(`SHIP_ADDRESS_1`, ' ',
+        `SHIP_ADDRESS_2`, '\n',
+        `SHIP_ADDRESS_3`, '  ',
+        `SHIP_ADDRESS_4`, ', ',
+        `SHIP_POSTAL_CODE`)    AS shipAddress,
         REQ_SHIP_DATE                 AS reqShipDate
-        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT
-        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav ON scav.SCV_OID = RAW_SYSPRO_INPUT.ORDER_STATUS
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
+        LEFT JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc ON CAST(rsi.CUSTOMER AS UNSIGNED) = mc.MC_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        ON scav.SYSPRO_CODE = rsi.ORDER_STATUS AND SC_OID = 3
         <where>
             <if test="salesOrder != null">
                 CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
