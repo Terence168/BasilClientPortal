@@ -41,7 +41,7 @@
             </if>
 
             <if test="poNumber != null">
-                AND CUSTOMER_PO_NUMBER = #{poNumber}
+                AND CUSTOMER_PO_NUMBER LIKE CONCAT('%', #{poNumber}, '%')
             </if>
 
             <if test="customerId != null">
@@ -77,14 +77,14 @@
         FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
         LEFT JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc ON CAST(rsi.CUSTOMER AS UNSIGNED) = mc.MC_OID
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
-        ON scav.SYSPRO_CODE = rsi.ORDER_STATUS AND SC_OID = 3
+        ON (scav.SYSPRO_CODE = rsi.ORDER_STATUS AND scav.SC_OID = 3)
         <where>
             <if test="salesOrder != null">
                 CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
             </if>
 
             <if test="poNumber != null">
-                AND CUSTOMER_PO_NUMBER = #{poNumber}
+                AND CUSTOMER_PO_NUMBER LIKE CONCAT('%', #{poNumber}, '%')
             </if>
 
             <if test="customerId != null">
@@ -120,11 +120,11 @@
         M_COMMIT_DATE                      lastRefresh
         FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavProductClass
-        ON scavProductClass.SYSPRO_CODE = rsi.M_PRODUCT_CLASS AND scavProductClass.SC_OID = 6
+        ON (scavProductClass.SYSPRO_CODE = rsi.M_PRODUCT_CLASS AND scavProductClass.SC_OID = 6)
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavLineType
-        ON scavLineType.SYSPRO_CODE = rsi.LINE_TYPE AND scavLineType.SC_OID = 4
+        ON (scavLineType.SYSPRO_CODE = rsi.LINE_TYPE AND scavLineType.SC_OID = 4)
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavDocumentType
-        ON scavDocumentType.SYSPRO_CODE = rsi.DOCUMENT_TYPE AND scavDocumentType.SC_OID = 5
+        ON (scavDocumentType.SYSPRO_CODE = rsi.DOCUMENT_TYPE AND scavDocumentType.SC_OID = 5)
         WHERE CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
         ORDER BY SALES_ORDER_LINE;
     </select>
