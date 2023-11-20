@@ -55,7 +55,28 @@
             </div>
           </q-tab-panel>
 
-          <q-tab-panel name="other">Test</q-tab-panel>
+          <q-tab-panel name="salesOrderLinePanel">
+            <q-table
+              :rows="salesOrderDetailData"
+              :columns="columns"
+              :loading="salesOrderDetailData.length === 0"
+              row-key="salesOrderLine"
+            >
+              <template v-slot:top-left>
+                <div class="row items-center">
+                  <q-btn
+                    @click="backToMainTable"
+                    round
+                    color="primary"
+                    icon="arrow_back"
+                  />
+                  <div class="q-ml-md q-table__title">
+                    {{ salesOrderLineTitle }}
+                  </div>
+                </div>
+              </template>
+            </q-table>
+          </q-tab-panel>
         </q-tab-panels>
       </div>
     </div>
@@ -81,6 +102,85 @@ export default {
       exportInProgress: false,
 
       panel: "salesOrderTable",
+
+      selectedSalesOrder: null,
+
+      columns: [
+        {
+          id: "salesOrderLine",
+          label: "Line",
+          field: "salesOrderLine",
+          sortable: true,
+        },
+        {
+          id: "materialNumber",
+          label: "Material Number",
+          field: "materialNumber",
+          sortable: false,
+        },
+        {
+          id: "productClass",
+          label: "Product Class",
+          field: "productClass",
+          sortable: false,
+        },
+        {
+          id: "stockDescription",
+          label: "Stock Description",
+          field: "stockDescription",
+          sortable: false,
+        },
+        {
+          id: "soLineShipDate",
+          label: "Ship Date",
+          field: "soLineShipDate",
+          sortable: false,
+        },
+        {
+          id: "comment",
+          label: "Comment",
+          field: "comment",
+          sortable: false,
+        },
+        {
+          id: "lineType",
+          label: "Line Type",
+          field: "lineType",
+          sortable: false,
+        },
+        {
+          id: "documentType",
+          label: "Document Type",
+          field: "documentType",
+          sortable: false,
+        },
+        {
+          id: "orderQty",
+          label: "Order Qty",
+          field: "orderQty",
+          sortable: false,
+        },
+        {
+          id: "shippedQty",
+          label: "Shipped Qty",
+          field: "shippedQty",
+          sortable: false,
+        },
+        {
+          id: "backOrderQty",
+          label: "Back Order Qty",
+          field: "backOrderQty",
+          sortable: false,
+        },
+        {
+          id: "lastRefresh",
+          label: "Last Refresh",
+          field: "lastRefresh",
+          sortable: false,
+        },
+      ],
+
+      salesOrderDetailData: [],
 
       modalFormOptions: {
         id: null,
@@ -159,6 +259,10 @@ export default {
       const perPage = this.$route.query.per_page || 10;
       return Math.ceil(this.total / perPage);
     },
+
+    salesOrderLineTitle() {
+      return `Sales Order #${this.selectedSalesOrder} Details`;
+    },
   },
 
   created() {
@@ -213,8 +317,27 @@ export default {
     },
 
     salesOrderDetails(id) {
-      this.panel = "other";
-      console.log(id);
+      this.panel = "salesOrderLinePanel";
+
+      this.selectedSalesOrder = id;
+
+      const vm = this;
+
+      this.$api
+        .get(`/sales-order/${id}`)
+        .then(function (response) {
+          vm.salesOrderDetailData = response.data.data.salesOrderDetails;
+        })
+        .catch(function (error) {
+          // handle error
+          console.log(error);
+        });
+    },
+
+    backToMainTable() {
+      this.panel = "salesOrderTable";
+      this.selectedSalesOrder = null;
+      this.salesOrderDetailData = [];
     },
 
     checkPermission(permission) {
