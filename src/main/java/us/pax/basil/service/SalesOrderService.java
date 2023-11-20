@@ -9,11 +9,15 @@ public interface SalesOrderService {
                                      Integer sizePerPage,
                                      String sortColumns,
                                      String salesOrder,
+                                     String salesStatus,
                                      String poNumber,
+                                     String materialNumber,
+                                     String description,
+                                     String salesPerson,
                                      String status,
                                      String createDate,
                                      String shipDate,
                                      String customerId);
     
-    QueryResultDTO getSalesOrderDetailsDTO(Long salesOrder);
+    QueryResultDTO getSalesOrderDetailsDTO(Long salesOrder, String materialNumber, String description, String shipDate);
 }

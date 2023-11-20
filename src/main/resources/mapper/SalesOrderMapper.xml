@@ -40,15 +40,32 @@
                 CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
             </if>
 
+            <if test="salesStatus != null">
+                AND ORDER_STATUS = #{salesStatus}
+            </if>
+
             <if test="poNumber != null">
                 AND CUSTOMER_PO_NUMBER LIKE CONCAT('%', #{poNumber}, '%')
+            </if>
+
+            <if test="materialNumber != null">
+                AND M_STOCK_CODE = #{materialNumber}
+            </if>
+
+            <if test="description != null">
+                AND M_STOCK_DES LIKE CONCAT('%', #{description}, '%')
+            </if>
+
+            <if test="salesPerson != null">
+                AND SALES_PERSON_NAME LIKE CONCAT('%', #{salesPerson}, '%')
             </if>
 
             <if test="customerId != null">
                 AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
             </if>
+
             <if test="shipFromDate != null and shipToDate != null">
-                AND REQ_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+                AND M_LINE_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
             </if>
 
             <if test="createFromDate != null and createToDate != null">
@@ -83,15 +100,32 @@
                 CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
             </if>
 
+            <if test="salesStatus != null">
+                AND ORDER_STATUS = #{salesStatus}
+            </if>
+
             <if test="poNumber != null">
                 AND CUSTOMER_PO_NUMBER LIKE CONCAT('%', #{poNumber}, '%')
+            </if>
+
+            <if test="materialNumber != null">
+                AND M_STOCK_CODE = #{materialNumber}
+            </if>
+
+            <if test="description != null">
+                AND M_STOCK_DES LIKE CONCAT('%', #{description}, '%')
+            </if>
+
+            <if test="salesPerson != null">
+                AND SALES_PERSON_NAME LIKE CONCAT('%', #{salesPerson}, '%')
             </if>
 
             <if test="customerId != null">
                 AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
             </if>
+
             <if test="shipFromDate != null and shipToDate != null">
-                AND REQ_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+                AND M_LINE_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
             </if>
 
             <if test="createFromDate != null and createToDate != null">
@@ -125,8 +159,28 @@
         ON (scavLineType.SYSPRO_CODE = rsi.LINE_TYPE AND scavLineType.SC_OID = 4)
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavDocumentType
         ON (scavDocumentType.SYSPRO_CODE = rsi.DOCUMENT_TYPE AND scavDocumentType.SC_OID = 5)
-        WHERE CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+        <where>
+            CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+
+            <if test="materialNumber != null">
+                AND M_STOCK_CODE = #{materialNumber}
+            </if>
+
+            <if test="description != null">
+                AND M_STOCK_DES LIKE CONCAT('%', #{description}, '%')
+            </if>
+
+            <if test="shipFromDate != null and shipToDate != null">
+                AND M_LINE_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+            </if>
+        </where>
         ORDER BY SALES_ORDER_LINE;
+    </select>
+
+    <select id="orderStatusOpt" resultType="us.pax.basil.entity.LabelValuePairStr">
+        SELECT SYSPRO_CODE AS value, VALUE AS label
+        FROM BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES
+        WHERE SC_OID = 3 AND SYSPRO_CODE IS NOT NULL
     </select>
 
 </mapper>
