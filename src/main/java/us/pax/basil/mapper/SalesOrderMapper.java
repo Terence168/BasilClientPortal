@@ -1,6 +1,7 @@
 package us.pax.basil.mapper;
 
 import us.pax.basil.entity.salesorder.SalesOrder;
+import us.pax.basil.entity.salesorder.SalesOrderDetail;
 
 import java.util.List;
 
@@ -25,4 +26,6 @@ public interface SalesOrderMapper {
                                     String shipFromDate,
                                     String shipToDate,
                                     String customerId);
+    
+    List<SalesOrderDetail> getSalesOrderDetails(Long salesOrder);
 }

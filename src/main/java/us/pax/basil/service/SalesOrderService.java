@@ -14,4 +14,6 @@ public interface SalesOrderService {
                                      String createDate,
                                      String shipDate,
                                      String customerId);
+    
+    QueryResultDTO getSalesOrderDetailsDTO(Long salesOrder);
 }

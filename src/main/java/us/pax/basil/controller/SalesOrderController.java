@@ -1,10 +1,7 @@
 package us.pax.basil.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.salesorder.SalesOrder;
@@ -45,5 +42,11 @@ public class SalesOrderController {
         }
         
         return salesOrderService.getAllSalesOrders(currentPage, sizePerPage, sortColumns, salesOrder, poNumber, status, createDate, shipDate, customerId);
+    }
+    
+    @GetMapping("/{salesOrder}")
+    public QueryResultDTO findSalesOrderDetails(@PathVariable Long salesOrder) {
+        
+        return salesOrderService.getSalesOrderDetailsDTO(salesOrder);
     }
 }

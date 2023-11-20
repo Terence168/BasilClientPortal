@@ -17,6 +17,21 @@
         <result property="reqShipDate" column="reqShipDate" javaType="java.time.LocalDate"/>
     </resultMap>
 
+    <resultMap id="salesOrderDetailResultMap" type="us.pax.basil.entity.salesorder.SalesOrderDetail">
+        <result property="salesOrderLine" column="salesOrderLine"/>
+        <result property="materialNumber" column="materialNumber"/>
+        <result property="productClass" column="productClass"/>
+        <result property="stockDescription" column="stockDescription"/>
+        <result property="soLineShipDate" column="soLineShipDate"/>
+        <result property="comment" column="comment"/>
+        <result property="lineType" column="lineType"/>
+        <result property="documentType" column="documentType"/>
+        <result property="orderQty" column="orderQty"/>
+        <result property="shippedQty" column="shippedQty"/>
+        <result property="backOrderQty" column="backOrderQty"/>
+        <result property="lastRefresh" column="lastRefresh"/>
+    </resultMap>
+
     <select id="totalSalesOrders" resultType="integer">
         SELECT COUNT(DISTINCT CAST(SALES_ORDER AS UNSIGNED))
         FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT
@@ -88,6 +103,30 @@
             ORDER BY ${sortColumns}
         </if>
         LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
+    <select id="getSalesOrderDetails" resultMap="salesOrderDetailResultMap">
+        SELECT CAST(SALES_ORDER_LINE AS UNSIGNED) salesOrderLine,
+        M_STOCK_CODE                       materialNumber,
+        scavProductClass.VALUE             productClass,
+        M_STOCK_DES                        stockDescription,
+        M_LINE_SHIP_DATE                   soLineShipDate,
+        N_COMMENT                          comment,
+        scavLineType.VALUE                 lineType,
+        scavDocumentType.VALUE             documentType,
+        M_ORDER_QTY                        orderQty,
+        M_SHIP_QTY                         shippedQty,
+        M_BACK_ORDER_QTY                   backOrderQty,
+        M_COMMIT_DATE                      lastRefresh
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavProductClass
+        ON scavProductClass.SYSPRO_CODE = rsi.M_PRODUCT_CLASS AND scavProductClass.SC_OID = 6
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavLineType
+        ON scavLineType.SYSPRO_CODE = rsi.LINE_TYPE AND scavLineType.SC_OID = 4
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavDocumentType
+        ON scavDocumentType.SYSPRO_CODE = rsi.DOCUMENT_TYPE AND scavDocumentType.SC_OID = 5
+        WHERE CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+        ORDER BY SALES_ORDER_LINE;
     </select>
 
 </mapper>

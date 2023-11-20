@@ -54,4 +54,11 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         data.put("salesOrders", salesOrderMapper.getSalesOrders((currentPage - 1) * sizePerPage, sizePerPage, sortColumns, salesOrder, poNumber, status, createFromDate, createToDate, shipFromDate, shipToDate, customerId));
         return new QueryResultDTO(data, 0, "");
     }
+    
+    @Transactional(readOnly = true)
+    public QueryResultDTO getSalesOrderDetailsDTO(Long salesOrder) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("salesOrderDetails", salesOrderMapper.getSalesOrderDetails(salesOrder));
+        return new QueryResultDTO(data, 0, "");
+    }
 }
