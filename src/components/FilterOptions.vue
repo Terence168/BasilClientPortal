@@ -231,6 +231,11 @@ export default {
         return;
       }
 
+      if (id === "salesStatus") {
+        this.filterSalesStatusFn(_val, update, _abort);
+        return;
+      }
+
       if (id === "department") {
         this.filterDepartmentFn(_val, update, _abort);
         return;
@@ -314,6 +319,28 @@ export default {
         update(() => {
           currentOptions.push(...options);
         });
+      } else {
+        update();
+      }
+    },
+
+    filterSalesStatusFn(val, update, abort) {
+      const currentOptions = this.options["salesStatus"];
+
+      if (currentOptions.length === 0) {
+        const link = "/sales-order/order-status-options";
+
+        this.$api
+          .get(link)
+          .then((response) => {
+            update(() => {
+              this.options["salesStatus"] = response.data;
+            });
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          });
       } else {
         update();
       }

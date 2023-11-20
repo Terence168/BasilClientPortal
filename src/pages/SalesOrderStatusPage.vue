@@ -201,7 +201,28 @@ export default {
           id: "salesOrder",
           label: "Sales Order Number",
           tooltip:
-            "Enter Sales Order Number you are searching for.\nIf searching for multiples, you can separate them with a comma.\nMust be the exact Sales Order Number, no partials.\nExample: (159123, 236555)",
+            "Enter Sales Order Number you are searching for.\nMust be the exact Sales Order Number, no partials.\nExample: 999",
+        },
+        {
+          id: "poNumber",
+          label: "PO Number",
+        },
+        {
+          id: "materialNumber",
+          label: "Material Number",
+        },
+        {
+          id: "salesPerson",
+          label: "Sales Person",
+        },
+        {
+          id: "description",
+          label: "Description",
+        },
+        {
+          id: "salesStatus",
+          label: "Sales Order Status",
+          type: "select",
         },
         {
           id: "shipDate",
@@ -295,6 +316,10 @@ export default {
           // handle error
           console.log(error);
         });
+
+      if (this.selectedSalesOrder) {
+        this.salesOrderDetails(this.selectedSalesOrder);
+      }
     },
 
     excelExport() {
@@ -328,7 +353,7 @@ export default {
       const vm = this;
 
       this.$api
-        .get(`/sales-order/${id}`)
+        .get(`/sales-order/${id}${window.location.search}`)
         .then(function (response) {
           vm.salesOrderDetailData = response.data.data.salesOrderDetails;
         })
