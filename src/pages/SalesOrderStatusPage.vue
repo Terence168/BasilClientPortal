@@ -60,6 +60,7 @@
               :rows="salesOrderDetailData"
               :columns="columns"
               :loading="salesOrderDetailData.length === 0"
+              :rows-per-page-options="[0]"
               row-key="salesOrderLine"
             >
               <template v-slot:top-left>
@@ -75,6 +76,9 @@
                   </div>
                 </div>
               </template>
+              <template v-slot:bottom
+                >{{ salesOrderDetailData.length }} lines total</template
+              >
             </q-table>
           </q-tab-panel>
         </q-tab-panels>
@@ -107,76 +111,76 @@ export default {
 
       columns: [
         {
-          id: "salesOrderLine",
+          name: "salesOrderLine",
           label: "Line",
           field: "salesOrderLine",
           sortable: true,
         },
         {
-          id: "materialNumber",
+          name: "materialNumber",
           label: "Material Number",
           field: "materialNumber",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "productClass",
+          name: "productClass",
           label: "Product Class",
           field: "productClass",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "stockDescription",
+          name: "stockDescription",
           label: "Stock Description",
           field: "stockDescription",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "soLineShipDate",
+          name: "soLineShipDate",
           label: "Ship Date",
           field: "soLineShipDate",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "comment",
+          name: "comment",
           label: "Comment",
           field: "comment",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "lineType",
+          name: "lineType",
           label: "Line Type",
           field: "lineType",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "documentType",
+          name: "documentType",
           label: "Document Type",
           field: "documentType",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "orderQty",
+          name: "orderQty",
           label: "Order Qty",
           field: "orderQty",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "shippedQty",
+          name: "shippedQty",
           label: "Shipped Qty",
           field: "shippedQty",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "backOrderQty",
+          name: "backOrderQty",
           label: "Back Order Qty",
           field: "backOrderQty",
-          sortable: false,
+          sortable: true,
         },
         {
-          id: "lastRefresh",
+          name: "lastRefresh",
           label: "Last Refresh",
           field: "lastRefresh",
-          sortable: false,
+          sortable: true,
         },
       ],
 
@@ -222,31 +226,31 @@ export default {
 
       tableData: {
         columns: [
-          { id: "salesOrderDetails", label: "", sortable: false },
-          { id: "salesOrder", label: "Sales Order", sortable: false },
-          { id: "customer", label: "Customer", sortable: false },
-          { id: "orderStatus", label: "Order Status", sortable: false },
-          { id: "orderDate", label: "Order Date", sortable: false },
+          { id: "salesOrderDetails", label: "", sortable: true },
+          { id: "salesOrder", label: "Sales Order", sortable: true },
+          { id: "customer", label: "Customer", sortable: true },
+          { id: "orderStatus", label: "Order Status", sortable: true },
+          { id: "orderDate", label: "Order Date", sortable: true },
           {
             id: "customerPONumber",
             label: "PO Number",
-            sortable: false,
+            sortable: true,
           },
-          { id: "description", label: "Description", sortable: false },
+          { id: "description", label: "Description", sortable: true },
           {
             id: "specialInstructions",
             label: "Special Instructions",
-            sortable: false,
+            sortable: true,
           },
-          { id: "salesPerson", label: "Sales Person", sortable: false },
-          { id: "contact", label: "Contact", sortable: false },
+          { id: "salesPerson", label: "Sales Person", sortable: true },
+          { id: "contact", label: "Contact", sortable: true },
           {
             id: "sysproCustomerName",
             label: "Syspro Customer Name",
-            sortable: false,
+            sortable: true,
           },
-          { id: "shipAddress", label: "Ship Address", sortable: false },
-          { id: "reqShipDate", label: "Requested Ship Date", sortable: false },
+          { id: "shipAddress", label: "Ship Address", sortable: true },
+          { id: "reqShipDate", label: "Requested Ship Date", sortable: true },
         ],
         rows: [],
       },
