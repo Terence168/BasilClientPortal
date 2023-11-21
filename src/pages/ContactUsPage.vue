@@ -15,9 +15,18 @@
         <span style="display: inline-block; margin-right: 10px">
           Phone:
         </span>
-        <span style="display: inline-block; font-style: italic">
+        <span style="display: inline-block; font-style: italic;">
           {{ softwareSupportPhone }}
         </span>
+      </q-item>
+
+      <q-item>
+        <span style="display: inline-block; margin-right: 10px">
+          Email:
+        </span>
+        <a :href="'mailto:' + softwareSupportEmail" style="display: inline-block; margin-bottom: 50px">
+          {{ softwareSupportEmail }}
+        </a>
       </q-item>
 
       <div class="text-subtitle1 text-weight-medium">
@@ -27,7 +36,7 @@
         <span style="display: inline-block; margin-right: 10px">
           Email:
         </span>
-        <a :href="'mailto:' + rmaSupportEmail" style="display: inline-block;">
+        <a :href="'mailto:' + rmaSupportEmail" style="display: inline-block; margin-bottom: 50px">
           {{ rmaSupportEmail }}
         </a>
       </q-item>
@@ -39,7 +48,7 @@
         <span style="display: inline-block; margin-right: 10px">
           Email:
         </span>
-        <a :href="'mailto:' + accountingSupportEmail" style="display: inline-block;">
+        <a :href="'mailto:' + accountingSupportEmail" style="display: inline-block; margin-bottom: 50px">
           {{ accountingSupportEmail }}
         </a>
       </q-item>
@@ -51,7 +60,7 @@
         <span style="display: inline-block; margin-right: 10px">
           Email:
         </span>
-        <a :href="'mailto:' + salesSupportEmail" style="display: inline-block;">
+        <a :href="'mailto:' + salesSupportEmail" style="display: inline-block; margin-bottom: 50px">
           {{ salesSupportEmail }}
         </a>
       </q-item>
