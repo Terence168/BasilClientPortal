@@ -17,5 +17,5 @@ public class SalesOrderDetail {
     private Integer orderQty;
     private Integer shippedQty;
     private Integer backOrderQty;
-    private LocalDate lastRefresh;
+    private String lastRefresh;
 }

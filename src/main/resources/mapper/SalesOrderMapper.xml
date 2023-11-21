@@ -159,7 +159,7 @@
         M_ORDER_QTY                        orderQty,
         M_SHIP_QTY                         shippedQty,
         M_BACK_ORDER_QTY                   backOrderQty,
-        M_COMMIT_DATE                      lastRefresh
+        LAST_UPDATE                        lastRefresh
         FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavProductClass
         ON (scavProductClass.SYSPRO_CODE = rsi.M_PRODUCT_CLASS AND scavProductClass.SC_OID = 6)
