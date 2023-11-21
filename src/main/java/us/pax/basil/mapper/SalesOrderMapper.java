@@ -4,6 +4,7 @@ import us.pax.basil.entity.LabelValuePair;
 import us.pax.basil.entity.LabelValuePairStr;
 import us.pax.basil.entity.salesorder.SalesOrder;
 import us.pax.basil.entity.salesorder.SalesOrderDetail;
+import us.pax.basil.entity.salesorder.SalesOrderExcel;
 
 import java.util.List;
 
@@ -44,6 +45,20 @@ public interface SalesOrderMapper {
                                                 String description,
                                                 String shipFromDate,
                                                 String shipToDate);
+    
+    List<SalesOrderExcel> getSalesOrderExcelData(String salesOrder,
+                                                 String salesStatus,
+                                                 String poNumber,
+                                                 String materialNumber,
+                                                 String description,
+                                                 String salesPerson,
+                                                 String sysproCustomerName,
+                                                 String status,
+                                                 String createFromDate,
+                                                 String createToDate,
+                                                 String shipFromDate,
+                                                 String shipToDate,
+                                                 String customerId);
     
     List<LabelValuePairStr> orderStatusOpt();
 }

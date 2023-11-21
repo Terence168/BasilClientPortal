@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.entity.salesorder.SalesOrder;
+import us.pax.basil.entity.salesorder.SalesOrderExcel;
 import us.pax.basil.mapper.SalesOrderMapper;
 import us.pax.basil.service.SalesOrderService;
 
@@ -75,5 +76,50 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         Map<String, Object> data = new HashMap<>();
         data.put("salesOrderDetails", salesOrderMapper.getSalesOrderDetails(salesOrder, materialNumber, description, shipFromDate, shipToDate));
         return new QueryResultDTO(data, 0, "");
+    }
+    
+    @Transactional(readOnly = true)
+    public List<SalesOrderExcel> getSalesOrdersExcelExport(String salesOrder,
+                                                           String salesStatus,
+                                                           String poNumber,
+                                                           String materialNumber,
+                                                           String description,
+                                                           String salesPerson,
+                                                           String sysproCustomerName,
+                                                           String status,
+                                                           String createDate,
+                                                           String shipDate,
+                                                           String customerId) {
+        String[] shipDates;
+        String shipFromDate = null;
+        String shipToDate = null;
+        
+        if (shipDate != null) {
+            shipDates = shipDate.split(" ~ ");
+            shipFromDate = shipDates[0];
+            shipToDate = shipDates[1];
+        }
+        
+        String[] createDates;
+        String createFromDate = null;
+        String createToDate = null;
+        
+        if (createDate != null) {
+            createDates = createDate.split(" ~ ");
+            createFromDate = createDates[0];
+            createToDate = createDates[1];
+        }
+        
+        return salesOrderMapper.getSalesOrderExcelData(salesOrder,
+            salesStatus,
+            poNumber,
+            materialNumber,
+            description,
+            salesPerson,
+            sysproCustomerName,
+            status,
+            createFromDate, createToDate,
+            shipFromDate, shipToDate,
+            customerId);
     }
 }
