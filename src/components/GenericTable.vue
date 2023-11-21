@@ -145,6 +145,13 @@
             </span>
 
             <span
+              v-else-if="column.id === 'shipAddress'"
+              style="white-space: pre"
+            >
+              {{ row[column.id] }}
+            </span>
+
+            <span
               v-else-if="column.id === 'partsNeeded'"
               style="white-space: pre"
             >
