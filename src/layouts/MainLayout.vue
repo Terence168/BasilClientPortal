@@ -17,6 +17,7 @@
             name="privilege"
             label="Privilege"
           />
+          <q-tab name="Contact" label="Contact" />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
           <div class="row">
@@ -165,6 +166,7 @@
 import RMAStatusSubMenu from "src/components/RMAStatusSubMenu.vue";
 import TicketingSubMenu from "src/components/TicketingSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
+import ContactSubMenu from "components/ContactSubMenu.vue";
 import BaseModal from "src/components/BaseModal.vue";
 
 import { format } from "quasar";
@@ -175,6 +177,7 @@ import { useUserStore } from "stores/user";
 
 import sha256 from "js-sha256";
 
+
 const user = useUserStore();
 
 export default {
@@ -184,6 +187,7 @@ export default {
     RMAStatusSubMenu,
     TicketingSubMenu,
     PrivilegeSubMenu,
+    ContactSubMenu,
     BaseModal,
   },
 

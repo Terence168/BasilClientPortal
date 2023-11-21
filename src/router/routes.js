@@ -4,6 +4,18 @@ const routes = [
     component: () => import("layouts/MainLayout.vue"),
     children: [
       {
+        path: "/contact",
+        name: "contact",
+        component: () => import("pages/ContactPage.vue"),
+        children: [
+          {
+            path: "/contact-us",
+            name: "contact-us",
+            component: () => import("pages/ContactUsPage.vue"),
+          }
+        ]
+      },
+      {
         path: "/privilege",
         name: "privilege",
         component: () => import("pages/PrivilegePage.vue"),
