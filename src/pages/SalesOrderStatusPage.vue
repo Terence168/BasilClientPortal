@@ -216,6 +216,10 @@ export default {
           label: "Sales Person",
         },
         {
+          id: "sysproCustomerName",
+          label: "Syspro Customer Name",
+        },
+        {
           id: "description",
           label: "Description",
         },
@@ -233,7 +237,7 @@ export default {
         },
         {
           id: "createDate",
-          label: "Created Date",
+          label: "Order Date",
           type: "dateRange",
           tooltip:
             "The date the order was created.\nDate Range: To view a date range, click the calendar icon.\nClick on the first date you want your date range to start, then click on the date you want it to end.\nOnce you have selected your date range, click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.\n\nSingle Date: Click on the calendar icon in the field and select the date on the calendar.\nClick the date twice and click “SELECT RANGE” at the bottom of the calendar.\nThen click the SEARCH button for the query to run.",
