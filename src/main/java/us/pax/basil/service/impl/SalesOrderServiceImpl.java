@@ -28,6 +28,7 @@ public class SalesOrderServiceImpl implements SalesOrderService {
                                             String materialNumber,
                                             String description,
                                             String salesPerson,
+                                            String sysproCustomerName,
                                             String status,
                                             String createDate,
                                             String shipDate,
@@ -54,8 +55,8 @@ public class SalesOrderServiceImpl implements SalesOrderService {
         
         
         Map<String, Object> data = new HashMap<>();
-        data.put("total", salesOrderMapper.totalSalesOrders(salesOrder, salesStatus, poNumber, materialNumber, description, salesPerson, status, createFromDate, createToDate, shipFromDate, shipToDate, customerId));
-        data.put("salesOrders", salesOrderMapper.getSalesOrders((currentPage - 1) * sizePerPage, sizePerPage, sortColumns, salesOrder, salesStatus, poNumber, materialNumber, description, salesPerson, status, createFromDate, createToDate, shipFromDate, shipToDate, customerId));
+        data.put("total", salesOrderMapper.totalSalesOrders(salesOrder, salesStatus, poNumber, materialNumber, description, salesPerson, sysproCustomerName, status, createFromDate, createToDate, shipFromDate, shipToDate, customerId));
+        data.put("salesOrders", salesOrderMapper.getSalesOrders((currentPage - 1) * sizePerPage, sizePerPage, sortColumns, salesOrder, salesStatus, poNumber, materialNumber, description, salesPerson, sysproCustomerName, status, createFromDate, createToDate, shipFromDate, shipToDate, customerId));
         return new QueryResultDTO(data, 0, "");
     }
     

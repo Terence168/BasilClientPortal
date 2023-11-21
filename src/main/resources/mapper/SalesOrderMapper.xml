@@ -60,6 +60,10 @@
                 AND SALES_PERSON_NAME LIKE CONCAT('%', #{salesPerson}, '%')
             </if>
 
+            <if test="sysproCustomerName != null">
+                AND CUSTOMER_NAME LIKE CONCAT('%', #{sysproCustomerName}, '%')
+            </if>
+
             <if test="customerId != null">
                 AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
             </if>
@@ -118,6 +122,10 @@
 
             <if test="salesPerson != null">
                 AND SALES_PERSON_NAME LIKE CONCAT('%', #{salesPerson}, '%')
+            </if>
+
+            <if test="sysproCustomerName != null">
+                AND CUSTOMER_NAME LIKE CONCAT('%', #{sysproCustomerName}, '%')
             </if>
 
             <if test="customerId != null">

@@ -29,6 +29,7 @@ public class SalesOrderController {
                                              @RequestParam(value = "materialNumber", required = false) String materialNumber,
                                              @RequestParam(value = "description", required = false) String description,
                                              @RequestParam(value = "salesPerson", required = false) String salesPerson,
+                                             @RequestParam(value = "sysproCustomerName", required = false) String sysproCustomerName,
                                              @RequestParam(value = "status", required = false) String status,
                                              @RequestParam(value = "createDate", required = false) String createDate,
                                              @RequestParam(value = "shipDate", required = false) String shipDate,
@@ -42,7 +43,7 @@ public class SalesOrderController {
             sizePerPage = 10; // show 10 items per page by default
         }
         
-        return salesOrderService.getAllSalesOrders(currentPage, sizePerPage, sortColumns, salesOrder, salesStatus, poNumber, materialNumber, description, salesPerson, status, createDate, shipDate, customerId);
+        return salesOrderService.getAllSalesOrders(currentPage, sizePerPage, sortColumns, salesOrder, salesStatus, poNumber, materialNumber, description, salesPerson, sysproCustomerName, status, createDate, shipDate, customerId);
     }
     
     @GetMapping("/{salesOrder}")

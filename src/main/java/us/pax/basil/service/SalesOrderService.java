@@ -14,6 +14,7 @@ public interface SalesOrderService {
                                      String materialNumber,
                                      String description,
                                      String salesPerson,
+                                     String sysproCustomerName,
                                      String status,
                                      String createDate,
                                      String shipDate,
