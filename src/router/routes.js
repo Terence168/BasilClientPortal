@@ -87,54 +87,54 @@ const routes = [
         ],
       },
 
-      {
-        path: "/ticketing",
-        name: "ticketing",
-        component: () => import("pages/TicketingPage.vue"),
-        meta: {
-          requiresAuth: true,
-          permissions: ["rma"],
-        },
-        children: [
-          {
-            path: "queue",
-            name: "ticketing-queue",
-            component: () => import("pages/TicketingQueuePage.vue"),
-            meta: {
-              requiresAuth: true,
-              permissions: ["rma.status"],
-            },
-          },
+      // {
+      //   path: "/ticketing",
+      //   name: "ticketing",
+      //   component: () => import("pages/TicketingPage.vue"),
+      //   meta: {
+      //     requiresAuth: true,
+      //     permissions: ["rma"],
+      //   },
+      //   children: [
+      //     {
+      //       path: "queue",
+      //       name: "ticketing-queue",
+      //       component: () => import("pages/TicketingQueuePage.vue"),
+      //       meta: {
+      //         requiresAuth: true,
+      //         permissions: ["rma.status"],
+      //       },
+      //     },
 
-          {
-            path: "view",
-            name: "view-tickets",
-            component: () => import("pages/ViewTicketsPage.vue"),
-            meta: {
-              requiresAuth: true,
-              permissions: ["rma.status"],
-            },
-          },
-          {
-            path: "create",
-            name: "create-ticket",
-            component: () => import("pages/CreateTicketPage.vue"),
-            meta: {
-              requiresAuth: true,
-              permissions: ["rma.status"],
-            },
-          },
-          {
-            path: "edit/:ticketId",
-            name: "edit-ticket",
-            component: () => import("pages/EditTicketPage.vue"),
-            meta: {
-              requiresAuth: true,
-              permissions: ["rma.status"],
-            },
-          },
-        ],
-      },
+      //     {
+      //       path: "view",
+      //       name: "view-tickets",
+      //       component: () => import("pages/ViewTicketsPage.vue"),
+      //       meta: {
+      //         requiresAuth: true,
+      //         permissions: ["rma.status"],
+      //       },
+      //     },
+      //     {
+      //       path: "create",
+      //       name: "create-ticket",
+      //       component: () => import("pages/CreateTicketPage.vue"),
+      //       meta: {
+      //         requiresAuth: true,
+      //         permissions: ["rma.status"],
+      //       },
+      //     },
+      //     {
+      //       path: "edit/:ticketId",
+      //       name: "edit-ticket",
+      //       component: () => import("pages/EditTicketPage.vue"),
+      //       meta: {
+      //         requiresAuth: true,
+      //         permissions: ["rma.status"],
+      //       },
+      //     },
+      //   ],
+      // },
 
       {
         path: "/sales-order",
@@ -154,25 +154,25 @@ const routes = [
           permissions: ["account"],
         },
         children: [
-          {
-            path: "/customer",
-            name: "customer",
-            component: () => import("pages/account/CustomerPage.vue"),
-            meta: {
-              requiresAuth: true,
-              permissions: ["account.customer"],
-            },
-          },
+          // {
+          //   path: "/customer",
+          //   name: "customer",
+          //   component: () => import("pages/account/CustomerPage.vue"),
+          //   meta: {
+          //     requiresAuth: true,
+          //     permissions: ["account.customer"],
+          //   },
+          // },
 
-          {
-            path: "/notification",
-            name: "notification",
-            component: () => import("pages/account/NotificationPage.vue"),
-            meta: {
-              requiresAuth: true,
-              permissions: ["account.notification"],
-            },
-          },
+          // {
+          //   path: "/notification",
+          //   name: "notification",
+          //   component: () => import("pages/account/NotificationPage.vue"),
+          //   meta: {
+          //     requiresAuth: true,
+          //     permissions: ["account.notification"],
+          //   },
+          // },
           {
             path: "/account-set",
             name: "account-set",

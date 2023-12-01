@@ -11,7 +11,7 @@
           align="left"
         >
           <q-tab name="RMAStatus" label="Ticket Status" />
-          <q-tab name="Ticketing" label="Ticket Management" />
+          <!-- <q-tab name="Ticketing" label="Ticket Management" /> -->
           <q-tab name="Sales" label="Sales Management" />
           <q-tab
             v-if="checkPermission('privilege')"
@@ -165,7 +165,7 @@
 
 <script>
 import RMAStatusSubMenu from "src/components/RMAStatusSubMenu.vue";
-import TicketingSubMenu from "src/components/TicketingSubMenu.vue";
+// import TicketingSubMenu from "src/components/TicketingSubMenu.vue";
 import SalesSubMenu from "src/components/SalesSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
 import AccountSubMenu from "src/components/AccountSubMenu.vue";
@@ -186,7 +186,6 @@ export default {
 
   components: {
     RMAStatusSubMenu,
-    TicketingSubMenu,
     SalesSubMenu,
     PrivilegeSubMenu,
     AccountSubMenu,
