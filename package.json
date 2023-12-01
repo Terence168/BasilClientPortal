@@ -1,9 +1,9 @@
 {
   "name": "basil_client_portal",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "A client portal for Basil system",
   "productName": "Basil Client Portal",
-  "author": "Yuri Maidaniuk <yurii.maidaniuk@pax.us>",
+  "author": "Yurii Maidaniuk <yurii.maidaniuk@pax.us>",
   "private": true,
   "scripts": {
     "dev": "quasar dev",
