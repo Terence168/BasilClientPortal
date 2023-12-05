@@ -102,10 +102,11 @@ public class PrivilegeController {
     }
 
     /**
-     * Query the full role list under all role types
+     * Query the full role list under all role types.
+     * Update user need this privilege.
      * @return the {@link QueryResultArrayDTO} which stores the desired list of roles and role types
      */
-    @PreAuthorize("hasAnyAuthority('privilege.role-type')")
+    @PreAuthorize("hasAnyAuthority('privilege.role-type', 'privilege.user.update')")
     @GetMapping("/user/all-roles")
     public QueryResultArrayDTO queryAllRoles() {
         return privilegeService.queryAllRoles();
