@@ -152,6 +152,7 @@ public class PrivilegeController {
             sizePerPage = 10; // show 10 items per page by default
         }
 
+
         return userService.queryPrivilegeUsers(currentPage,
                                                 sizePerPage,
                                                 sort,
