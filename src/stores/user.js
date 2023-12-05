@@ -93,8 +93,8 @@ export const useUserStore = defineStore("user", {
         });
     },
 
-    toHomePage(){
-      this.router.push({ name: "error-403" });
+    toError401(){
+      this.router.push({ name: "error-401" });
     }
   },
 

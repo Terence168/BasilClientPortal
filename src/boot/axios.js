@@ -51,9 +51,9 @@ export default boot(({ app, store }) => {
       }
 
       if (user.loggedIn && response.data.code === 40001) {
-        //unauthenicated, thow user to error 403 page
+        //unauthenicated, thow user to error 401 page
         //this.router.push({ name: "error-403" });
-        user.toHomePage();
+        user.toError401();
         return Promise.reject(new Error("Not Authenticated"));
       }
 
