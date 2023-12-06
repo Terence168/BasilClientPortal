@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.SalesOrderMapper">
+
+    <resultMap id="salesOrderResultMap" type="us.pax.basil.entity.salesorder.SalesOrder">
+        <result property="salesOrder" column="salesOrder"/>
+        <result property="customer" column="customer"/>
+        <result property="orderStatus" column="orderStatus"/>
+        <result property="orderDate" column="orderDate" javaType="java.time.LocalDate"/>
+        <result property="customerPONumber" column="customerPONumber"/>
+        <result property="description" column="description"/>
+        <result property="specialInstructions" column="specialInstructions"/>
+        <result property="salesPerson" column="salesPerson"/>
+        <result property="contact" column="contact"/>
+        <result property="sysproCustomerName" column="sysproCustomerName"/>
+        <result property="shipAddress" column="shipAddress"/>
+        <result property="reqShipDate" column="reqShipDate" javaType="java.time.LocalDate"/>
+    </resultMap>
+
+    <resultMap id="salesOrderDetailResultMap" type="us.pax.basil.entity.salesorder.SalesOrderDetail">
+        <result property="salesOrderLine" column="salesOrderLine"/>
+        <result property="materialNumber" column="materialNumber"/>
+        <result property="productClass" column="productClass"/>
+        <result property="stockDescription" column="stockDescription"/>
+        <result property="soLineShipDate" column="soLineShipDate"/>
+        <result property="comment" column="comment"/>
+        <result property="lineType" column="lineType"/>
+        <result property="documentType" column="documentType"/>
+        <result property="orderQty" column="orderQty"/>
+        <result property="shippedQty" column="shippedQty"/>
+        <result property="backOrderQty" column="backOrderQty"/>
+        <result property="lastRefresh" column="lastRefresh"/>
+    </resultMap>
+
+    <select id="totalSalesOrders" resultType="integer">
+        SELECT COUNT(DISTINCT CAST(SALES_ORDER AS UNSIGNED))
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT
+        <where>
+            <if test="salesOrder != null">
+                CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+            </if>
+
+            <if test="salesStatus != null">
+                AND ORDER_STATUS = #{salesStatus}
+            </if>
+
+            <if test="poNumber != null">
+                AND CUSTOMER_PO_NUMBER LIKE CONCAT('%', #{poNumber}, '%')
+            </if>
+
+            <if test="materialNumber != null">
+                AND M_STOCK_CODE = #{materialNumber}
+            </if>
+
+            <if test="description != null">
+                AND M_STOCK_DES LIKE CONCAT('%', #{description}, '%')
+            </if>
+
+            <if test="salesPerson != null">
+                AND SALES_PERSON_NAME LIKE CONCAT('%', #{salesPerson}, '%')
+            </if>
+
+            <if test="sysproCustomerName != null">
+                AND CUSTOMER_NAME LIKE CONCAT('%', #{sysproCustomerName}, '%')
+            </if>
+
+            <if test="customerId != null">
+                AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
+            </if>
+
+            <if test="shipFromDate != null and shipToDate != null">
+                AND M_LINE_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+            </if>
+
+            <if test="createFromDate != null and createToDate != null">
+                AND ORDER_DATE BETWEEN #{createFromDate} AND #{createToDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="getSalesOrders" resultMap="salesOrderResultMap">
+        SELECT DISTINCT CAST(SALES_ORDER AS UNSIGNED) AS salesOrder,
+        mc.CUSTOMER_ORGANIZATION      AS customer,
+        scav.VALUE                    AS orderStatus,
+        ORDER_DATE                    AS orderDate,
+        CUSTOMER_PO_NUMBER            AS customerPONumber,
+        MO_DESCRIPTION                AS description,
+        SPECIAL_INSTRUCTIONS          AS specialInstructions,
+        SALES_PERSON_NAME             AS salesPerson,
+        CONTACT                       AS contact,
+        CUSTOMER_NAME                 AS sysproCustomerName,
+        CONCAT(`SHIP_ADDRESS_1`, ' ',
+        `SHIP_ADDRESS_2`, '\n',
+        `SHIP_ADDRESS_3`, '  ',
+        `SHIP_ADDRESS_4`, ', ',
+        `SHIP_POSTAL_CODE`)    AS shipAddress,
+        REQ_SHIP_DATE                 AS reqShipDate
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
+        LEFT JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc ON CAST(rsi.CUSTOMER AS UNSIGNED) = mc.MC_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        ON (scav.SYSPRO_CODE = rsi.ORDER_STATUS AND scav.SC_OID = 3)
+        <where>
+            <if test="salesOrder != null">
+                CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+            </if>
+
+            <if test="salesStatus != null">
+                AND ORDER_STATUS = #{salesStatus}
+            </if>
+
+            <if test="poNumber != null">
+                AND CUSTOMER_PO_NUMBER LIKE CONCAT('%', #{poNumber}, '%')
+            </if>
+
+            <if test="materialNumber != null">
+                AND M_STOCK_CODE = #{materialNumber}
+            </if>
+
+            <if test="description != null">
+                AND M_STOCK_DES LIKE CONCAT('%', #{description}, '%')
+            </if>
+
+            <if test="salesPerson != null">
+                AND SALES_PERSON_NAME LIKE CONCAT('%', #{salesPerson}, '%')
+            </if>
+
+            <if test="sysproCustomerName != null">
+                AND CUSTOMER_NAME LIKE CONCAT('%', #{sysproCustomerName}, '%')
+            </if>
+
+            <if test="customerId != null">
+                AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
+            </if>
+
+            <if test="shipFromDate != null and shipToDate != null">
+                AND M_LINE_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+            </if>
+
+            <if test="createFromDate != null and createToDate != null">
+                AND ORDER_DATE BETWEEN #{createFromDate} AND #{createToDate}
+            </if>
+        </where>
+
+        <if test="sortColumns != null and sortColumns != ''">
+            ORDER BY ${sortColumns}
+        </if>
+        LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
+    </select>
+
+    <select id="getSalesOrderDetails" resultMap="salesOrderDetailResultMap">
+        SELECT CAST(SALES_ORDER_LINE AS UNSIGNED) salesOrderLine,
+        M_STOCK_CODE                       materialNumber,
+        scavProductClass.VALUE             productClass,
+        M_STOCK_DES                        stockDescription,
+        M_LINE_SHIP_DATE                   soLineShipDate,
+        N_COMMENT                          comment,
+        scavLineType.VALUE                 lineType,
+        scavDocumentType.VALUE             documentType,
+        M_ORDER_QTY                        orderQty,
+        M_SHIP_QTY                         shippedQty,
+        M_BACK_ORDER_QTY                   backOrderQty,
+        LAST_UPDATE                        lastRefresh
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavProductClass
+        ON (scavProductClass.SYSPRO_CODE = rsi.M_PRODUCT_CLASS AND scavProductClass.SC_OID = 6)
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavLineType
+        ON (scavLineType.SYSPRO_CODE = rsi.LINE_TYPE AND scavLineType.SC_OID = 4)
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavDocumentType
+        ON (scavDocumentType.SYSPRO_CODE = rsi.DOCUMENT_TYPE AND scavDocumentType.SC_OID = 5)
+        <where>
+            CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+
+            <if test="materialNumber != null">
+                AND M_STOCK_CODE = #{materialNumber}
+            </if>
+
+            <if test="description != null">
+                AND M_STOCK_DES LIKE CONCAT('%', #{description}, '%')
+            </if>
+
+            <if test="shipFromDate != null and shipToDate != null">
+                AND M_LINE_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+            </if>
+        </where>
+        ORDER BY SALES_ORDER_LINE;
+    </select>
+
+    <select id="orderStatusOpt" resultType="us.pax.basil.entity.LabelValuePairStr">
+        SELECT SYSPRO_CODE AS value, VALUE AS label
+        FROM BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES
+        WHERE SC_OID = 3 AND SYSPRO_CODE IS NOT NULL
+    </select>
+
+    <select id="getSalesOrderExcelData" resultType="us.pax.basil.entity.salesorder.SalesOrderExcel">
+        SELECT CAST(SALES_ORDER AS UNSIGNED) AS salesOrder,
+        mc.CUSTOMER_ORGANIZATION      AS customer,
+        scav.VALUE                    AS orderStatus,
+        ORDER_DATE                    AS orderDate,
+        CUSTOMER_PO_NUMBER            AS customerPONumber,
+        MO_DESCRIPTION                AS description,
+        SPECIAL_INSTRUCTIONS          AS specialInstructions,
+        SALES_PERSON_NAME             AS salesPerson,
+        CONTACT                       AS contact,
+        CUSTOMER_NAME                 AS sysproCustomerName,
+        CONCAT(`SHIP_ADDRESS_1`, ' ',
+        `SHIP_ADDRESS_2`, '\n',
+        `SHIP_ADDRESS_3`, '  ',
+        `SHIP_ADDRESS_4`, ', ',
+        `SHIP_POSTAL_CODE`)           AS shipAddress,
+        REQ_SHIP_DATE                 AS reqShipDate,
+        CAST(SALES_ORDER_LINE AS UNSIGNED) salesOrderLine,
+        M_STOCK_CODE                       materialNumber,
+        scavProductClass.VALUE             productClass,
+        M_STOCK_DES                        stockDescription,
+        M_LINE_SHIP_DATE                   soLineShipDate,
+        N_COMMENT                          comment,
+        scavLineType.VALUE                 lineType,
+        scavDocumentType.VALUE             documentType,
+        M_ORDER_QTY                        orderQty,
+        M_SHIP_QTY                         shippedQty,
+        M_BACK_ORDER_QTY                   backOrderQty,
+        LAST_UPDATE                        lastRefresh
+        FROM BASIL_SBX_PRD.RAW_SYSPRO_INPUT rsi
+        LEFT JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc ON CAST(rsi.CUSTOMER AS UNSIGNED) = mc.MC_OID
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        ON (scav.SYSPRO_CODE = rsi.ORDER_STATUS AND scav.SC_OID = 3)
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavProductClass
+        ON (scavProductClass.SYSPRO_CODE = rsi.M_PRODUCT_CLASS AND scavProductClass.SC_OID = 6)
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavLineType
+        ON (scavLineType.SYSPRO_CODE = rsi.LINE_TYPE AND scavLineType.SC_OID = 4)
+        LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavDocumentType
+        ON (scavDocumentType.SYSPRO_CODE = rsi.DOCUMENT_TYPE AND scavDocumentType.SC_OID = 5)
+        <where>
+            <if test="salesOrder != null">
+                CAST(SALES_ORDER AS UNSIGNED) = #{salesOrder}
+            </if>
+
+            <if test="salesStatus != null">
+                AND ORDER_STATUS = #{salesStatus}
+            </if>
+
+            <if test="poNumber != null">
+                AND CUSTOMER_PO_NUMBER LIKE CONCAT('%', #{poNumber}, '%')
+            </if>
+
+            <if test="materialNumber != null">
+                AND M_STOCK_CODE = #{materialNumber}
+            </if>
+
+            <if test="description != null">
+                AND M_STOCK_DES LIKE CONCAT('%', #{description}, '%')
+            </if>
+
+            <if test="salesPerson != null">
+                AND SALES_PERSON_NAME LIKE CONCAT('%', #{salesPerson}, '%')
+            </if>
+
+            <if test="sysproCustomerName != null">
+                AND CUSTOMER_NAME LIKE CONCAT('%', #{sysproCustomerName}, '%')
+            </if>
+
+            <if test="customerId != null">
+                AND CAST(CUSTOMER AS UNSIGNED) = #{customerId}
+            </if>
+
+            <if test="shipFromDate != null and shipToDate != null">
+                AND M_LINE_SHIP_DATE BETWEEN #{shipFromDate} AND #{shipToDate}
+            </if>
+
+            <if test="createFromDate != null and createToDate != null">
+                AND ORDER_DATE BETWEEN #{createFromDate} AND #{createToDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

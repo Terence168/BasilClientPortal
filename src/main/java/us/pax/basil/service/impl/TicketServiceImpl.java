@@ -100,7 +100,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         if (user != null) {
             if (user.getStandardUser() == 1)
-                companyId = String.valueOf(user.getCompanyId());
+                return new QueryResultArrayDTO(null, 0, -1, "You are not authorized to access this resource");
             else
                 companyId = customerId;
         }
