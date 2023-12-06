@@ -244,6 +244,9 @@
       		<if test="status != null">
         		AND STATUS = #{status}
       		</if>
+			<if test="companyId != null">
+				AND COMPANY_ID = #{companyId}
+			</if>
     	</where>
     	<if test="sortColumns != null and sortColumns != ''">
       		ORDER BY ${sortColumns}

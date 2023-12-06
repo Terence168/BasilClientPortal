@@ -68,7 +68,8 @@ public class UserController {
         return Result.ok();
     }
 
-    @PreAuthorize("hasAuthority('privilege.user.view')")
+//    @PreAuthorize("hasAuthority('privilege.user.view')")
+    //every user should be able to see profile detail when login
     @GetMapping("/detail")
     public QueryResultArrayDTO getUserDetail(Authentication authentication) {
         return userService.getUserDetail(authentication);

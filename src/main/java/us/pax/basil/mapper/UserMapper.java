@@ -56,7 +56,8 @@ public interface UserMapper extends BaseMapper<User> {
                          String email,
                          String registerTime,
                          String lastLogin,
-                         Integer status);
+                         Integer status,
+                                  Integer companyId);
 
     List<Company> queryCompanyList(String name);
 
@@ -64,7 +65,8 @@ public interface UserMapper extends BaseMapper<User> {
     		                      String email, 
     		                      String registerTime, 
     		                      String lastLogin,
-                         		  Integer status);
+                         		  Integer status,
+                                  Integer companyId);
 
     Integer getListCount(String name,
                          Integer company,

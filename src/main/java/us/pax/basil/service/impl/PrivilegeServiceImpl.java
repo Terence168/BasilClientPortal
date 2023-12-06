@@ -385,6 +385,11 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
             if(user.getId() == null){
                 user.setId(currentUser.getUserId());
             }
+            Integer companyId = user.getCompanyId();
+
+            if(!currentUser.canViewOrEditOtherCustomersRecords(companyId)){
+                return new SqlResultDTO(-1, "Don't have access to update the user.");
+            }
 
             userMapper.updateUser(user);
 

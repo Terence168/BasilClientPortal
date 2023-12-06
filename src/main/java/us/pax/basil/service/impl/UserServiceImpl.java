@@ -268,7 +268,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 												    Integer status) {
 
 		try {
-			Integer total = userMapper.getPrivilegeListCount(userName, email, registerTime, lastLogin, status);
+            CustomUserDetails currUser = AuthUtil.getUser();
+            Integer companyId = null;
+
+            if (currUser != null)
+                //is client user
+                if(currUser.getStandardUser() == 1){
+                    companyId = currUser.getCompanyId();
+                }
+
+//			Integer total = userMapper.getPrivilegeListCount(userName, email, registerTime, lastLogin, status, companyId);
 	
 			List<User> userList = userMapper.queryPrivilegeList((currentPage-1) * sizePerPage, 
 					                                   sizePerPage, 
@@ -277,7 +286,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 					                                   email, 
 					                                   registerTime, 
 					                                   lastLogin,
-					                                   status);
+					                                   status, companyId);
+            Integer total = userList.size();
 			
 			ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
 	
