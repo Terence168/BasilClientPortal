@@ -200,9 +200,9 @@ const routes = [
   },
 
   {
-    path: "/error-403",
-    name: "error-403",
-    component: () => import("pages/Error403.vue"),
+    path: "/error-401",
+    name: "error-401",
+    component: () => import("pages/Error401.vue"),
   },
   // Always leave this as last one,
   // but you can also remove it
