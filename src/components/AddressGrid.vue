@@ -144,6 +144,7 @@ export default {
 
     newAddress() {
       return {
+        mcOid: this.customer,
         xaOid: null,
         attentionTo: null,
         shipToCompany: null,
