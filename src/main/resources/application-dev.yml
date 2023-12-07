@@ -15,9 +15,9 @@ spring:
     password: PaxUser@123
 
     #  AWS PROD
-    #url: jdbc:mysql://basilmysql1.csolpeuxi7bq.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
-    #username: BASIL_ODS_PRD
-    #password: PaxUser@123
+#    url: jdbc:mysql://prodbasilmysql.c09xunhasest.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-5&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
+#    username: BASIL_ODS_PRD
+#    password: PaxUser@123
     
   mail:
     host: smtp.office365.com
@@ -115,6 +115,3 @@ aws:
   accessKeyId: ASIAYYH3QRFFOJWL2GFF
   secretKey: RTsk+qZ1Gs3yDegUFWtbab5TbHWWY4jrRGTh5vZ0
   sessionToken: IQoJb3JpZ2luX2VjEFQaCXVzLWVhc3QtMiJGMEQCIDTCpoD2du6Z8e5SiZ+oym1lE7oEV9o8oWWM3NK/xq8QAiAGD6QLVpYfZzjLe5a0NxnkfnG/sUbSHnxb7Dryig5VmirzAggdEAAaDDYwMTgyMjg5MDMxNCIMNTMccmvqEZb/ml/IKtAC4njmfCsomzXlC85x7q0pvM6ZrnZAdPbPTDynit4GKjU26p20G5jXExInfg6ZzS9wc0xA3XGd0U5GaYp+H107Lc0BoKUwF9SlQanLjTTkG17+++ON42ZWs8BpJeRc7ZC4cgqynT+8S0yUVdjtgpp7uJe0NMiu5eZFmE3ujPeMQSE8FWJMjeloOgHxxGPZ4TprtFgqPQQl7eUz0h3XVgiaRAfvj3sNIJj27y6B+AI74FB26TDYTqTDy/C1+ttXkvA3D36c53ei7U3C3aH9smb/Wb3uNdfgDWbQtdrzSbAgRkXQHho7d6/9S1jvR/h0LVG6aqQTGmvRQBSi3LwXr2Tgk/YniCTGLjNc36zlARgiDfuN4isxHeh3pgC0jPzLKSIV11CZx9ywlUTRWierR5B2KzGLpBec23VTud2LNorTyRWJwyMgOI6cb0Dkvvx1uoOMMI/JmacGOqgBnasT0FhACOQ9VY6fTqcCbz+cKUDUi3sJwfjlC7j4m4Snqfoeo2+E5jyHnbOIjpywsjpYwya+W9vwC95H8FXIXXQ3GwQd9IZQQS0wV4oeUPztBl+YssEGhqCgdKWHNM7l6f5UNWSWnozNrHjv6HbJ2u+kqbq7sTdjekFZno+x+3yujQkDV3EseotNibh43taLiK9LYf4pnMFM8W+tdShWCUN06wwDoQ1Q
-#  accessKeyId: ASIAYYH3QRFFAHX65T66
-#  secretKey: nSms9lVus9ti3k/uLlWR9D4pnJ+zh9owadW4iGH3
-#  sessionToken: IQoJb3JpZ2luX2VjEFQaCXVzLWVhc3QtMiJIMEYCIQDW8g3XjRFWgUMaxZans865AVxgmJWDRBQXQ3cTabaIPAIhAKMisiEVGBrBvqx52rsm/75SFwrpIsuswhZVkSqiguGKKvcCCB0QABoMNjAxODIyODkwMzE0Igwv8N+LTVLscRDklH8q1AI4BM+MRPs+1P3KdJ/qiuhHZWBkY+AYwVXgrvSlr8ZkKweIybN8bioNsZK6lGfxUcjHVaG0+6wBsp0LBKeeIfm3+CkcX/4LMTKr9nHkm5qFJM4IUDcwBdApwe5RcSDEa+1lZkSPB9aOfySxzpftD/OynxEr2jz0Uumr6qzq1Ucz+O4De3xzRtU7QDkOVY0CUAVxfmTPO4C3McPDNDyvtO1VP3QlKDKStgVngXOJdyti8FopPIe/Un6vKymB7XKw1Y+EWx4aAnSQ//5+YRulSDz6f9okIMbT8Ila14b1c6fvqTdU/bFalKXo5259X4yQCSj4MQZJsNmrtVh/EbWiLucQZWjYUCBsbY9D4mBR/18KDUFch9+u4rPdQxCQGIIzP5/GPuhjI5u8cPwp2nJdyBK8wvktUX1nyxk3IW7mSLFAZryocvY4ar7MI/tx0GmagURJfnuoMLe9macGOqYBQ61t2192/8ev9UrxG4e0fsXMkaTeP+at+udwReCLvXxy4BwmJexcHt4hE2ewohD7IovxLAmAMdlxH2f9Va32tQpd8Z3A9jMOCzPRGM3Um0vEsaNs07IO/YhGb7N/kozhbO9+4j/j8PjcBjXjBpDy5V0Ki71UdxLbEq4wAG57nHYa7UhdoCz4XYlk9wGYskMtCN+svTK9EtQF6RAWjY5T7HFO8xIApw==

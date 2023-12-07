@@ -47,7 +47,10 @@ public class AddressServiceImpl implements AddressService {
     public int insert(Address address) {
         CustomUserDetails user = AuthUtil.getUser();
         assert user != null;
-        address.setMcOid(user.getCompanyId());
+        
+        if (user.isClientUser()) {
+            address.setMcOid(user.getCompanyId());
+        }
         
         return addressMapper.insert(address);
     }
