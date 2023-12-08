@@ -11,14 +11,26 @@
           align="left"
         >
           <q-tab name="RMAStatus" label="Ticket Status" />
-          <q-tab name="Ticketing" label="Ticket Management" />
-          <q-tab name="Sales" label="Sales Management" />
+          <q-tab
+            v-if="checkPermission('ticketing')"
+            name="Ticketing"
+            label="Ticket Management"
+          />
+          <q-tab
+            v-if="checkPermission('sales')"
+            name="Sales"
+            label="Sales Management"
+          />
           <q-tab
             v-if="checkPermission('privilege')"
             name="privilege"
             label="Privilege"
           />
-          <q-tab name="Account" label="Account" />
+          <q-tab
+            v-if="checkPermission('customer')"
+            name="Account"
+            label="Account"
+          />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
           <div class="row">

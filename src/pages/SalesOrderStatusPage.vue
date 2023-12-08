@@ -21,6 +21,7 @@
           Click on a column to sort the content of the table
           <q-space />
           <q-btn
+            v-if="checkPermission('sales.order.export')"
             label="Export to Excel"
             color="primary"
             style="width: 150px"
