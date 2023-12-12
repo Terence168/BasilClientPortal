@@ -4,6 +4,8 @@
 
 <script>
 import { defineComponent } from 'vue'
+import "./themes/dark.css"
+
 
 export default defineComponent({
   name: 'App'

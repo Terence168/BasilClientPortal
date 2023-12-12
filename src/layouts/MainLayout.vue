@@ -38,6 +38,14 @@
               Change Password
             </q-btn>
             <q-btn class="col-auto self-center" @click="logout">Logout</q-btn>
+            <q-toggle
+              v-model="darkMode"
+              checked-icon="check"
+              color="green"
+              unchecked-icon="clear"
+              label="Dark Mode"
+              @update:model-value="toggleDarkMode"
+            ></q-toggle>
           </div>
         </div>
       </div>
@@ -176,6 +184,7 @@ const { capitalize } = format;
 
 import { uat } from "boot/axios";
 import { useUserStore } from "stores/user";
+import { Dark } from "quasar";
 
 import sha256 from "js-sha256";
 
@@ -202,6 +211,7 @@ export default {
       newPassword: null,
       currentPassword: null,
       uat,
+      darkMode: "auto",
     };
   },
 
@@ -246,6 +256,24 @@ export default {
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);
     },
+    toggleDarkMode(value, evt) {
+      Dark.set(value);
+    },
   },
 };
 </script>
+
+<style scoped>
+.body--dark .q-tabs .q-tab__label {
+  color: white;
+}
+
+.body--dark .q-btn {
+  color: white;
+  border: 0.5px solid white;
+}
+
+.body--dark div {
+  color: white;
+}
+</style>
