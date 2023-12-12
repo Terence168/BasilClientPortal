@@ -43,88 +43,88 @@
             margin: 0 auto;
             position: sticky;
             top: 0;
-            background-color: white;
             z-index: 1000;
           "
         >
           <div class="col-3"></div>
-          <div class="col-9">
-            <div class="row shadow-2 text-body1 text-center q-py-xs">
-              <div class="col-2">
-                <span>Received</span>
-                <q-tooltip
-                  class="bg-primary text-body2 shadow-4"
-                  max-width="500px"
-                  :offset="[10, 10]"
-                >
-                  The terminal has been received, checked in, and placed in the
-                  repair queue awaiting repair.
-                </q-tooltip>
+            <div class="col-9 title-bar">
+              <div class="row shadow-2 text-body1 text-center q-py-xs">
+                <div class="col-2">
+                  <span>Received</span>
+                  <q-tooltip
+                    class="bg-primary text-body2 shadow-4"
+                    max-width="500px"
+                    :offset="[10, 10]"
+                  >
+                    The terminal has been received, checked in, and placed in the
+                    repair queue awaiting repair.
+                  </q-tooltip>
+                </div>
+                <div class="col-2">
+                  <span>Out for Repair</span>
+                  <q-tooltip
+                    class="bg-primary text-body2 shadow-4"
+                    max-width="500px"
+                    :offset="[10, 10]"
+                  >
+                    The terminal is assigned to a repair technician to evaluate
+                    and complete the repair.
+                  </q-tooltip>
+                </div>
+                <div class="col-2">
+                  <span>Quarantine</span>
+                  <q-tooltip
+                    class="bg-primary text-body2 shadow-4"
+                    max-width="500px"
+                    :offset="[10, 10]"
+                  >
+                    The terminal has been placed in a secure location awaiting
+                    part(s) that are not in stock at this time.
+                  </q-tooltip>
+                </div>
+                <div class="col-2">
+                  <span>Awaiting QA/CA</span>
+                  <q-tooltip
+                    class="bg-primary text-body2 shadow-4"
+                    max-width="500px"
+                    :offset="[10, 10]"
+                  >
+                    The terminal repair has been completed and awaiting the final
+                    inspection by our Quality Assurance/Certification
+                    Authorization team before being approved for shipping.
+                  </q-tooltip>
+                </div>
+                <div class="col-2">
+                  <span>Ready to Ship</span>
+                  <q-tooltip
+                    class="bg-primary text-body2 shadow-4"
+                    max-width="500px"
+                    :offset="[10, 10]"
+                  >
+                    The terminal has passed QA/CA inspection and is awaiting a
+                    shipping label and/or UPS to pick it up.
+                  </q-tooltip>
+                </div>
+                <div class="col-2 text-weight-bold">Total</div>
               </div>
-              <div class="col-2">
-                <span>Out for Repair</span>
-                <q-tooltip
-                  class="bg-primary text-body2 shadow-4"
-                  max-width="500px"
-                  :offset="[10, 10]"
-                >
-                  The terminal is assigned to a repair technician to evaluate
-                  and complete the repair.
-                </q-tooltip>
-              </div>
-              <div class="col-2">
-                <span>Quarantine</span>
-                <q-tooltip
-                  class="bg-primary text-body2 shadow-4"
-                  max-width="500px"
-                  :offset="[10, 10]"
-                >
-                  The terminal has been placed in a secure location awaiting
-                  part(s) that are not in stock at this time.
-                </q-tooltip>
-              </div>
-              <div class="col-2">
-                <span>Awaiting QA/CA</span>
-                <q-tooltip
-                  class="bg-primary text-body2 shadow-4"
-                  max-width="500px"
-                  :offset="[10, 10]"
-                >
-                  The terminal repair has been completed and awaiting the final
-                  inspection by our Quality Assurance/Certification
-                  Authorization team before being approved for shipping.
-                </q-tooltip>
-              </div>
-              <div class="col-2">
-                <span>Ready to Ship</span>
-                <q-tooltip
-                  class="bg-primary text-body2 shadow-4"
-                  max-width="500px"
-                  :offset="[10, 10]"
-                >
-                  The terminal has passed QA/CA inspection and is awaiting a
-                  shipping label and/or UPS to pick it up.
-                </q-tooltip>
-              </div>
-              <div class="col-2 text-weight-bold">Total</div>
             </div>
-          </div>
 
-          <div
-            class="col-3 text-body1 text-right q-py-xs q-pr-sm text-weight-bold"
-          >
-            Summary
-          </div>
-          <div class="col-9">
-            <div class="row shadow-2 bg-grey-3 text-body1 text-center q-py-xs">
-              <div class="col-2">{{ summary.inventory }}</div>
-              <div class="col-2">{{ summary.outForRepair }}</div>
-              <div class="col-2">{{ summary.quarantine }}</div>
-              <div class="col-2">{{ summary.awaitingQaCa }}</div>
-              <div class="col-2">{{ summary.readyToShip }}</div>
-              <div class="col-2 text-weight-bold">{{ summary.total }}</div>
+            <div
+              class="col-3 text-body1 text-right q-py-xs q-pr-sm text-weight-bold "
+            >
+              Summary
             </div>
-          </div>
+            <div class="col-9 summary-bar" >
+              <div class="row shadow-2 text-body1 text-center q-py-xs ">
+                <div class="col-2">{{ summary.inventory }}</div>
+                <div class="col-2">{{ summary.outForRepair }}</div>
+                <div class="col-2">{{ summary.quarantine }}</div>
+                <div class="col-2">{{ summary.awaitingQaCa }}</div>
+                <div class="col-2">{{ summary.readyToShip }}</div>
+                <div class="col-2 text-weight-bold">{{ summary.total }}</div>
+              </div>
+            </div>
+
         </div>
 
         <div
@@ -285,4 +285,23 @@ export default {
 };
 </script>
 
-<style></style>
+<style lang="scss" scoped>
+.summary-bar{
+  background-color: #E0E0E0;
+}
+
+.body--dark .summary-bar{
+  background-color: $grey-9;;
+  border-top: 1px solid white;
+  border-left:1px solid white;
+  border-right:1px solid white;
+  border-bottom: 1px solid white;
+}
+
+.body--dark .title-bar{
+  border-top: 1px solid white;
+  border-left:1px solid white;
+  border-right:1px solid white;
+}
+
+</style>
