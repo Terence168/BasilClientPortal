@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import javax.servlet.http.HttpSession;
 
@@ -60,7 +61,7 @@ public class CustomUserDetails extends User {
 	public boolean isClientUser() {
 		return standardUser == 1;
 	}
-	public boolean canViewOrEditOtherCustomersRecords(int otherCompanyId) {
-		return !isClientUser() || companyId == otherCompanyId;
+	public boolean canViewOrEditOtherCustomersRecords(Integer otherCompanyId) {
+		return !isClientUser() || Objects.equals(companyId, otherCompanyId);
 	}
 }
