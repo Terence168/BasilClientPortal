@@ -375,6 +375,8 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
 
         try {
             HistoryUtil.setHistorySessionInfo(userMapper, "PrivilegeMapper.xml:updateUser","User Update");
+            
+            User userDB = userMapper.getUserById(user.getId());
 
             if (user.getStatus() == null)
             	user.setStatus(StatusConstant.DISABLED);
@@ -386,7 +388,7 @@ public class PrivilegeServiceImpl extends ServiceImpl<PrivilegeMapper, RoleType>
                 assert currentUser != null;
                 user.setId(currentUser.getUserId());
             }
-            Integer companyId = user.getCompanyId();
+            Integer companyId = userDB.getCompanyId();
             
             assert currentUser != null;
             if(!currentUser.canViewOrEditOtherCustomersRecords(companyId)){

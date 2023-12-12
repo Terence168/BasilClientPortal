@@ -39,7 +39,6 @@ public interface UserMapper extends BaseMapper<User> {
     void setUserId(String userId);
     void setProgramName(String programName);
     void setReasonForChange(String reasonForChange);
-    void createUser(UserCreateDTO user);
     
     List<User> queryList(int offset,
                          int count,
