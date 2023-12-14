@@ -58,7 +58,9 @@ export const useUserStore = defineStore("user", {
       api.get("logout").then(() => {
         this.router.push({ name: "login" });
       });
+      const isDark = this.userDarkMode;
       this.$reset();
+      this.userDarkMode = isDark;
     },
 
     checkPermission(permission) {
