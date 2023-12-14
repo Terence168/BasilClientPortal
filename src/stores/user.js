@@ -12,7 +12,9 @@ export const useUserStore = defineStore("user", {
     permissions: [],
     sessionStartTime: 0,
     clientUser: null,
+    userDarkMode:"auto",
   }),
+
   getters: {
     loggedIn: (state) => state.email !== "",
 
@@ -23,6 +25,7 @@ export const useUserStore = defineStore("user", {
 
     isClientUser: (state) => state.clientUser === 1,
   },
+  
   actions: {
     login(username, password) {
       const formData = new FormData();
@@ -52,10 +55,10 @@ export const useUserStore = defineStore("user", {
     },
 
     logout() {
-      this.$reset();
       api.get("logout").then(() => {
         this.router.push({ name: "login" });
       });
+      this.$reset();
     },
 
     checkPermission(permission) {
@@ -95,6 +98,10 @@ export const useUserStore = defineStore("user", {
 
     toError401(){
       this.router.push({ name: "error-401" });
+    },
+
+    setDarkMode(mode){
+      this.userDarkMode = mode;
     }
   },
 

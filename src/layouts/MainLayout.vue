@@ -39,7 +39,7 @@
             </q-btn>
             <q-btn class="col-auto self-center" @click="logout">Logout</q-btn>
             <q-toggle
-              v-model="darkMode"
+              v-model="userDarkMode"
               checked-icon="check"
               color="green"
               unchecked-icon="clear"
@@ -178,12 +178,13 @@ import SalesSubMenu from "src/components/SalesSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
 import AccountSubMenu from "src/components/AccountSubMenu.vue";
 import BaseModal from "src/components/BaseModal.vue";
+import { useUserStore } from "stores/user";
+import { mapState, mapWritableState } from "pinia";
 
 import { format } from "quasar";
 const { capitalize } = format;
 
 import { uat } from "boot/axios";
-import { useUserStore } from "stores/user";
 import { Dark } from "quasar";
 
 import sha256 from "js-sha256";
@@ -211,11 +212,12 @@ export default {
       newPassword: null,
       currentPassword: null,
       uat,
-      darkMode: "auto",
+      // darkMode: "auto",
     };
   },
 
   computed: {
+    ...mapWritableState(useUserStore, ["userDarkMode"]),
     activeSubMenu() {
       return capitalize(this.tab) + "SubMenu";
     },
@@ -252,12 +254,12 @@ export default {
           }
         });
     },
-
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);
     },
     toggleDarkMode(value, evt) {
-      Dark.set(value);
+      // Dark.set(value);
+      this.userDarkMode = value;
     },
   },
 };
