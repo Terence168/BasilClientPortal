@@ -140,7 +140,6 @@ const onSubmit = function () {
 </script>
 
 <style lang="scss" scoped>
-
 .main-container {
   position: relative;
   width: 100vw;
@@ -169,6 +168,15 @@ const onSubmit = function () {
 
 .body--dark .login-container{
   background-color: black;
+}
+
+.q-field--dark {
+  input, select {
+    color: #fff;
+    -webkit-text-fill-color: white;
+    -webkit-background-clip: text !important;
+    background-clip:  text !important;
+  }
 }
 </style>
 
