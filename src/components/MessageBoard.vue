@@ -1,11 +1,14 @@
 <template>
-  <div class="q-pa-md row bg-grey-5" style="border-style: double">
+  <div class="message-board q-pa-md row" style="border-style: double">
     <q-scroll-area style="width: 100%; height: 500px" ref="chatScroll">
       <q-list style="width: 95%" separator>
         <div v-for="(comment, index) in this.comments" :key="index">
           <q-item
-            :class="
-              comment.hasOwnProperty('bgColor') ? comment.bgColor : 'bg-grey-3'
+            :class="{
+              'other-message': comment.hasOwnProperty('bgColor') == false,
+              'own-message': comment.hasOwnProperty('bgColor') == true,
+              'message':true,
+            }
             "
             style="border-style: solid; max-width: 100%"
           >
@@ -136,9 +139,33 @@ export default {
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
 .comment-box {
         white-space: normal;
         overflow-y: auto; /* Hide overflowing text */
-    }
+}
+
+.body--dark .message-board{
+  background-color: $grey-9;;
+}
+
+.message-board{
+  background-color: $grey-5;;
+}
+
+.other-message{
+  background-color: $grey-3;
+}
+
+.own-message{
+  background-color: $green-3;
+}
+
+.body--dark .other-message{
+  background-color: $grey-8;
+}
+
+.body--dark .own-message{
+  background-color:$green-14;
+}
 </style>
