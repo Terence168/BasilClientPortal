@@ -170,13 +170,5 @@ const onSubmit = function () {
   background-color: black;
 }
 
-.q-field--dark {
-  input, select {
-    color: #fff;
-    -webkit-text-fill-color: white;
-    -webkit-background-clip: text !important;
-    background-clip:  text !important;
-  }
-}
 </style>
 

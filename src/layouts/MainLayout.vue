@@ -258,7 +258,7 @@ export default {
       return useUserStore().checkPermission(permission);
     },
     toggleDarkMode(value, evt) {
-      // Dark.set(value);
+      Dark.set(value);
       this.userDarkMode = value;
     },
   },

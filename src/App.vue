@@ -21,7 +21,9 @@ export default defineComponent({
     }
   },
   created(){
-    Dark.set(this.useUserStore);
+    if(this.userDarkMode != "auto"){
+      Dark.set(this.userDarkMode);
+    }
   }
 })
 </script>
