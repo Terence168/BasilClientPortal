@@ -139,32 +139,6 @@ const onSubmit = function () {
 // });
 </script>
 
-<!-- <style lang="sass" scoped>
-.main-container
-  position: relative
-  width: 100vw
-  height: 100vh
-
-  .login-background
-    position: absolute
-    top: 0
-    left: 0
-    z-index: -1
-    width: calc(100% - 550px)
-    height: 100vh
-
-  .login-container
-    position: absolute
-    top: 0
-    right: 0
-    width: 600px
-    height: 100vh
-    border-radius: 50px 0 0 50px
-    padding: 0 110px
-    background-color: white
-
-    
-</style> -->
 <style lang="scss" scoped>
 
 .main-container {
