@@ -398,7 +398,6 @@ export default {
             
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
-
             }
             if (comments != null) {
               this.comments = comments;
@@ -425,9 +424,6 @@ export default {
       // already being observed
       { immediate: true }
     );
-    // this.populateKeysOptOnce();
-    // this.populateOrderTypeOptOnce();
-    // this.populateKeyTypeOptOnce();
   },
   mounted() {},
   computed: {

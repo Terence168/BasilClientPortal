@@ -6,6 +6,9 @@ import {
   validateSerial
 } from "src/utils/ticketUtils";
 
+import { useUserStore } from "./user";
+
+const user = useUserStore();
 const capacity = 10;
 
 export const useEditTicketStore = defineStore("editTicket", {
@@ -107,6 +110,8 @@ export const useEditTicketStore = defineStore("editTicket", {
           this.addTicket(ticketInfo);
 
           ticketInfo.serials = ticketInfo.serials.map((s) => validateSerial(s));
+          ticketInfo.lastLogin = user.email;
+
           return ticketInfo;
         }).catch((e) => {
           if(!this.loggedIn) return;
@@ -121,8 +126,8 @@ export const useEditTicketStore = defineStore("editTicket", {
       const index = this.tickets.findIndex((t) => {
         return parseInt(t.moOID) === parseInt(ticketId);
       });
-      if (index != -1) {
-        return this.tickets[index];
+      if (index != -1 && this.tickets.lastLogin === user.email) {
+          return this.tickets[index];
       }
       return this.fetchTicket(ticketId);
     },
