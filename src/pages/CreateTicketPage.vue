@@ -461,7 +461,7 @@ export default {
       "ksiOpt",
       "kcvksiOpt",
     ]),
-    ...mapState(useUserStore, ["clientUser"]),
+    ...mapState(useUserStore, ["clientUser", "lastlogin", "email"]),
     isEncrypted() {
       return this.encrypt != null && this.encrypt === "yes";
     },
@@ -478,7 +478,12 @@ export default {
       return user.companyName || "";
     },
   },
-  created() {},
+  created() {
+    if (this.email != this.lastlogin) {
+      //If there's a mismatch, clear the existing createTicket object
+      this.resetTicket();
+    }
+  },
   methods: {
     ...mapActions(useCreateTicketStore, [
       "addTrackingNum",

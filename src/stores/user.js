@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
 import { throttleFilter } from "@vueuse/core";
+import { last } from "lodash";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
@@ -13,6 +14,7 @@ export const useUserStore = defineStore("user", {
     sessionStartTime: 0,
     clientUser: null,
     userDarkMode:"auto",
+    lastlogin: null,
   }),
 
   getters: {
@@ -59,8 +61,10 @@ export const useUserStore = defineStore("user", {
         this.router.push({ name: "login" });
       });
       const isDark = this.userDarkMode;
+      const lastlogin = this.email;
       this.$reset();
       this.userDarkMode = isDark;
+      this.lastlogin = lastlogin;
     },
 
     checkPermission(permission) {
