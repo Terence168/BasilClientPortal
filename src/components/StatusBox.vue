@@ -254,4 +254,8 @@ const expandCategory = function (categoryValue) {
 .category:hover {
   background-color: $grey-3;
 }
+
+.body--dark .category:hover{
+  background-color: $grey-9;
+}
 </style>

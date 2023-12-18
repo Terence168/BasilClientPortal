@@ -50,6 +50,14 @@
               Change Password
             </q-btn>
             <q-btn class="col-auto self-center" @click="logout">Logout</q-btn>
+            <q-toggle
+              v-model="userDarkMode"
+              checked-icon="check"
+              color="green"
+              unchecked-icon="clear"
+              label="Dark Mode"
+              @update:model-value="toggleDarkMode"
+            ></q-toggle>
           </div>
         </div>
       </div>
@@ -182,12 +190,14 @@ import SalesSubMenu from "src/components/SalesSubMenu.vue";
 import PrivilegeSubMenu from "src/components/PrivilegeSubMenu.vue";
 import AccountSubMenu from "src/components/AccountSubMenu.vue";
 import BaseModal from "src/components/BaseModal.vue";
+import { useUserStore } from "stores/user";
+import { mapState, mapWritableState } from "pinia";
 
 import { format } from "quasar";
 const { capitalize } = format;
 
 import { uat } from "boot/axios";
-import { useUserStore } from "stores/user";
+import { Dark } from "quasar";
 
 import sha256 from "js-sha256";
 
@@ -214,10 +224,12 @@ export default {
       newPassword: null,
       currentPassword: null,
       uat,
+      // darkMode: "auto",
     };
   },
 
   computed: {
+    ...mapWritableState(useUserStore, ["userDarkMode"]),
     activeSubMenu() {
       return capitalize(this.tab) + "SubMenu";
     },
@@ -254,10 +266,28 @@ export default {
           }
         });
     },
-
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);
+    },
+    toggleDarkMode(value, evt) {
+      Dark.set(value);
+      this.userDarkMode = value;
     },
   },
 };
 </script>
+
+<style scoped>
+.body--dark .q-tabs .q-tab__label {
+  color: white;
+}
+
+.body--dark .q-btn {
+  color: white;
+  border: 0.5px solid white;
+}
+
+.body--dark div {
+  color: white;
+}
+</style>
