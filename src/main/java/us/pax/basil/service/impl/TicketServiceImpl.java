@@ -217,6 +217,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             if(repairRecords.size() == 0){
                 repairRecords = ticketMapper.getPrepRepairDetail(id);
             }
+
             for (RepairRecord repairRecord : repairRecords) {
                 //repairRecord.setWarrantyStatus(QueryUtils.calculateWarrantyStatus(repairRecord.getWarrantyEndDate(), repairRecord.getWarrantyVoidedDate(), repairRecord.getOrderDate()));
                 Map<String, Object> objectMap = objectMapper.convertValue(repairRecord, Map.class);
@@ -913,28 +914,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     private Boolean userHasAccess(String id){
         CustomUserDetails user = AuthUtil.getUser();
         assert user != null;
-        //user is client and has same mcoid with ticket or user is pax employee
-        if (user.isClientUser() && hasAccessToTicket(id) || !user.isClientUser()) {
-            return true;
-        }
-        return false;
-    }
 
-    private Boolean hasAccessToTicket(String tickId){
-        CustomUserDetails user = AuthUtil.getUser();
-        String customerId = String.valueOf(user.getUserId());
-        String userMcoId = null;
-        if (user != null) {
-            if (user.getStandardUser() == 1)
-                userMcoId = String.valueOf(user.getCompanyId());
-            else {
-                userMcoId = customerId;
-            }
-        }
-        TicketInfo ticket = ticketMapper.existingMasterOrder(tickId);
+        TicketInfo ticket = ticketMapper.existingMasterOrder(id);
         if (ticket == null) {
-            ticket = ticketMapper.existingPREPMasterOrder(tickId);
+            ticket = ticketMapper.existingPREPMasterOrder(id);
         }
-        return ticket != null && user != null && ticket.getMcOID().equals(userMcoId);
+
+        return user.canViewOrEditOtherCustomersRecords(ticket.getMcOID());
     }
 }
