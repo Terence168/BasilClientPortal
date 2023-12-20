@@ -239,6 +239,7 @@
         <!-- Ticket serials -->
         <TicketEditTable
           ref="editTable"
+          :ticketId="ticketId"
           :isFromMaster="ticketInfo.isFromMaster"
           :containsXrefMaterials="ticketInfo.containsXrefMaterials"
           :orderType="ticketInfo.typeOfRepair"

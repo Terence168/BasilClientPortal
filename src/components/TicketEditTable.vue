@@ -179,6 +179,7 @@ export default {
     "showViewUnit",
     "showUpdateUnit",
     "showRemoveUnit",
+    "ticketId",
   ],
   components: { EditModal, BaseModal, TicketDetailForm },
   emits: ["add-sn", "update-sn", "remove-sn"],
@@ -400,7 +401,8 @@ export default {
     handleClickViewUnit(evt, row) {
       const { xmOID, pxmOID } = row;
       const id = xmOID === null ? pxmOID : xmOID;
-      const link = "/ticketing/viewDetails?id=" + id;
+      const link = "/ticketing/viewDetails?id=" + id +"&ticketId="+this.ticketId;
+
       api
         .get(link)
         .then((response) => {
