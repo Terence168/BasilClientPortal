@@ -113,7 +113,7 @@
           <input type="radio" v-model="encrypt" value="no" />&nbsp;No&nbsp;
         </div>
         <div class="row items-center" v-show="isEncrypted">
-          <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
+          <div class="col-auto q-mr-sm">Key Type:&nbsp;</div>
           <div class="col-auto">
             <q-select
               ref="testKeyTypeSelect"
