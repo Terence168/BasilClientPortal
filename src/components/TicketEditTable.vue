@@ -9,24 +9,28 @@
         :rows-per-page-options="[10, 25, 50, 100]"
         id="serials"
       >
-      <template v-slot:header="props">
-        <q-tr :props="props">
-          <q-th key="cosmetic" >
-            <q-checkbox v-model="comesticAll" @update:model-value="selectAllCosmetic" :disable="showViewUnit">
-            </q-checkbox>
-            Cosmetic
-          </q-th>
-          <q-th key="action">Action</q-th>
-          <q-th key="serialNumber">Serial Number</q-th>
-          <q-th key="model">Model</q-th>
-          <q-th key="version">Version</q-th>
-          <q-th key="customerReportedIssue">Reported Issue</q-th>
-          <q-th key="terminalID">Customer ID</q-th>
-          <q-th key="customerRMA">Customer RMA</q-th>
-          <q-th key="warrantyStatus">Warranty Status</q-th>
-          <q-th key="warrantyExpDate">Warranty Expire Date</q-th>          
-        </q-tr>
-      </template>
+        <template v-slot:header="props">
+          <q-tr :props="props">
+            <q-th key="cosmetic">
+              <q-checkbox
+                v-model="comesticAll"
+                @update:model-value="selectAllCosmetic"
+                :disable="showViewUnit"
+              >
+              </q-checkbox>
+              Cosmetic
+            </q-th>
+            <q-th key="action">Action</q-th>
+            <q-th key="serialNumber">Serial Number</q-th>
+            <q-th key="model">Model</q-th>
+            <q-th key="version">Version</q-th>
+            <q-th key="customerReportedIssue">Reported Issue</q-th>
+            <q-th key="terminalID">Customer ID</q-th>
+            <q-th key="customerRMA">Customer RMA</q-th>
+            <q-th key="warrantyStatus">Warranty Status</q-th>
+            <q-th key="warrantyExpDate">Warranty Expire Date</q-th>
+          </q-tr>
+        </template>
         <template v-slot:bottom-row>
           <q-tr>
             <q-td colspan="100%">
@@ -34,8 +38,8 @@
                 Total Estimated Cost: $ {{ totalInvoice }}
               </div>
             </q-td>
-          </q-tr> </template
-        >
+          </q-tr>
+        </template>
         <template v-slot:body="props">
           <q-tr
             v-if="!props.row.errorMsg"
@@ -47,7 +51,7 @@
             @click="handleRowClick($event, props.row)"
             :key="props.row.serialNumber"
           >
-          <q-td key="cosmetic" :props="props">
+            <q-td key="cosmetic" :props="props">
               <q-checkbox
                 v-model="props.row.cosmetic"
                 @update:model-value="selectCosmetic"
@@ -67,7 +71,7 @@
                 @click="handleClickRemoveUnit"
               ></q-btn>
               <q-btn
-              v-if="showUpdateUnit"
+                v-if="showUpdateUnit"
                 flat
                 round
                 color="green-6"
@@ -75,7 +79,7 @@
                 @click="handleClickUpdateUnit"
               ></q-btn>
               <q-btn
-              v-if="showViewUnit"
+                v-if="showViewUnit"
                 flat
                 round
                 color="yellow-9"
@@ -99,7 +103,7 @@
               {{ props.row.customerTerminalID }}
             </q-td>
             <q-td key="customerRMA" :props="props">
-              {{ props.row.customerRMA }}  
+              {{ props.row.customerRMA }}
             </q-td>
             <q-td key="warrantyStatus" :props="props">
               {{ props.row.warrantyStatus }}
@@ -184,9 +188,9 @@ export default {
   emits: ["add-sn", "update-sn", "remove-sn"],
   data() {
     return {
-      countCosmeticAll:0,
-      selected:[],
-      comesticAll:false,
+      countCosmeticAll: 0,
+      selected: [],
+      comesticAll: false,
       columns: [
         {
           name: "cosmetic",
@@ -272,7 +276,7 @@ export default {
           serialNumber: null,
           terminalID: null,
           customerReportedIssue: null,
-          customerRMA:null,
+          customerRMA: null,
         },
         submitAction: "add",
       },
@@ -285,19 +289,17 @@ export default {
   mounted() {
     // window.addEventListener("click", this.handleGlobalClick);
     this.rows.forEach((r) => {
-      if(r.cosmetic === true){
+      if (r.cosmetic === true) {
         this.countCosmeticAll += 1;
       }
-      if(this.countCosmeticAll === this.rows.length){
+      if (this.countCosmeticAll === this.rows.length) {
         this.comesticAll = true;
-      }
-      else if(this.countCosmeticAll === 0){
+      } else if (this.countCosmeticAll === 0) {
         this.comesticAll = false;
-      }
-      else{
+      } else {
         this.comesticAll = null;
       }
-    })
+    });
   },
   computed: {
     serials() {
@@ -309,7 +311,7 @@ export default {
               t.serialNumber.includes(this.inputValue)) ||
             (t.model != null && t.model.includes(this.inputValue)) ||
             (t.customerReportedIssueExt != null &&
-              t.customerReportedIssueExt.includes(this.inputValue)) 
+              t.customerReportedIssueExt.includes(this.inputValue))
         );
       }
       return serials;
@@ -345,10 +347,10 @@ export default {
       //     }
       //   });
       // }
-      if(this.encrypt === "yes"){
+      if (this.encrypt === "yes") {
         serials.forEach((s) => {
           amt = amt + (s.keyInjection == null ? 0 : s.keyInjection);
-        })
+        });
       }
       serials.forEach((s) => {
         {
@@ -382,7 +384,7 @@ export default {
         serialNumber: null,
         terminalID: null,
         customerReportedIssue: null,
-        customerRMA:null,
+        customerRMA: null,
       };
       this.$refs.editModal.displayEditModal();
     },
@@ -400,7 +402,18 @@ export default {
     handleClickViewUnit(evt, row) {
       const { xmOID, pxmOID } = row;
       const id = xmOID === null ? pxmOID : xmOID;
-      const link = "/ticketing/viewDetails?id=" + id;
+      const ticketId = this.$route.params.ticketId;
+
+      if (!ticketId) {
+        Notify.create({
+          type: "negative",
+          message: "Ticket ID is missing",
+        });
+        return;
+      }
+
+      const link = `/ticketing/viewDetails?id=${id}&ticketId=${ticketId}`;
+
       api
         .get(link)
         .then((response) => {
@@ -470,27 +483,25 @@ export default {
 
       this.details.statusItems = statusItems;
     },
-    selectAllCosmetic(value, evt){
-      if(value === true){
+    selectAllCosmetic(value, evt) {
+      if (value === true) {
         this.countCosmeticAll = this.rows.length;
-      }
-      else{
+      } else {
         this.countCosmeticAll = 0;
       }
-      this.rows.forEach((r) => r.cosmetic = value);
+      this.rows.forEach((r) => (r.cosmetic = value));
     },
-    selectCosmetic(value, evt){
-      if(value === true){
+    selectCosmetic(value, evt) {
+      if (value === true) {
         this.countCosmeticAll += 1;
-      }
-      else{
+      } else {
         this.countCosmeticAll -= 1;
       }
-      if(this.countCosmeticAll === this.rows.length){
+      if (this.countCosmeticAll === this.rows.length) {
         this.comesticAll = true;
         return;
       }
-      if(this.countCosmeticAll === 0){
+      if (this.countCosmeticAll === 0) {
         this.comesticAll = false;
         return;
       }
