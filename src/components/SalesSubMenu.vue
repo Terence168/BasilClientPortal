@@ -3,6 +3,7 @@
     <div class="q-ml-md q-mb-sm section-title">Sales Options</div>
 
     <q-item
+      v-if="checkPermission('sales.order')"
       class="list-item"
       active-class="active-link"
       :to="{ name: 'sales-order' }"

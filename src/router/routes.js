@@ -142,6 +142,7 @@ const routes = [
         component: () => import("pages/SalesOrderStatusPage.vue"),
         meta: {
           requiresAuth: true,
+          permissions: ["sales.order"],
         },
       },
 
