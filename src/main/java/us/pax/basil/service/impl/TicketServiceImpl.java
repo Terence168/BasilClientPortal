@@ -5,14 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
-import io.swagger.models.auth.In;
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Mono;
-import software.amazon.awssdk.core.Response;
 import us.pax.basil.constant.DropDownConstant;
-import us.pax.basil.dto.output.*;
+import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.customer.Company;
@@ -25,26 +29,15 @@ import us.pax.basil.service.AddressService;
 import us.pax.basil.service.InvoiceService;
 import us.pax.basil.service.TicketService;
 import us.pax.basil.service.aws.ses.EmailService;
-import us.pax.basil.service.aws.ses.SESResponse;
 import us.pax.basil.utils.AuthUtil;
-import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
 import us.pax.basil.utils.QueryUtils;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
-
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 
 @Log4j2
@@ -667,7 +660,73 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         ticketMapper.insertPrep_Master_Order(tio);
         return tio.getMoOID();
     }
-    
+
+    @Override
+    public CompletableFuture<QueryResultDTO> submitTicketFuture(TicketInsertion ticketInsertion) {
+        try {
+            final CustomUserDetails user = AuthUtil.getUser();
+            if (user == null) {
+                return CompletableFuture.completedFuture(
+                        new QueryResultDTO(null, -1, "Unable to load account details")
+                );
+            }
+            String clientEmail = user.getEmailAddress();
+            Integer clientId = user.getUserId();
+            Integer companyId = user.getCompanyId();
+
+            List<SNsInsertionObject> insertedSerials = ticketInsertion.getSerials();
+            List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
+            Integer orderType = ticketInsertion.getOrderType();
+            String originalRMA = ticketInsertion.getOriginalRMA();
+            Integer xaOId = ticketInsertion.getXaOID();
+
+            TicketInsertionObject tio = new TicketInsertionObject();
+            tio.setOrderType(orderType);
+            tio.setRmaNumber(originalRMA);
+            tio.setSubmitterID(clientId);
+            tio.setXaOID(xaOId);
+            tio.setTestKeyType(ticketInsertion.getTestKeyType());
+            tio.setEncrypt(ticketInsertion.getEncrypt());
+            int moOID = insertTicketToPMO(tio);
+
+            for (SNsInsertionObject snsObject : insertedSerials) {
+                snsObject.setMoOID(moOID);
+            }
+
+            ticketMapper.insertPrep_Xref_Materials(insertedSerials);
+            List<Integer> pxmOidList = new ArrayList<>();
+            insertedSerials.forEach(s -> pxmOidList.add(s.getXmOID()));
+            invoiceService.insertInvoiceList(pxmOidList, companyId);
+            Double invoice = invoiceService.getTotalInvoice(moOID);
+            if (!trackingNumbers.isEmpty()) {
+                ticketMapper.insertXref_Inbound_Tracking(trackingNumbers, moOID);
+            }
+            Map<String, Object> result = new HashMap<>();
+            result.put("mo_OID", moOID);
+            Company company = userMapper.getCompanyInfo(companyId);
+            Integer clientGroup = company.getClientGroupId();
+            String content = constructEmail(moOID, invoice, clientGroup);
+            String subject = String.format("RMA #%d Confirmation", moOID);
+
+            return emailService.sendEmail(clientEmail, subject, content)
+                    .thenApply(sesResponse -> {
+                        String emailResult = sesResponse.isSuccess() ?
+                                "Success, message ID: " + sesResponse.getResponse().messageId() :
+                                "Email sending failed";
+                        result.put("emailDeliveryResult", emailResult);
+                        return new QueryResultDTO(result, 0, "");
+                    })
+                    .exceptionally(e -> {
+                        log.error("Error sending email: " + e.getMessage(), e);
+                        result.put("emailDeliveryResult", "Failed to send email");
+                        return new QueryResultDTO(result, -1, e.getMessage());
+                    });
+        } catch (Exception e) {
+            log.error("Error processing ticket submission: " + e.getMessage(), e);
+            return CompletableFuture.completedFuture(new QueryResultDTO(null, -1, e.getMessage()));
+        }
+    }
+
     @Override
     public QueryResultDTO submitTicket(TicketInsertion ticketInsertion) {
         Integer submitterId = AuthUtil.getUser().getUserId();
@@ -709,7 +768,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             Integer clientGroup = company.getClientGroupId();
             String content = constructEmail(mo_OID, invoice, clientGroup);
             String subject = String.format("RMA #%d Confirmation", mo_OID);
-            submitterEmail = "success@simulator.amazonses.com"; //TODO: When ses move out of sandbox, delete this line
+            submitterEmail = "success@simulator.amazonses.com";
 //            Mono<String> delivery = emailService.sendEmail(submitterEmail, subject, content).map(response ->
 //                    response.isSuccess() ? "Success, message ID: " + response.getResponse().messageId()
 //                            : response.getException() != null ? response.getException().getMessage()

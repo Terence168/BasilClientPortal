@@ -10,6 +10,7 @@ import us.pax.basil.entity.ticket.*;
 
 import javax.persistence.EntityManager;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /***
  * ============================================================================
@@ -63,6 +64,7 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO serialNumberQuery(String serialNumber);
     int insertTicketToPMO(TicketInsertionObject tio);
     QueryResultDTO submitTicket(TicketInsertion ticketInsertion);
+    CompletableFuture<QueryResultDTO> submitTicketFuture(TicketInsertion ticketInsertion);
     QueryResultDTO viewEditTicket(String id);
     QueryResultDTO insertResponse(TicketResponse ticketResponse);
     QueryResultArrayDTO getResponse(String id);
