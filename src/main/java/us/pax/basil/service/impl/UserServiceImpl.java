@@ -16,9 +16,13 @@ package us.pax.basil.service.impl;
  */
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import software.amazon.awssdk.services.ses.endpoints.internal.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import us.pax.basil.constant.ClientGroupConstant;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.constant.PasswordConstant;
@@ -32,32 +36,19 @@ import us.pax.basil.mapper.PasswordMapper;
 import us.pax.basil.mapper.PrivilegeMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.property.FrontEndProperties;
-import us.pax.basil.property.MailProperties;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.UserService;
+import us.pax.basil.service.aws.ses.EmailService;
 import us.pax.basil.utils.AuthUtil;
-import us.pax.basil.utils.EmailUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Log4j2
 @Service
+@AllArgsConstructor
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Autowired(required=false)
@@ -68,75 +59,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Autowired(required=false)
     private PrivilegeMapper privilegeMapper;
-
-    @Autowired(required=false)
-    private JavaMailSender mailSender;
     
     @Autowired(required=false)
     private FrontEndProperties frontEndProperties;
 
     @Autowired
-    private MailProperties mailProperties;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private EmailService emailService;
+
     @Override
-    public SqlResultDTO addUser(HttpServletRequest request, User user) {
-    	try {
-	    	User userAccount = userMapper.getUserByEmail(user.getEmail());
-	    	
-	    	if (userAccount != null) {
-	    		return new SqlResultDTO(-300, "User account already exists");
-	    	}
-	
-	    	// Default password for new users is "Pax4Future!@" which is represented by:
-	    	//
-	    	// "864dbe7c258b9d6b7b948a0c4381680f9a5a1411643bbc4d5f143a972971117d"
-	    	//
-	        user.setPassword(passwordEncoder.encode("864dbe7c258b9d6b7b948a0c4381680f9a5a1411643bbc4d5f143a972971117d"));
-	
-	        CustomUserDetails userDetails = AuthUtil.getUser();
-	        
-	        if (userDetails == null)
-	        	user.setCreator("test");
-	        else
-	        	user.setCreator(userDetails.getUsername());
-	
+    public CompletableFuture<SqlResultDTO> addUserAsync(HttpServletRequest request, User user) {
+        User userAccount = userMapper.getUserByEmail(user.getEmail());
 
-	        final String token = UUID.randomUUID().toString();
-	        
-	        user.setToken(token);
-	        user.setTokenExp(new Timestamp(System.currentTimeMillis() + PasswordConstant.EXPIRATION));
+        if (userAccount != null) {
+            return CompletableFuture.completedFuture(new SqlResultDTO(-300, "User account already exists"));
+        }
 
-            if (user.getCompanyId() == null) {
-                user.setCompanyId(178); // Default to PAX US
+        user.setPassword(passwordEncoder.encode("DefaultEncodedPassword"));
+        CustomUserDetails userDetails = AuthUtil.getUser();
+        user.setCreator(userDetails != null ? userDetails.getUsername() : "test");
+        final String token = UUID.randomUUID().toString();
+        user.setToken(token);
+        user.setTokenExp(new Timestamp(System.currentTimeMillis() + PasswordConstant.EXPIRATION));
+        if (user.getCompanyId() == null) {
+            user.setCompanyId(178);
+        }
+
+        userMapper.addUser(user);
+        if (user.getRoles() != null) {
+            for (Integer roleId : user.getRoles()) {
+                privilegeMapper.addUserRole(user.getId(), roleId);
             }
-            
-	        userMapper.addUser(user);
-            
-            System.out.println("newUserId: " + user.getId());
-	        
-            for (Integer i: user.getRoles()) {
-                privilegeMapper.addUserRole(user.getId(), i);
-            }
+        }
 
-          	MimeMessage mimeMsg = mailSender.createMimeMessage();
-            mimeMsg = EmailUtil.constructTokenEmail(mimeMsg, 
-                                                    request, 
-                                                    token, 
-                                                    PasswordConstant.WELCOME_USER_HTML_FILE,
-                                                    PasswordConstant.WELCOME_USER_SUBJECT,
-                                                    frontEndProperties.getActivate(),
-                                                    PasswordConstant.WELCOME_USER_LINK_TITLE,
-                                                    user,
-                                                    mailProperties.getUsername());
-    		mailSender.send(mimeMsg);
-    	} catch(Exception e) {
-            log.error("Exception adding user: {}", e.getMessage());
-    		return new SqlResultDTO(0, e.getMessage());
-    	}
-        return new SqlResultDTO(0, "");
+        String activateUrl = frontEndProperties.getActivate() + token;
+        String subject = PasswordConstant.WELCOME_USER_SUBJECT;
+        String message = "Welcome To The Basil Client Portal!<br><br>" +
+                "Hi " + user.getName() + ",<br><br>" +
+                "A user account has been created for you on the Basil Client Portal. Please click on the link below to activate your account and set your password. This link remains active for 24hrs.<br><br>" +
+                "<a href=\"" + activateUrl + "\">Activate Account</a><br><br>" +
+                "Best regards,<br>PAX Support Team";
+
+        Map<String, Object> templateData = new HashMap<>();
+        templateData.put("title", subject);
+        templateData.put("message", message);
+        templateData.put("subject", subject);
+
+        return emailService.sendTemplatedEmail(subject, "simpleMessage", templateData, user.getEmail())
+                .thenApply(sesResponses -> new SqlResultDTO(0, "User added and email sent successfully."))
+                .exceptionally(e -> {
+                    log.error("Error sending welcome email: {}", e.getMessage(), e);
+                    return new SqlResultDTO(-1, "User added but failed to send welcome email.");
+                });
     }
 
     @Override

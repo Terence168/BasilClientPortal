@@ -26,8 +26,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.core.Authentication;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface UserService extends IService<User> {
-    SqlResultDTO addUser(HttpServletRequest request, User user);
+    CompletableFuture<SqlResultDTO> addUserAsync(HttpServletRequest request, User user);
     SqlResultDTO activateUser(HttpServletRequest request, User user);
 
     boolean checkPassword(String password, String passwordEncoder);

@@ -27,3 +27,7 @@ target/*
 *.tmp
 
 .idea/*
+.classpath
+.project
+.springBeans
+/lib/

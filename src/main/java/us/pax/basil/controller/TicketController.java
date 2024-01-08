@@ -17,20 +17,20 @@ package us.pax.basil.controller;
  */
 
 import io.swagger.annotations.Api;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import us.pax.basil.dto.output.*;
-
-import us.pax.basil.entity.ticket.*;
-import us.pax.basil.service.TicketService;
 import org.springframework.web.multipart.MultipartFile;
+import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
+import us.pax.basil.entity.ticket.Key;
+import us.pax.basil.entity.ticket.TicketEditDTO;
+import us.pax.basil.entity.ticket.TicketInsertion;
+import us.pax.basil.entity.ticket.TicketResponse;
+import us.pax.basil.service.TicketService;
 
 import javax.persistence.EntityManager;
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Api(tags = "Basil API Interface")
 @RestController
@@ -57,11 +57,17 @@ public class TicketController {
         return ticketService.batchSerialNumberQuery(entityManager, file, fileName);
     }
     
-    @PreAuthorize("hasAuthority('ticketing.add')")
+    /*@PreAuthorize("hasAuthority('ticketing.add')")
     @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")
 //BCP-25viewEditTicket?id=189
     public QueryResultDTO ticketSubmit(@RequestBody TicketInsertion ticketInsertion) {
         return ticketService.submitTicket(ticketInsertion);
+    }*/
+
+    @PreAuthorize("hasAuthority('ticketing.add')")
+    @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")
+    public CompletableFuture<QueryResultDTO> submitTicket(@RequestBody TicketInsertion ticketInsertion) {
+        return ticketService.submitTicketFuture(ticketInsertion);
     }
     
     /**

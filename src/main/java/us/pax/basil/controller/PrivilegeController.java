@@ -15,15 +15,11 @@ package us.pax.basil.controller;
  * ============================================================================
  */
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.servlet.http.HttpServletRequest;
+import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.annotations.Api;
 import us.pax.basil.constant.PrivilegeConstant;
-import us.pax.basil.constant.SupportAttributeConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
@@ -35,6 +31,10 @@ import us.pax.basil.entity.privilege.RoleType;
 import us.pax.basil.service.PrivilegeService;
 import us.pax.basil.service.SupportAttributeService;
 import us.pax.basil.service.UserService;
+
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/privilege")
@@ -178,8 +178,8 @@ public class PrivilegeController {
     //
     @PreAuthorize("hasAnyAuthority('privilege.user.add')")
     @PostMapping("/user/add")
-    public SqlResultDTO userAdd(HttpServletRequest request, @RequestBody User user) {
-        return userService.addUser(request, user);
+    public CompletableFuture<SqlResultDTO> userAdd(HttpServletRequest request, @RequestBody User user) {
+        return userService.addUserAsync(request, user);
     }
 
     //

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${subject}">Basil Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333333;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 90%;
+            margin: 20px auto;
+            background: #FFF;
+            padding: 20px;
+            box-sizing: border-box;
+            border: 1px solid #dddddd;
+        }
+        .logo {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+        }
+
+        .logo-img {
+            background: url('https://basil.paxcenters.com/pax_logo.png') no-repeat center center;
+            background-size: contain;
+            min-width: 95px;
+            min-height: 50px;
+            max-width: 30%;
+            flex-grow: 0;
+            flex-shrink: 0;
+            width: calc(20vw);
+            height: calc(20vw / 1.923);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .logo-img {
+                background: url('https://d2cklg8vosxjhi.cloudfront.net/static/pax_clear.png') no-repeat center center;
+                background-size: contain;
+                min-width: 95px;
+                min-height: 50px;
+                max-width: 30%;
+                flex-grow: 0;
+                flex-shrink: 0;
+                width: calc(20vw);
+                height: calc(20vw / 1.923);
+            }
+        }
+
+        .notification-text {
+            position: absolute;
+            right: 1vw;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #00AEFF;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: right;
+        }
+        .header {
+            font-size: calc(16px + 1vw);
+            margin-bottom: 20px;
+            background-color: #00AEFF;
+            color: #FFF;
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .content {
+            font-size: calc(14px + 0.5vw);
+            line-height: 1.5;
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 5px solid #00AEFF;
+            border-radius: 5px;
+        }
+        .footer {
+            font-size: 12px;
+            text-align: center;
+            color: #888888;
+            padding-top: 20px;
+            border-top: 1px solid #eeeeee;
+        }
+        .social-buttons {
+            text-align: center;
+            color: #000;
+            padding: 10px 0;
+            font-size: 16px;
+            border-bottom: 1px solid #eeeeee;
+        }
+        .social-buttons a {
+            color: #333333;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px 5px;
+            border-radius: 4px;
+        }
+
+        /* extra small phones */
+        @media only screen and (max-width: 339px) {
+            .container {
+                max-width: 100%;
+                padding: 10px;
+            }
+            .header, .content, .footer, .social-buttons {
+                font-size: 12px;
+            }
+            .social-buttons a {
+                display: block;
+                margin: 8px auto;
+                padding: 8px;
+            }
+        }
+
+        /* small phones */
+        @media (min-width: 340px) {
+            .container {
+                max-width: 95%;
+            }
+            .social-buttons a {
+                margin: 0 10px 10px;
+            }
+            .logo-img {
+                max-width: 160px;
+                max-height: 78px;
+                min-width: 120px;
+                min-height: 65px;
+                width: 20vw;
+                height: calc(20vw / 1.923);
+                margin-left: 1vw;
+            }
+            .notification-text {
+                font-size: calc(12px + 1vw);
+                margin-left: 2vw;
+            }
+        }
+
+        /* medium mobile devices */
+        @media (min-width: 600px) {
+            .container {
+                max-width: 90%;
+            }
+            .header {
+                font-size: 24px;
+            }
+            .content {
+                font-size: 16px;
+            }
+            .footer {
+                font-size: 14px;
+            }
+            .social-buttons {
+                font-size: 16px;
+            }
+            .logo-img {
+                max-width: 160px;
+                max-height: 80px;
+                min-width: 150px;
+                min-height: 78px;
+                width: 12vw;
+                height: calc(12vw / 1.923);
+                margin-left: 1vw;
+            }
+        }
+
+        /* laptops and other large devices */
+        @media (min-width: 900px) {
+            .container {
+                max-width: 800px;
+            }
+            .logo-img {
+                max-width: 180px;
+                max-height: 90px;
+                min-width: 150px;
+                min-height: 78px;
+                width: 12vw;
+                height: calc(12vw / 1.923);
+                margin-left: 1vw;
+            }
+            .notification-text {
+                font-size: 22px;
+                margin-left: 2vw;
+            }
+        }
+
+        /* large laptops and desktops */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 900px;
+            }
+            .logo {
+                padding-bottom: 20px;
+            }
+            .notification-text {
+                font-size: 24px;
+                right: 1.5vw;
+            }
+            .logo-img {
+                max-width: 180px;
+                max-height: 90px;
+                min-width: 150px;
+                min-height: 78px;
+                width: 12vw;
+                height: calc(12vw / 1.923);
+            }
+        }
+
+        /* extra large viewports */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 1100px;
+            }
+            .header {
+                font-size: 32px;
+            }
+            .content {
+                font-size: 20px;
+            }
+            .footer {
+                font-size: 18px;
+            }
+            .social-buttons {
+                font-size: 20px;
+            }
+            .logo-img {
+                max-width: 189px;
+                max-height: 98px;
+                min-width: 189px;
+                min-height: 98px;
+                width: 189px;
+                height: 98px;
+                margin-left: 1vw;
+            }
+            .notification-text {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">
+        <div class="logo-img"></div>
+        <span class="notification-text">Basil Client Portal</span>
+    </div>
+    <div class="header">
+        <span th:text="${title}">System Message</span>
+    </div>
+    <div class="content" th:utext="${message}">
+        If you see this message, something went wrong generating this email.
+        <br><br>
+        <div style="text-align: left;">
+            Please login to your account and check your message center, as something may need your attention.
+        </div>
+    </div>
+    <div class="footer">
+        <div class="social-buttons">
+            Follow us on social media: <br><br>
+            <a href="https://www.instagram.com/pax.tech/" target="_blank" rel="noopener noreferrer" style="background-color: #E1306C; color: #ffffff; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin-right: 5px;">Instagram</a>
+            <a href="https://www.facebook.com/paxtechnology" target="_blank" rel="noopener noreferrer" style="background-color: #3B5998; color: #ffffff; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin-right: 5px;">Facebook</a>
+            <a href="https://twitter.com/paxtechnology" target="_blank" rel="noopener noreferrer" style="background-color: #1DA1F2; color: #ffffff; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block;">Twitter</a>
+            <a href="https://www.linkedin.com/company/pax-technology/" target="_blank" rel="noopener noreferrer" style="background-color: #0077B5; color: #ffffff; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin-right: 5px;">LinkedIn</a>
+            <br><br>
+        </div>
+        <br>
+        Please do not reply to this email, it is not monitored. If you'd like to contact us,
+        <a href="https://basilclient.paxcenters.com/" target="_blank" rel="noopener noreferrer" style="color: #333333; text-decoration: none;">
+            please visit our website
+        </a>
+        <br><br>
+        © 2023 PAX Technology, All Rights Reserved  |
+        <a href="https://www.pax.us/terms-conditions/" target="_blank" rel="noopener noreferrer" style="color: #333333; text-decoration: none;">Terms & Conditions</a> |
+        <a href="https://www.pax.us/privacy-policy/" target="_blank" rel="noopener noreferrer" style="color: #333333; text-decoration: none;">Privacy Policy</a>
+    </div>
+</div>
+</body>
+</html>

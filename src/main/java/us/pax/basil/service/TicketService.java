@@ -1,15 +1,16 @@
 package us.pax.basil.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.sun.mail.util.QEncoderStream;
-import io.swagger.models.auth.In;
-import org.springframework.web.bind.annotation.RequestParam;
-import us.pax.basil.dto.output.*;
 import org.springframework.web.multipart.MultipartFile;
-import us.pax.basil.entity.ticket.*;
+import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
+import us.pax.basil.entity.ticket.TicketEditDTO;
+import us.pax.basil.entity.ticket.TicketInsertion;
+import us.pax.basil.entity.ticket.TicketInsertionObject;
+import us.pax.basil.entity.ticket.TicketResponse;
 
 import javax.persistence.EntityManager;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /***
  * ============================================================================
@@ -63,6 +64,7 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO serialNumberQuery(String serialNumber);
     int insertTicketToPMO(TicketInsertionObject tio);
     QueryResultDTO submitTicket(TicketInsertion ticketInsertion);
+    CompletableFuture<QueryResultDTO> submitTicketFuture(TicketInsertion ticketInsertion);
     QueryResultDTO viewEditTicket(String id);
     QueryResultDTO insertResponse(TicketResponse ticketResponse);
     QueryResultArrayDTO getResponse(String id);
