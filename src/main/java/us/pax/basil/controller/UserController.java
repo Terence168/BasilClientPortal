@@ -16,25 +16,24 @@ package us.pax.basil.controller;
  */
 
 
-import org.springframework.boot.actuate.integration.IntegrationGraphEndpoint;
+import com.paxcq.cloud.common.dto.Result;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
 import us.pax.basil.dto.output.QueryResultDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.UserService;
-import com.paxcq.cloud.common.dto.Result;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
+import us.pax.basil.utils.AuthUtil;
 
 import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
-import us.pax.basil.utils.AuthUtil;
+import java.util.concurrent.CompletableFuture;
 
 @Api(tags = "Basil API Interface")
 @RestController
@@ -48,8 +47,8 @@ public class UserController {
     @PreAuthorize("hasAuthority('privilege.user.add')")
     @ApiOperation(value = "Create User", notes = "Permission Code: admin.user.create")
     @PostMapping("/add")
-    public SqlResultDTO addUser(HttpServletRequest request, @RequestBody User user) {
-        return userService.addUser(request, user);
+    public CompletableFuture<SqlResultDTO> addUser(HttpServletRequest request, @RequestBody User user) {
+        return userService.addUserAsync(request, user);
     }
 
     @PreAuthorize("hasAuthority('privilege.user.activate')")

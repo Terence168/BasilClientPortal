@@ -18,19 +18,14 @@ package us.pax.basil.controller;
  * ============================================================================
  */
 
-import javax.servlet.http.HttpServletRequest;
-
-import lombok.AllArgsConstructor;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
 import io.swagger.annotations.Api;
+import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.service.PasswordService;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/password")
@@ -39,11 +34,9 @@ import us.pax.basil.service.PasswordService;
 public class PasswordController {
     private PasswordService passwordService;
 
-
-    // Forgot password
     @PostMapping("/forgot")
-    public SqlResultDTO forgot(final HttpServletRequest request, @RequestParam("email") final String userEmail) {
-        return passwordService.forgotPassword(request, userEmail);
+    public CompletableFuture<SqlResultDTO> forgot(final HttpServletRequest request, @RequestParam("email") final String userEmail) {
+        return passwordService.forgotPasswordAsync(request, userEmail);
     }
 
     // Save password

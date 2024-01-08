@@ -18,22 +18,6 @@ spring:
 #    url: jdbc:mysql://prodbasilmysql.c09xunhasest.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-5&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
 #    username: BASIL_ODS_PRD
 #    password: PaxUser@123
-    
-  mail:
-    host: smtp.office365.com
-    port: 587
-    protocol: smtp
-    username: "basil@pax.us"
-    password: "8Dqa$hxc8egtHeSVl.D}"
-    properties:
-      mail:
-        transport:
-          protocol: smtp
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          timeout: 8000
 
 security:
   # urls which do not need authentication
@@ -112,9 +96,9 @@ aws:
   enabled: true
   local_development: true
   region: us-east-1
-  accessKeyId: ASIA6DUFT7CDCLHHND5G
-  secretKey: weTyGpEXVPn3fYRs2eaCo9s1t+3sGYrdouFJS8MO
-  sessionToken: IQoJb3JpZ2luX2VjEDEaCXVzLWVhc3QtMiJGMEQCIEwm+jp6s+gSJsvw0pOMfUElzEER7gocYUt4jABlYQERAiBvQSVJWWAmsU1nehjtS5JabJyQjuo+EelSOolO585+5iqCAwjK//////////8BEAEaDDk2OTg2OTA5NzA5NCIMjWgO8Yw5EZWfC6NSKtYCi53BNHH7wOztPwrCh87ewJOzj3Bx5RahYwaZUJUc2MVBNJkoUiryLZF5WZmo9ifIkgUd6stGHf8gbvTlCkIv9vbfP6P8Afx5HRgas4zLk2CXscrJl7zGrbdkJ5UbpFOdPEC2ZIZ4ncjTyhigW+dNjcIdhChxZwCAQhhdu1e/cTnmSrVfaXsXiRyzb/ORtQ+na62/DokdHJ3frKgmTcD0XRyOqowbavL+TVjfmbpwM7Av0L7p7EaWK4RvVC4xDr8/MWwmvCKWUS6884R/gh+DWCum68f0oCQiZ8PQxej34PgxFaYg2N8Y4nhj9m2u8tIqZtcZmDJe4ntVV8FcSh1XP3iP7s/ooZWbJNDFKqrwKI8iiuGPAChiKYmYdKXu7VLOuSTAfoPbo7ihvAceVP1YsV669+n0XaQVJNX+dHVyF6/KYLAZ2VUkwDeHeYF6zPMh5GJAq2+LMJiG7awGOqgBXShaDXDmBlgujWL9ckaY50up7Rrq3zvE7Bn2eLQQZM41uAgzt8qMTkXGoRfPjpwvlrteX3im7JLH9gE9x4PiMBLBtwQAyDm5PL1fCZYR4hLram1W4DsDpu3WwnMRuXddO4zsVJb9xtRg55EMunNzr02LBJ4scdveXgNsiQPTVBW+/YrcqMUps5NtCHUUXYqD5MRMYNsSReaca2/sIOaEEj5gDsWDEIIG
+  accessKeyId: ASIA6DUFT7CDOAZBEB2T
+  secretKey: LbKB1hUtwWNeuNYzsE1JksBX6qxnMND2yVMfy1Kd
+  sessionToken: IQoJb3JpZ2luX2VjEDYaCXVzLWVhc3QtMiJGMEQCICFUjBNGVlM6ADxaZHxlgPtgBRXIPDNJTrKanPNa3CdtAiAsimLWcZf1ugqctj40pDTXTe9LYY4fXNCI7Qw8RTio0CqCAwjP//////////8BEAEaDDk2OTg2OTA5NzA5NCIMknkL078NqWNz7zXSKtYCeYXDK5WEhA8cIEHKwS49qTRRJzwLfwuC0LnH/IPcUUsKzORRZ8TFBVEMeXTr3Um9Y3FIhJvxSXpwrjnbgQl0Q0qL3ZbkooEAPcG79q8WDk7+RjREoNeadW+CTvhO7ej36BX0Ymfu4A03Kd6Tr3hkRdmoSjtAMcrpK6bSfMg63AXdVVdNoxy1Bw5ObbW1Wz1/GA0HP6jKN+wjfAIwYoQy4zRXwgiKOB6fgyOTFuMtXyNl7558B7VACIpbPQrBMelv2pLhcsL1/+ZCsVzJJSHNWyhW2BoCBzJZJk8QeQ+tFMQkfIHcDVju5l/8euwdEuBDe6x8Ftd0Bu7XP7HMQzhPGD0MeHwtmWkOTCGR0umKGzgOboS/rGlYpuwWXdxSlre1MbLnSliVCB1N3VMAGL1HyHHKoCTmbPa60G27H5ebYjeSqusKC3JC+LTwjw13D9SnaEoqvJ9VMO2o7qwGOqgBtp0rBp0CczMVz38KLdxoUjscTqW2J7vgviq5QRE0s80vDNmXeV5OwbVrgUtWyelZGm9I4neAjRBvNyLXlbOg+ZV3brHQZUhCoiuJQXFb+kGLIwrpJcvYbKBexXjD2fgE0BrK0+DnDF/Zv/gDL7AdFwel9o/YEMBV59Q84PYW8uTl34XYD3SqQSxjOSA2rlgumYIcM9VCuOs9KJ+s9ssUnDm3IVBknPDR
   threads:
     min: 10
     max: 30

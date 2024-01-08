@@ -13,7 +13,9 @@ import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -70,6 +72,17 @@ public class SimpleEmailService implements EmailService {
         }, awsExecutor);
     }
 
+    @Override
+    public CompletableFuture<List<SESResponse>> sendTemplatedEmail(String subject, String templateName, Map<String, Object> model, String... recipients) {
+        String htmlBody = templateService.build(templateName, model);
+        if (recipients == null || recipients.length < 1) {
+            throw new IllegalArgumentException("Email must contain at least one recipient");
+        } else {
+            return sendEmails(Arrays.asList(recipients), subject, htmlBody);
+        }
+    }
+
+
     private SESResponse sendEmailSync(String to, String subject, String htmlBody) {
         try {
             Body body = Body.builder()
@@ -99,7 +112,7 @@ public class SimpleEmailService implements EmailService {
                     .response(response)
                     .build();
         } catch (SdkException e) {
-            log.error("Failed to send email: " + e.getMessage(), e);
+            log.error("Failed to send email: {} to: {} | ERR: {}", subject, to, e.getMessage());
             return SESResponse.builder()
                     .success(false)
                     .exception(e)
