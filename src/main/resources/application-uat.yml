@@ -8,13 +8,13 @@ spring:
     url: jdbc:mysql://basilmysql1.c3156zibo6aq.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-5&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
     username: BASIL_ODS_PRD
     password: PaxUser@123
-    
+
   mail:
     host: smtp.office365.com
     port: 587
     protocol: smtp
     username: "basil@pax.us"
-    password: "8Dqa$hxc8egtHeSVl.D}"
+    password: "Pax4Future!@"
     properties:
       mail:
         transport:
@@ -36,7 +36,7 @@ security:
       - /v2/**
       - /internal/**
       - /error
-      - /api/**
+      #- /api/**
       - /user/**
       - /password/**
       - /privilege/**
@@ -93,7 +93,7 @@ http_pool:
   connection_request_timeout: 1000
   socket_timeout: 65000
   validate_after_inactivity: 2000
-  
+
 frontend:
   urls:
     activate: https://basilclientuat.paxcenters.com/activate-user/

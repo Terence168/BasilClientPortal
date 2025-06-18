@@ -10,14 +10,14 @@ spring:
     #password: pax@4901
 
     #  AWS UAT
-    url: jdbc:mysql://basilmysql1.c3156zibo6aq.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
-    username: BASIL_ODS_PRD
-    password: PaxUser@123
-
-    #  AWS PROD
-#    url: jdbc:mysql://prodbasilmysql.c09xunhasest.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-5&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
+#    url: jdbc:mysql://basilmysql1.c3156zibo6aq.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
 #    username: BASIL_ODS_PRD
 #    password: PaxUser@123
+
+    #  AWS PROD
+    url: jdbc:mysql://prodbasilmysql.c09xunhasest.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-5&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
+    username: BASIL_ODS_PRD
+    password: PaxUser@123
 
 security:
   # urls which do not need authentication

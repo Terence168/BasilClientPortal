@@ -92,8 +92,7 @@ public class SalesOrderController {
             response.setContentType("application/vnd.ms-excel");
             response.setHeader("Content-Disposition", "attachment;filename=" + "sales-order.xlsx");
             
-//            XSSFSheet pivotTableSheet = workBook.createSheet("Summary");
-            XSSFSheet sheet = workBook.createSheet("Sales Orders - Line Numbers");
+            XSSFSheet sheet = workBook.createSheet("Sales Orders");
             
             sheet.setColumnWidth(0, 4000);
             sheet.setColumnWidth(1, 8000);
@@ -201,23 +200,6 @@ public class SalesOrderController {
             
             //this sets auto filters
             dataTable.getCTTable().addNewAutoFilter().setRef(tableArea.formatAsString());
-            
-            // pivot table generation
-//            CellReference pos = new CellReference(0, 0);
-//            XSSFPivotTable pivotTable = pivotTableSheet.createPivotTable(tableArea, pos);
-//
-//            pivotTable.addRowLabel(0);
-//            pivotTable.addRowLabel(1);
-//            pivotTable.addRowLabel(2);
-//
-//            pivotTable.addColumnLabel(DataConsolidateFunction.COUNT, 4, "Count of SNs");
-//            pivotTable.addColLabel(4);
-//
-//            //Method addColLabel removes the dataField setting. So we need set it new.
-//            pivotTable.getCTPivotTableDefinition().getPivotFields().getPivotFieldArray(4)
-//                .setDataField(true);
-//
-//            pivotTable.addReportFilter(3);
             
             try (OutputStream outputStream = response.getOutputStream()) {
                 workBook.write(outputStream);
