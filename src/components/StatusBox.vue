@@ -216,7 +216,8 @@ const expandCategory = function (categoryValue) {
       :level="level + 1"
       :data="child"
       :parent="data[category]"
-  /></template>
+    />
+  </template>
 
   <template v-if="level === 3 && expanded && !loading">
     <div
@@ -255,7 +256,7 @@ const expandCategory = function (categoryValue) {
   background-color: $grey-3;
 }
 
-.body--dark .category:hover{
+.body--dark .category:hover {
   background-color: $grey-9;
 }
 </style>
