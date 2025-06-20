@@ -40,6 +40,19 @@
       </q-item-section>
       <q-item-section> Quarantine </q-item-section>
     </q-item>
+
+    <q-item
+      v-if="checkPermission('warranty_check')"
+      class="list-item"
+      active-class="active-link"
+      :to="{ name: 'warranty-check' }"
+      style="height: 50px"
+    >
+      <q-item-section avatar>
+        <q-icon name="verified_user" />
+      </q-item-section>
+      <q-item-section> Warranty Check </q-item-section>
+    </q-item>
   </q-list>
 </template>
 
@@ -47,7 +60,6 @@
 import { useUserStore } from "src/stores/user";
 
 export default {
-
   methods: {
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);

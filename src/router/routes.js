@@ -84,6 +84,16 @@ const routes = [
               permissions: ["rma.quarantine"],
             },
           },
+
+          {
+            path: "warranty-check",
+            name: "warranty-check",
+            component: () => import("pages/WarrantyCheckPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["warranty_check"],
+            },
+          },
         ],
       },
 
