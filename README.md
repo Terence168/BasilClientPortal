@@ -103,11 +103,14 @@ The warranty status is calculated based on:
 
 ### Build .jar
 1. make sure update the BasillientPortal version
+
   <groupId>us.pax.basil</groupId>
     <artifactId>BasilClientPortal</artifactId>
     <version>1.01.00-20251028</version>
     <packaging>jar</packaging>
-2. make sure your local maven has com.paxcq.cloud
+
+2. make sure your local maven has:  com.paxcq.cloud, if not please find it in /paxcq.zip
 3. run maven package to build .jar file
+
   mvn clean package "-Dspring.profiles.active=prod" -DskipTests
 
