@@ -31,3 +31,5 @@ target/*
 .project
 .springBeans
 /lib/
+.vscode/settings.json
+src/main/lib/*

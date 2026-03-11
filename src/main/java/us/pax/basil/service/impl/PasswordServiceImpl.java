@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import us.pax.basil.constant.PasswordConstant;
+import us.pax.basil.dto.input.PasswordRecoveryCompleteDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.entity.User;
 import us.pax.basil.mapper.PasswordMapper;
@@ -33,11 +34,23 @@ import us.pax.basil.service.PasswordService;
 import us.pax.basil.service.aws.ses.EmailService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.crypto.Cipher;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.sql.Timestamp;
+import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.security.SecureRandom;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Base64;
+import java.util.Optional;
 
 @Log4j2
 @Service
@@ -54,6 +67,18 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
 
     private PasswordMapper passwordMapper;
     private UserMapper userMapper;
+
+    private static final int RECOVERY_TOKEN_EXPIRATION_MS = 15 * 60 * 1000;
+    private static final int RECOVERY_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+    private static final int RECOVERY_RATE_LIMIT_MAX_REQUESTS = 2;
+    private static final String GENERIC_RECOVERY_MSG = "If the account exists, a password reset link has been sent.";
+    private static final String RECOVERY_SUCCESS_NOTIFY_SUBJECT = "Your password was updated - BCP";
+    private static final String RECOVERY_CRYPTO_SECRET = Optional.ofNullable(System.getenv("RECOVERY_LINK_SECRET"))
+            .orElse("basil-recovery-link-secret-change-in-prod");
+    private static final int GCM_IV_LENGTH = 12;
+    private static final int GCM_TAG_LENGTH_BITS = 128;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final ConcurrentHashMap<String, ArrayDeque<Long>> RECOVERY_REQUEST_WINDOW = new ConcurrentHashMap<>();
 
     @Override
     public CompletableFuture<SqlResultDTO> forgotPasswordAsync(HttpServletRequest request, String email) {
@@ -119,11 +144,232 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
     }
 
 	@Override
-	public SqlResultDTO tokenValid(String token) {
+    public SqlResultDTO tokenValid(String token) {
 		User user = userMapper.getUserByToken(token);
         if (user != null) {
             return new SqlResultDTO(0, "");
         } else
             return new SqlResultDTO(-1, "Token does not exist.");
 	}
+
+    @Override
+    public CompletableFuture<SqlResultDTO> requestPasswordRecoveryAsync(HttpServletRequest request, String email) {
+        try {
+            if (email == null || email.trim().isEmpty()) {
+                return CompletableFuture.completedFuture(new SqlResultDTO(0, GENERIC_RECOVERY_MSG));
+            }
+
+            final String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+            if (isRateLimited(normalizedEmail)) {
+                log.warn("Password recovery request rate-limited for email: {}", normalizedEmail);
+                return CompletableFuture.completedFuture(new SqlResultDTO(0, GENERIC_RECOVERY_MSG));
+            }
+
+            User user = userMapper.getUserByEmail(normalizedEmail);
+            if (user == null) {
+                return CompletableFuture.completedFuture(new SqlResultDTO(0, GENERIC_RECOVERY_MSG));
+            }
+
+            final String token = generateRecoveryToken();
+            final Timestamp expiry = new Timestamp(System.currentTimeMillis() + RECOVERY_TOKEN_EXPIRATION_MS);
+            passwordMapper.saveTokenAndExpirationByUser(user.getId(), token, expiry);
+
+            String encryptedUserId = encryptForUrl(String.valueOf(user.getId()));
+            String encryptedToken = encryptForUrl(token);
+            String resetUrl = buildRecoveryResetUrl(request, encryptedUserId, encryptedToken);
+            String subject = "Password Reset Requested - BCP";
+            String message = "Hi " + user.getName() + ",<br><br>" +
+                    "We received a request to reset your password.<br>" +
+                    "Use the secure link below to set a new password (valid for 15 minutes):<br><br>" +
+                    "<a href=\"" + resetUrl + "\">Reset Password</a><br><br>" +
+                    "Security tip: do not forward this email.<br>" +
+                    "If you did not request this change, please contact support immediately.";
+
+            Map<String, Object> templateData = new HashMap<>();
+            templateData.put("title", "Password Reset");
+            templateData.put("message", message);
+            templateData.put("subject", subject);
+
+            return emailService.sendTemplatedEmail(subject, "simpleMessage", templateData, user.getEmail())
+                    .thenApply(sesResponse -> new SqlResultDTO(0, GENERIC_RECOVERY_MSG))
+                    .exceptionally(e -> {
+                        log.error("Failed to send password recovery email: {}", e.getMessage(), e);
+                        return new SqlResultDTO(0, GENERIC_RECOVERY_MSG);
+                    });
+        } catch (Exception e) {
+            log.error("Exception in requestPasswordRecoveryAsync: {}", e.getMessage(), e);
+            return CompletableFuture.completedFuture(new SqlResultDTO(0, GENERIC_RECOVERY_MSG));
+        }
+    }
+
+    @Override
+    public SqlResultDTO validatePasswordRecoveryToken(String encryptedUserId, String encryptedToken) {
+        try {
+            if (encryptedUserId == null || encryptedToken == null
+                    || encryptedUserId.trim().isEmpty() || encryptedToken.trim().isEmpty()) {
+                return new SqlResultDTO(-1, "Invalid reset link.");
+            }
+
+            Integer userId = Integer.valueOf(decryptFromUrl(encryptedUserId));
+            String token = decryptFromUrl(encryptedToken);
+
+            Timestamp expirationTs = passwordMapper.getTokenExpirationByUser(userId, token);
+            if (expirationTs == null) {
+                return new SqlResultDTO(-1, "Invalid reset link.");
+            }
+
+            Timestamp currentTs = new Timestamp(System.currentTimeMillis());
+            if (currentTs.after(expirationTs)) {
+                return new SqlResultDTO(-1, "Reset link has expired.");
+            }
+
+            return new SqlResultDTO(0, "");
+        } catch (Exception e) {
+            log.error("Exception in validatePasswordRecoveryToken: {}", e.getMessage(), e);
+            return new SqlResultDTO(-1, "Failed to validate reset link.");
+        }
+    }
+
+    @Override
+    public SqlResultDTO completePasswordRecovery(HttpServletRequest request, PasswordRecoveryCompleteDTO dto) {
+        try {
+            if (dto == null || dto.getEncryptedUserId() == null || dto.getEncryptedToken() == null || dto.getPassword() == null) {
+                return new SqlResultDTO(-1, "Invalid reset request.");
+            }
+
+            Integer userId = Integer.valueOf(decryptFromUrl(dto.getEncryptedUserId()));
+            String token = decryptFromUrl(dto.getEncryptedToken());
+
+            User user = passwordMapper.getUserByIdAndToken(userId, token);
+            if (user == null) {
+                return new SqlResultDTO(-1, "Invalid reset link.");
+            }
+
+            Timestamp currentTs = new Timestamp(System.currentTimeMillis());
+            if (user.getTokenExp() == null || currentTs.after(user.getTokenExp())) {
+                return new SqlResultDTO(-1, "Reset link has expired.");
+            }
+
+            passwordMapper.savePasswordByUser(user.getId(), passwordEncoder.encode(dto.getPassword()));
+            passwordMapper.clearTokenByUser(user.getId());
+
+            sendPasswordChangedNotification(user, request);
+
+            return new SqlResultDTO(0, "Password has been reset successfully.");
+        } catch (Exception e) {
+            log.error("Exception in completePasswordRecovery: {}", e.getMessage(), e);
+            return new SqlResultDTO(-1, "Failed to reset password.");
+        }
+    }
+
+    private String generateRecoveryToken() {
+        byte[] random = new byte[4];
+        SECURE_RANDOM.nextBytes(random);
+        StringBuilder suffix = new StringBuilder();
+        for (byte b : random) {
+            suffix.append(String.format("%02x", b));
+        }
+        return UUID.randomUUID().toString() + "-" + suffix;
+    }
+
+    private String encryptForUrl(String plainText) throws Exception {
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        SECURE_RANDOM.nextBytes(iv);
+
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, buildSecretKey(), new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
+        byte[] encrypted = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+
+        byte[] payload = new byte[iv.length + encrypted.length];
+        System.arraycopy(iv, 0, payload, 0, iv.length);
+        System.arraycopy(encrypted, 0, payload, iv.length, encrypted.length);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(payload);
+    }
+
+    private String decryptFromUrl(String encryptedText) throws Exception {
+        byte[] payload = Base64.getUrlDecoder().decode(encryptedText);
+        if (payload.length <= GCM_IV_LENGTH) {
+            throw new IllegalArgumentException("Invalid encrypted payload");
+        }
+
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        byte[] encrypted = new byte[payload.length - GCM_IV_LENGTH];
+        System.arraycopy(payload, 0, iv, 0, GCM_IV_LENGTH);
+        System.arraycopy(payload, GCM_IV_LENGTH, encrypted, 0, encrypted.length);
+
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE, buildSecretKey(), new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv));
+        byte[] decrypted = cipher.doFinal(encrypted);
+        return new String(decrypted, StandardCharsets.UTF_8);
+    }
+
+    private SecretKeySpec buildSecretKey() throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] key = digest.digest(RECOVERY_CRYPTO_SECRET.getBytes(StandardCharsets.UTF_8));
+        return new SecretKeySpec(key, "AES");
+    }
+
+    private boolean isRateLimited(String email) {
+        long now = System.currentTimeMillis();
+        ArrayDeque<Long> queue = RECOVERY_REQUEST_WINDOW.computeIfAbsent(email, key -> new ArrayDeque<>());
+        synchronized (queue) {
+            while (!queue.isEmpty() && now - queue.peekFirst() > RECOVERY_RATE_LIMIT_WINDOW_MS) {
+                queue.pollFirst();
+            }
+            if (queue.size() >= RECOVERY_RATE_LIMIT_MAX_REQUESTS) {
+                return true;
+            }
+            queue.offerLast(now);
+            return false;
+        }
+    }
+
+    private String buildRecoveryResetUrl(HttpServletRequest request, String encryptedUserId, String encryptedToken) throws Exception {
+        String origin = null;
+        if (request != null) {
+            origin = request.getHeader("Origin");
+            if (origin == null || origin.trim().isEmpty()) {
+                String scheme = request.getScheme();
+                String host = request.getServerName();
+                int port = request.getServerPort();
+                boolean useDefaultPort = ("http".equalsIgnoreCase(scheme) && port == 80)
+                        || ("https".equalsIgnoreCase(scheme) && port == 443);
+                origin = scheme + "://" + host + (useDefaultPort ? "" : ":" + port);
+            }
+        }
+
+        if (origin == null || origin.trim().isEmpty()) {
+            origin = "http://localhost:9000";
+        }
+
+        origin = origin.replaceAll("/+$", "");
+        return origin
+                + "/reset-password?user_id=" + URLEncoder.encode(encryptedUserId, StandardCharsets.UTF_8.name())
+                + "&token=" + URLEncoder.encode(encryptedToken, StandardCharsets.UTF_8.name());
+    }
+
+    private void sendPasswordChangedNotification(User user, HttpServletRequest request) {
+        try {
+            String subject = RECOVERY_SUCCESS_NOTIFY_SUBJECT;
+            String sourceIp = request == null ? "unknown" : request.getRemoteAddr();
+            String message = "Hi " + user.getName() + ",<br><br>" +
+                    "Your password was successfully updated.<br>" +
+                    "Time: " + new Timestamp(System.currentTimeMillis()) + "<br>" +
+                    "IP: " + sourceIp + "<br><br>" +
+                    "If this was not you, please contact support immediately.";
+
+            Map<String, Object> templateData = new HashMap<>();
+            templateData.put("title", "Password Updated");
+            templateData.put("message", message);
+            templateData.put("subject", subject);
+
+            emailService.sendTemplatedEmail(subject, "simpleMessage", templateData, user.getEmail())
+                    .exceptionally(e -> {
+                        log.error("Failed to send password updated notification: {}", e.getMessage(), e);
+                        return null;
+                    });
+        } catch (Exception e) {
+            log.error("Failed to build password changed notification: {}", e.getMessage(), e);
+        }
+    }
 }

@@ -21,6 +21,7 @@ package us.pax.basil.controller;
 import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import us.pax.basil.dto.input.PasswordRecoveryCompleteDTO;
 import us.pax.basil.dto.output.SqlResultDTO;
 import us.pax.basil.service.PasswordService;
 
@@ -37,6 +38,30 @@ public class PasswordController {
     @PostMapping("/forgot")
     public CompletableFuture<SqlResultDTO> forgot(final HttpServletRequest request, @RequestParam("email") final String userEmail) {
         return passwordService.forgotPasswordAsync(request, userEmail);
+    }
+
+    /**
+     * New password recovery API set (do not reuse legacy endpoints):
+     * 1) request recovery mail
+     * 2) validate token by user id + token
+     * 3) complete password reset
+     */
+    @PostMapping("/recovery/request")
+    public CompletableFuture<SqlResultDTO> requestRecovery(final HttpServletRequest request,
+                                                           @RequestParam("email") final String userEmail) {
+        return passwordService.requestPasswordRecoveryAsync(request, userEmail);
+    }
+
+    @GetMapping("/recovery/validate")
+    public SqlResultDTO validateRecovery(@RequestParam("user_id") String encryptedUserId,
+                                         @RequestParam("token") String encryptedToken) {
+        return passwordService.validatePasswordRecoveryToken(encryptedUserId, encryptedToken);
+    }
+
+    @PostMapping("/recovery/complete")
+    public SqlResultDTO completeRecovery(final HttpServletRequest request,
+                                         @RequestBody PasswordRecoveryCompleteDTO dto) {
+        return passwordService.completePasswordRecovery(request, dto);
     }
 
     // Save password

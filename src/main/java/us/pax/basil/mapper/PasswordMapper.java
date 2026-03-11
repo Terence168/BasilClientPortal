@@ -1,6 +1,7 @@
 package us.pax.basil.mapper;
 
 import java.sql.Timestamp;
+import us.pax.basil.entity.User;
 
 
 /***
@@ -23,8 +24,13 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 public interface PasswordMapper extends BaseMapper<Integer> {
 	Timestamp getTokenExpiration(String token);
+	Timestamp getTokenExpirationByUser(Integer userId, String token);
+	User getUserByIdAndToken(Integer userId, String token);
 	void setStatus(String token, Integer status);
 	void resetToken(String token, String resetToken);
+	void clearTokenByUser(Integer userId);
     void saveTokenAndExpiration(String email, String token, Timestamp timeStamp);
+    void saveTokenAndExpirationByUser(Integer userId, String token, Timestamp timeStamp);
     void savePassword(String token, String password);
+    void savePasswordByUser(Integer userId, String password);
 }
