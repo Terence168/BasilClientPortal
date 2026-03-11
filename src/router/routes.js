@@ -205,8 +205,9 @@ const routes = [
   },
 
   {
-    path: "/forgot-password",
-    name: "forgot-password",
+    path: "/reset-password",
+    alias: "/forgot-password",
+    name: "reset-password",
     component: () => import("pages/ForgotPasswordPage.vue"),
   },
 
