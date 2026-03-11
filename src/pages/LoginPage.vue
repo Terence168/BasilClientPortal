@@ -77,23 +77,79 @@
               no-caps
             />
           </div>
+
+          <div class="row justify-end">
+            <q-btn
+              flat
+              no-caps
+              color="primary"
+              label="Forgot password?"
+              @click="openForgotPasswordDialog"
+            />
+          </div>
         </q-form>
       </div>
     </div>
+
+    <q-dialog v-model="showForgotDialog">
+      <q-card style="min-width: 420px">
+        <q-card-section>
+          <div class="text-h6">Forgot Password</div>
+          <div class="text-body2 text-grey-7 q-mt-sm">
+            Enter your email address. If the account exists, we will send a reset link.
+          </div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-form @submit="submitForgotPassword" class="q-gutter-y-sm">
+            <q-input
+              outlined
+              v-model="forgotEmail"
+              label="Email"
+              lazy-rules
+              dense
+              :rules="[
+                (val) => (val && val.length > 0) || 'Email cannot be empty',
+                (val) => validateEmail(val) || 'Please enter a valid email',
+              ]"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person" />
+              </template>
+            </q-input>
+
+            <div class="row justify-end q-gutter-sm">
+              <q-btn flat label="Cancel" no-caps v-close-popup />
+              <q-btn
+                color="primary"
+                label="Send Reset Link"
+                type="submit"
+                no-caps
+                unelevated
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
 <script setup>
 import { uat } from "boot/axios";
+import { api } from "boot/axios";
 import { useUserStore } from "stores/user";
 import sha256 from "js-sha256";
-import { ref, computed } from "vue";
+import { ref } from "vue";
+import { Notify } from "quasar";
 
 const user = useUserStore();
 
 const usr = ref(null);
 const pwd = ref(null);
 const isPwd = ref(true);
+const showForgotDialog = ref(false);
+const forgotEmail = ref("");
 
 const validateEmail = function (username) {
   const re =
@@ -106,6 +162,32 @@ const onSubmit = function () {
   const password = sha256(pwd.value);
 
   user.login(username, password);
+};
+
+const openForgotPasswordDialog = function () {
+  forgotEmail.value = usr.value || "";
+  showForgotDialog.value = true;
+};
+
+const submitForgotPassword = function () {
+  api
+    .post("password/recovery/request", null, {
+      params: { email: forgotEmail.value },
+    })
+    .then(() => {
+      Notify.create({
+        type: "positive",
+        message:
+          "If the account exists, a password reset link has been sent to the email.",
+      });
+      showForgotDialog.value = false;
+    })
+    .catch((error) => {
+      Notify.create({
+        type: "negative",
+        message: error.message || "Failed to submit password recovery request.",
+      });
+    });
 };
 
 // export default defineComponent({

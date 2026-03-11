@@ -205,6 +205,12 @@ const routes = [
   },
 
   {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: () => import("pages/ForgotPasswordPage.vue"),
+  },
+
+  {
     path: "/activate-user/:token",
     name: "activate-user",
     component: () => import("pages/ActivateUserPage.vue"),
