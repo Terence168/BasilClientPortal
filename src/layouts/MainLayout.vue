@@ -33,7 +33,14 @@
           />
         </q-tabs>
         <div class="col-auto text-accent text-subtitle1 q-mr-md">
-          <div class="row">
+          <div class="row items-center">
+            <q-btn
+              class="col-auto self-center q-mr-md contact-rma-btn"
+              label="Contact RMA"
+              no-caps
+              unelevated
+              @click="openContactRmaModal"
+            />
             <q-avatar color="primary" text-color="white">{{
               userName ? userName[0] : "G"
             }}</q-avatar>
@@ -179,6 +186,107 @@
           </div>
         </q-form>
       </BaseModal>
+
+      <BaseModal
+        v-model:show="showContactRmaModal"
+        title="Contact RMA"
+        :width="560"
+      >
+        <q-form ref="contactRmaFormRef" @submit="submitContactRma">
+          <q-input
+            class="q-mb-sm"
+            outlined
+            dense
+            v-model="contactRmaTicketId"
+            label="Ticket ID"
+            maxlength="50"
+            lazy-rules
+            :rules="[
+              (val) => (val && val.trim().length > 0) || 'Ticket ID is required',
+            ]"
+          />
+
+          <q-input
+            class="q-mb-sm"
+            outlined
+            dense
+            v-model="contactRmaSubject"
+            label="Subject"
+            maxlength="200"
+            lazy-rules
+            :rules="[
+              (val) => (val && val.trim().length > 0) || 'Subject is required',
+            ]"
+          />
+
+          <q-input
+            class="q-mb-sm"
+            outlined
+            dense
+            v-model="contactRmaMessage"
+            type="textarea"
+            autogrow
+            label="Message"
+            maxlength="4000"
+            lazy-rules
+            :rules="[
+              (val) => (val && val.trim().length > 0) || 'Message is required',
+            ]"
+          />
+
+          <q-file
+            class="q-mb-sm"
+            outlined
+            dense
+            clearable
+            v-model="contactRmaScreenshot"
+            label="Screenshot (optional)"
+            accept=".png,.jpg,.jpeg,.gif"
+            :max-file-size="10485760"
+            @rejected="onContactRmaFileRejected"
+          >
+            <template v-slot:prepend>
+              <q-icon name="image" />
+            </template>
+            <template v-slot:hint>
+              Optional image upload. Accepted: PNG/JPG/JPEG/GIF (max 10 MB).
+            </template>
+          </q-file>
+
+          <div class="q-pa-sm bg-blue-1 text-caption rounded-borders q-mb-md">
+            <div><strong>To:</strong> RMAsupport@pax.us</div>
+            <div><strong>Customer:</strong> {{ userName }}</div>
+            <div><strong>Organization:</strong> {{ companyName || "N/A" }}</div>
+            <div><strong>Email:</strong> {{ userEmail }}</div>
+          </div>
+
+          <div class="row justify-center q-mt-md">
+            <div class="col-auto">
+              <q-btn
+                class="q-mr-md"
+                type="submit"
+                label="Send"
+                color="primary"
+                :loading="contactRmaSubmitting"
+                style="min-width: 140px"
+              >
+                <template v-slot:loading>
+                  <q-spinner-facebook />
+                </template>
+              </q-btn>
+            </div>
+            <div class="col-auto">
+              <q-btn
+                label="Cancel"
+                color="grey-4"
+                text-color="grey-6"
+                style="min-width: 140px"
+                @click="closeContactRmaModal"
+              />
+            </div>
+          </div>
+        </q-form>
+      </BaseModal>
     </q-page-container>
   </q-layout>
 </template>
@@ -202,6 +310,8 @@ import { Dark } from "quasar";
 import sha256 from "js-sha256";
 
 const user = useUserStore();
+const CONTACT_RMA_EMAIL = "RMAsupport@pax.us";
+const CONTACT_RMA_LOG_STORAGE_KEY = "contact_rma_submission_logs";
 
 export default {
   name: "MainLayout",
@@ -223,6 +333,12 @@ export default {
       isPwd2: true,
       newPassword: null,
       currentPassword: null,
+      showContactRmaModal: false,
+      contactRmaTicketId: "",
+      contactRmaSubject: "",
+      contactRmaMessage: "",
+      contactRmaScreenshot: null,
+      contactRmaSubmitting: false,
       uat,
       // darkMode: "auto",
     };
@@ -239,6 +355,12 @@ export default {
     companyName() {
       return user.companyName || "";
     },
+    userEmail() {
+      return user.email || "N/A";
+    },
+    currentTicketId() {
+      return this.$route?.params?.ticketId || this.$route?.query?.ticketId || null;
+    },
   },
 
   methods: {
@@ -249,12 +371,126 @@ export default {
     changePassword() {
       this.showModal = true;
     },
+    openContactRmaModal() {
+      this.contactRmaTicketId = this.currentTicketId ? String(this.currentTicketId) : "";
+      this.showContactRmaModal = true;
+    },
+    closeContactRmaModal() {
+      this.showContactRmaModal = false;
+      this.resetContactRmaForm();
+    },
+    resetContactRmaForm() {
+      this.contactRmaTicketId = "";
+      this.contactRmaSubject = "";
+      this.contactRmaMessage = "";
+      this.contactRmaScreenshot = null;
+    },
+    onContactRmaFileRejected() {
+      this.$q.notify({
+        type: "negative",
+        message: "Invalid screenshot file. Please use PNG/JPG/JPEG/GIF under 10 MB.",
+      });
+    },
+    logContactRmaSubmission(logEntry) {
+      try {
+        const currentLogs = JSON.parse(
+          window.localStorage.getItem(CONTACT_RMA_LOG_STORAGE_KEY) || "[]"
+        );
+        currentLogs.unshift(logEntry);
+        window.localStorage.setItem(
+          CONTACT_RMA_LOG_STORAGE_KEY,
+          JSON.stringify(currentLogs.slice(0, 200))
+        );
+      } catch (error) {
+        console.error("Failed to persist Contact RMA log:", error);
+      }
+      console.info("[Contact RMA] submission:", logEntry);
+    },
+    async submitContactRma() {
+      const isFormValid = await this.$refs.contactRmaFormRef.validate();
+      if (!isFormValid) {
+        return;
+      }
+
+      this.contactRmaSubmitting = true;
+
+      const timestamp = new Date().toISOString();
+      const ticketId = this.contactRmaTicketId ? this.contactRmaTicketId.trim() : "";
+      const submissionLog = {
+        timestamp,
+        user: this.userName,
+        organization: this.companyName || "",
+        email: this.userEmail,
+        ticketId: ticketId || null,
+        subject: this.contactRmaSubject,
+      };
+
+      const formData = new FormData();
+      formData.append("to", CONTACT_RMA_EMAIL);
+      formData.append("subject", this.contactRmaSubject);
+      formData.append("message", this.contactRmaMessage);
+      formData.append("timestamp", timestamp);
+      formData.append("customerName", this.userName);
+      formData.append("customerOrganization", this.companyName || "");
+      formData.append("customerEmail", this.userEmail);
+      formData.append("ticketId", ticketId || "");
+      if (this.contactRmaScreenshot) {
+        formData.append("screenshot", this.contactRmaScreenshot);
+      }
+
+      try {
+        const response = await this.$api.post("/ticketing/contact-rma", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        if (response?.data?.resultCode !== 0) {
+          throw new Error(response?.data?.errorMessage || "Failed to send Contact RMA email.");
+        }
+
+        this.logContactRmaSubmission(submissionLog);
+        this.$q.notify({
+          type: "positive",
+          message: `Message sent to ${CONTACT_RMA_EMAIL}`,
+        });
+        this.closeContactRmaModal();
+      } catch (error) {
+        const encodedSubject = encodeURIComponent(
+          `${this.contactRmaSubject}${ticketId ? ` | Ticket ${ticketId}` : ""}`
+        );
+        const encodedBody = encodeURIComponent(
+          `Message:\n${this.contactRmaMessage}\n\nTicket ID: ${
+            ticketId || "N/A"
+          }\nCustomer Name: ${this.userName}\nOrganization: ${
+            this.companyName || "N/A"
+          }\nEmail: ${this.userEmail}\nTimestamp: ${timestamp}\nScreenshot: ${
+            this.contactRmaScreenshot
+              ? `${this.contactRmaScreenshot.name} (please attach manually if email client opens)`
+              : "N/A"
+          }`
+        );
+        window.location.href = `mailto:${CONTACT_RMA_EMAIL}?subject=${encodedSubject}&body=${encodedBody}`;
+
+        this.logContactRmaSubmission({
+          ...submissionLog,
+          fallback: "mailto",
+        });
+        this.$q.notify({
+          type: "warning",
+          message:
+            "Backend email endpoint is unavailable. Your email client has been opened as fallback.",
+        });
+        this.closeContactRmaModal();
+      } finally {
+        this.contactRmaSubmitting = false;
+      }
+    },
 
     onSubmit() {
       const newPassword = sha256(this.newPassword);
       const currentPassword = sha256(this.currentPassword);
 
-      const actionURL = "user/password-change";
+      const actionURL = "privilege/user/password-change";
 
       const vm = this;
       this.$api
@@ -263,7 +499,21 @@ export default {
           if (response.data.resultCode !== -1) {
             vm.showModal = false;
             vm.$q.notify("Password was successfully changed");
+          } else {
+            vm.$q.notify({
+              type: "negative",
+              message: response.data.errorMessage || "Password change failed",
+            });
           }
+        })
+        .catch(function (error) {
+          vm.$q.notify({
+            type: "negative",
+            message:
+              error?.response?.data?.message ||
+              error?.response?.data?.errorMessage ||
+              "Password change failed",
+          });
         });
     },
     checkPermission(permission) {
@@ -278,6 +528,17 @@ export default {
 </script>
 
 <style scoped>
+.contact-rma-btn {
+  background: #4169e1;
+  color: #ffffff;
+  border: 1px solid #4169e1;
+}
+
+.contact-rma-btn:hover {
+  background: #2f56cb;
+  border-color: #2f56cb;
+}
+
 .body--dark .q-tabs .q-tab__label {
   color: white;
 }
@@ -289,5 +550,11 @@ export default {
 
 .body--dark div {
   color: white;
+}
+
+.body--dark .q-btn.contact-rma-btn {
+  color: #ffffff;
+  border-color: #4169e1;
+  background: #4169e1;
 }
 </style>

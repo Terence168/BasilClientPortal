@@ -1,25 +1,31 @@
 <template>
-  <div class="q-mx-lg">
-    <div class="generic-container">
-      <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
-        Create Ticket
+  <div class="create-ticket-page">
+    <div class="generic-container create-ticket-header">
+      <div class="q-px-lg q-py-md filtering-header">
+        <div class="text-h6 text-weight-bold">Create Ticket</div>
+        <div class="text-caption text-grey-7">
+          Fill in ticket details, serials, and optional attachments before submit.
+        </div>
       </div>
     </div>
 
-    <div class="q-mt-lg generic-container">
+    <div class="q-mt-lg generic-container create-ticket-surface">
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg text-body1">
-        <div class="row q-mb-md text-weight-medium">
+        <div class="row q-mb-md text-weight-medium items-center q-col-gutter-sm">
           <div class="col">Ticket Status: Open</div>
-          <div class="col-auto" @click="resetTicket">
-            <q-btn color="red">Clear Data</q-btn>
+          <div class="col-auto" @click="handleResetTicket">
+            <q-btn color="red" unelevated>Clear Data</q-btn>
           </div>
         </div>
 
-        <div class="row items-center">
-          <div class="col-auto q-mr-sm">Order Type:&nbsp;</div>
-          <div class="col-auto">
+        <div class="form-section">
+          <div class="section-title">Ticket Information</div>
+
+          <div class="row items-center field-row q-col-gutter-sm">
+            <div class="col-12 col-md-3 field-label">Order Type</div>
+            <div class="col-12 col-md-9">
             <q-select
-              style="min-width: 200px"
+              class="field-input-sm"
               label="Please select"
               v-model="orderType"
               :options="orderTypeOpt"
@@ -36,30 +42,30 @@
                 </q-item>
               </template>
             </q-select>
+            </div>
           </div>
-        </div>
 
-        <div v-if="isReRepair" class="row items-center">
-          <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
-          <div class="col-auto">
-            <q-input style="min-width: 200px" dense v-model="originalRMA" />
+          <div v-if="isReRepair" class="row items-center field-row q-col-gutter-sm">
+            <div class="col-12 col-md-3 field-label">Original RMA#</div>
+            <div class="col-12 col-md-9">
+              <q-input class="field-input-sm" dense v-model="originalRMA" />
+            </div>
           </div>
-        </div>
 
-        <!-- Add ticket  -->
-        <div class="row items-center">
-          <div class="col-auto q-mr-sm">Customer Organization:&nbsp;</div>
-          <div class="col-auto" v-if="clientUser">
+          <!-- Add ticket  -->
+          <div class="row items-center field-row q-col-gutter-sm">
+            <div class="col-12 col-md-3 field-label">Customer Organization</div>
+            <div class="col-12 col-md-9" v-if="clientUser">
             <q-input
               :model-value="companyName"
               disable
-              style="min-width: 200px"
+              class="field-input-sm"
               dense
             />
-          </div>
-          <div class="col-auto" v-if="!clientUser">
+            </div>
+            <div class="col-12 col-md-9" v-if="!clientUser">
             <q-select
-              style="min-width: 200px"
+              class="field-input-sm"
               label="Please select"
               v-model="custType"
               :options="custTypeOpt"
@@ -77,47 +83,51 @@
                 </q-item>
               </template>
             </q-select>
+            </div>
           </div>
-        </div>
 
-        <div class="row items-center">
-          <div class="col-auto q-mr-sm">Customer Email:&nbsp;</div>
-          <div class="col-auto">
+          <div class="row items-center field-row q-col-gutter-sm">
+            <div class="col-12 col-md-3 field-label">Customer Email</div>
+            <div class="col-12 col-md-9">
             <q-input
               :model-value="userEmail"
               disable
-              style="min-width: 200px"
+              class="field-input-sm"
               dense
             />
+            </div>
           </div>
-        </div>
 
-        <div class="row items-center">
-          <div class="col-auto q-mr-sm">Ticket Submitter:&nbsp;</div>
-          <div class="col-auto">
+          <div class="row items-center field-row q-col-gutter-sm">
+            <div class="col-12 col-md-3 field-label">Ticket Submitter</div>
+            <div class="col-12 col-md-9">
             <q-input
               :model-value="userName"
               disable
-              style="min-width: 200px"
+              class="field-input-sm"
               dense
             />
+            </div>
           </div>
-        </div>
-        <div class="row items-center">
-          Encrypt:&nbsp;
-          <input
-            type="radio"
-            v-model="encrypt"
-            value="yes"
-          />&nbsp;Yes&nbsp;&nbsp;
-          <input type="radio" v-model="encrypt" value="no" />&nbsp;No&nbsp;
-        </div>
-        <div class="row items-center" v-show="isEncrypted">
-          <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
-          <div class="col-auto">
+
+          <div class="row items-center field-row q-col-gutter-sm">
+            <div class="col-12 col-md-3 field-label">Encrypt</div>
+            <div class="col-12 col-md-9 encrypt-toggle">
+              <input
+                type="radio"
+                v-model="encrypt"
+                value="yes"
+              />&nbsp;Yes&nbsp;&nbsp;
+              <input type="radio" v-model="encrypt" value="no" />&nbsp;No&nbsp;
+            </div>
+          </div>
+
+          <div class="row items-center field-row q-col-gutter-sm" v-show="isEncrypted">
+            <div class="col-12 col-md-3 field-label">Test Key Type</div>
+            <div class="col-12 col-md-4">
             <q-select
               ref="testKeyTypeSelect"
-              style="min-width: 200px"
+              class="field-input-sm"
               label="Please select"
               v-model="keyType"
               :options="keyTypeOpt"
@@ -136,13 +146,13 @@
                 </q-item>
               </template>
             </q-select>
-          </div>
-          <div class="col-auto q-mx-sm" v-show="keyType != null">
-            KCV - KSI:&nbsp;
-          </div>
-          <div class="col-auto q-ml-sm" v-show="keyType != null">
+            </div>
+            <div class="col-12 col-md-auto field-label-inline" v-show="keyType != null">
+              KCV - KSI
+            </div>
+            <div class="col-12 col-md-4" v-show="keyType != null">
             <q-select
-              style="min-width: 200px"
+              class="field-input-sm"
               v-model="kcvksi"
               :options="kcvksiOpt"
               label="Please select"
@@ -159,6 +169,7 @@
                 </q-item>
               </template>
             </q-select>
+            </div>
           </div>
           <!-- <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null">KCV:&nbsp;</div>
           <div class="col-auto" v-show="keyType != null">
@@ -205,16 +216,19 @@
             </q-select>
           </div> -->
         </div>
-        <div class="q-my-sm">Shipping Address:</div>
-        <div class="row">
-          <div class="col-auto">
-            <AddressBlock :address="address" @click="showAddressGrid" />
-          </div>
-        </div>
 
-        <div class="row q-my-sm items-center">
-          <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
-          <div class="col">
+        <div class="form-section">
+          <div class="section-title">Shipping</div>
+          <div class="q-mb-sm field-label">Shipping Address</div>
+          <div class="row">
+            <div class="col-auto">
+            <AddressBlock :address="address" @click="showAddressGrid" />
+            </div>
+          </div>
+
+          <div class="row q-my-sm items-center field-row q-col-gutter-sm">
+            <div class="col-12 col-md-3 field-label">Incoming Tracking Number</div>
+            <div class="col-12 col-md-9">
             <q-btn
               label="Add"
               outline
@@ -222,132 +236,198 @@
               color="primary"
               @click="addTrackingNum"
             />
+            </div>
+          </div>
+
+          <div
+            v-for="(trackingNum, index) in trackingNums"
+            :key="index"
+            class="row q-mb-sm items-center q-col-gutter-sm tracking-row"
+          >
+            <div class="col-12 col-md-auto">
+              <q-input
+                class="tracking-input"
+                v-model="trackingNums[index]"
+                dense
+                outlined
+              />
+            </div>
+            <div class="col-12 col-md-auto">
+              <q-btn
+                label="Remove"
+                outline
+                rounded
+                color="primary"
+                @click="deleteTrackingNum(index)"
+              />
+            </div>
           </div>
         </div>
-        <div
-          v-for="(trackingNum, index) in trackingNums"
-          :key="index"
-          class="row q-mb-sm items-center"
-        >
-          <q-input
-            class="q-mr-sm"
-            v-model="trackingNums[index]"
-            style="min-width: 300px"
-            dense
-            outlined
-          />
-          <q-btn
-            label="Remove"
-            outline
-            rounded
-            color="primary"
-            @click="deleteTrackingNum(index)"
-          />
-        </div>
-        <div class="q-py-md text-subtitle1 text-weight-bold">
-          Ticket Serial Numbers
-        </div>
-        <div class="row items-start">
-          <!-- Add Serial Number -->
-          <q-btn
-            class="col-auto"
-            color="primary"
-            @click="this.$refs.editTable.handleClickAddUnit()"
-          >
-            Add Serial Number
-          </q-btn>
-          <div style="margin-top: 6px" class="q-mx-sm">AND / OR</div>
-          <!-- Upload file -->
-          <q-form class="col-auto" @submit="onFileSubmit">
-            <div class="row items-start">
-              <q-file
-                style="min-width: 250px"
-                name="file"
-                class="col q-mr-sm"
-                clearable
-                bottom-slots
-                outlined
-                v-model="file"
-                label="Upload Excel File"
-                dense
-                counter
-                :disable="fileUploading"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="attach_file" />
-                </template>
 
-                <template v-slot:hint> Allowed file format: .xlsx </template>
-              </q-file>
-
+        <div class="form-section">
+          <div class="section-title">Ticket Serial Numbers</div>
+          <div class="row items-start q-col-gutter-sm serial-toolbar">
+            <!-- Add Serial Number -->
+            <div class="col-auto">
               <q-btn
-                class="col"
-                type="submit"
-                label="Upload"
                 color="primary"
-                style="min-width: 150px"
-                :loading="fileUploading"
+                @click="this.$refs.editTable.handleClickAddUnit()"
               >
-                <template v-slot:loading>
-                  <q-spinner-facebook />
-                </template>
+                Add Serial Number
               </q-btn>
-
-              <q-input
-                clearable
-                class="q-ml-sm"
-                label="Serial Number OR Model OR Reported Issue"
-                style="min-width: 350px"
-                v-model="inputValue"
-                outlined
-                dense
-              >
-                <template v-slot:append>
-                  <q-icon name="search" />
-                </template>
-              </q-input>
             </div>
-          </q-form>
-          <q-btn
-            class="col-auto q-ml-sm"
-            color="primary"
-            @click="downloadBlankTemplate"
-          >
-            Blank Template
-          </q-btn>
-          <q-btn
-            class="q-ml-sm"
-            color="primary"
-            round
-            icon="info"
-            size="sm"
-            @click="handleClickHelpUnit"
+            <div class="col-auto serial-separator">AND / OR</div>
+            <!-- Upload file -->
+            <q-form class="col-grow serial-upload-form" @submit="onFileSubmit">
+              <div class="row items-start q-col-gutter-sm">
+                <div class="col-12 col-md-5">
+                  <q-file
+                    name="file"
+                    class="full-width"
+                    clearable
+                    bottom-slots
+                    outlined
+                    v-model="file"
+                    label="Upload Excel File"
+                    dense
+                    counter
+                    :disable="fileUploading"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="attach_file" />
+                    </template>
+
+                    <template v-slot:hint> Allowed file format: .xlsx </template>
+                  </q-file>
+                </div>
+
+                <div class="col-12 col-md-auto">
+                  <q-btn
+                    type="submit"
+                    label="Upload"
+                    color="primary"
+                    class="upload-btn"
+                    :loading="fileUploading"
+                  >
+                    <template v-slot:loading>
+                      <q-spinner-facebook />
+                    </template>
+                  </q-btn>
+                </div>
+
+                <div class="col-12 col-md">
+                  <q-input
+                    clearable
+                    label="Serial Number OR Model OR Reported Issue"
+                    class="full-width"
+                    v-model="inputValue"
+                    outlined
+                    dense
+                  >
+                    <template v-slot:append>
+                      <q-icon name="search" />
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </q-form>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                @click="downloadBlankTemplate"
+              >
+                Blank Template
+              </q-btn>
+            </div>
+            <div class="col-auto">
+              <q-btn
+                color="primary"
+                round
+                icon="info"
+                size="sm"
+                @click="handleClickHelpUnit"
+              />
+            </div>
+          </div>
+
+          <TicketEditTable
+            ref="editTable"
+            :isFromMaster="false"
+            :orderType="orderType"
+            :rows="getSerials"
+            :containsXrefMaterials="false"
+            :inputValue="inputValue"
+            :encrypt="encrypt"
+            :showRemoveUnit="true"
+            :showUpdateUnit="true"
+            :showViewUnit="false"
+            @add-sn="handleAddSN"
+            @update-sn="handleUpdateSN"
+            @remove-sn="handleRemoveSN"
           />
         </div>
 
-        <TicketEditTable
-          ref="editTable"
-          :isFromMaster="false"
-          :orderType="orderType"
-          :rows="getSerials"
-          :containsXrefMaterials="false"
-          :inputValue="inputValue"
-          :encrypt="encrypt"
-          :showRemoveUnit="true"
-          :showUpdateUnit="true"
-          :showViewUnit="false"
-          @add-sn="handleAddSN"
-          @update-sn="handleUpdateSN"
-          @remove-sn="handleRemoveSN"
-        />
+        <div class="form-section">
+          <div class="section-title">Attachments and Remark</div>
+          <q-file
+            v-model="attachments"
+            outlined
+            dense
+            clearable
+            multiple
+            use-chips
+            counter
+            label="Upload attachments"
+            :accept="attachmentAccept"
+            @update:model-value="onAttachmentChange"
+          >
+            <template v-slot:prepend>
+              <q-icon name="attach_file" />
+            </template>
+            <template v-slot:hint>
+              Supported: PDF, DOC/DOCX, XLS/XLSX, CSV, TXT, JPG/JPEG, PNG, GIF,
+              MP4, MOV, AVI
+            </template>
+          </q-file>
+          <div class="text-caption text-grey-7 q-mt-xs">
+            Size limit: 10 MB for documents/images, 500 MB for videos.
+          </div>
+
+          <q-banner
+            v-if="attachmentErrors.length > 0"
+            dense
+            rounded
+            class="bg-red-1 text-negative q-mt-sm"
+          >
+            <div
+              v-for="(error, index) in attachmentErrors"
+              :key="`attachment-error-${index}`"
+            >
+              {{ error }}
+            </div>
+          </q-banner>
+
+          <q-input
+            v-model="remark"
+            type="textarea"
+            autogrow
+            outlined
+            dense
+            maxlength="1000"
+            counter
+            class="q-mt-md"
+            label="Remark"
+            placeholder="Please enter remarks (optional)"
+          />
+        </div>
         <!-- Button for submit ticket -->
-        <div class="row justify-center">
+        <div class="row justify-center q-mt-lg">
           <q-btn
-            class="col-auto"
+            class="submit-btn"
             color="primary"
             @click="submitTicket"
-            style="min-width: 200px"
             :loading="serialsSubmitting"
+            unelevated
           >
             Submit
           </q-btn>
@@ -415,6 +495,19 @@ import { Notify } from "quasar";
 import { batchSerialNumberQuery } from "../utils/ticketUtils.js";
 
 const user = useUserStore();
+const DOC_EXTENSIONS = new Set(["pdf", "doc", "docx", "xls", "xlsx", "csv", "txt"]);
+const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif"]);
+const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "avi"]);
+const ALL_ALLOWED_EXTENSIONS = new Set([
+  ...DOC_EXTENSIONS,
+  ...IMAGE_EXTENSIONS,
+  ...VIDEO_EXTENSIONS,
+]);
+const MAX_DOC_IMAGE_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_VIDEO_FILE_SIZE = 500 * 1024 * 1024;
+const ATTACHMENT_ACCEPT = Array.from(ALL_ALLOWED_EXTENSIONS)
+  .map((ext) => `.${ext}`)
+  .join(",");
 
 export default {
   components: {
@@ -433,6 +526,10 @@ export default {
       updateOrAddLoading: false, //to control the update/add button's loading
       serialsSubmitting: false,
       showHelpModal: false,
+      attachments: [],
+      attachmentErrors: [],
+      remark: "",
+      attachmentAccept: ATTACHMENT_ACCEPT,
     };
   },
 
@@ -522,11 +619,109 @@ export default {
     showAddressGrid() {
       this.showAddressModal = true;
     },
+    getFileExtension(fileName) {
+      if (!fileName || fileName.lastIndexOf(".") < 0) {
+        return "";
+      }
+      return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+    },
+    validateAttachment(file) {
+      const extension = this.getFileExtension(file.name);
+      if (!ALL_ALLOWED_EXTENSIONS.has(extension)) {
+        return `Unsupported file type: ${file.name}`;
+      }
+
+      const isVideo = VIDEO_EXTENSIONS.has(extension);
+      const maxSize = isVideo ? MAX_VIDEO_FILE_SIZE : MAX_DOC_IMAGE_FILE_SIZE;
+      if (file.size > maxSize) {
+        const limitText = isVideo ? "500 MB" : "10 MB";
+        return `File exceeds ${limitText}: ${file.name}`;
+      }
+
+      return null;
+    },
+    validateAttachments(files) {
+      const normalizedFiles = Array.isArray(files) ? files : files ? [files] : [];
+      const validFiles = [];
+      const errors = [];
+
+      normalizedFiles.forEach((file) => {
+        const error = this.validateAttachment(file);
+        if (error) {
+          errors.push(error);
+        } else {
+          validFiles.push(file);
+        }
+      });
+
+      return { validFiles, errors };
+    },
+    onAttachmentChange(files) {
+      const { validFiles, errors } = this.validateAttachments(files);
+      this.attachmentErrors = errors;
+
+      if (errors.length > 0) {
+        this.attachments = validFiles;
+        errors.forEach((message) => {
+          Notify.create({
+            type: "negative",
+            message,
+          });
+        });
+      }
+    },
+    handleResetTicket() {
+      this.resetTicket();
+      this.file = null;
+      this.attachments = [];
+      this.attachmentErrors = [];
+      this.remark = "";
+    },
     handleClickHelpUnit() {
       this.showHelpModal = true;
     },
+    submitTicketAttachments(ticketId) {
+      const hasAttachments = Array.isArray(this.attachments) && this.attachments.length > 0;
+      const hasRemark = this.remark && this.remark.trim().length > 0;
+
+      if (!hasAttachments && !hasRemark) {
+        return Promise.resolve();
+      }
+
+      const formData = new FormData();
+      if (hasRemark) {
+        formData.append("remark", this.remark.trim());
+      }
+      if (hasAttachments) {
+        this.attachments.forEach((file) => {
+          formData.append("files", file);
+        });
+      }
+
+      const actionURL = `/ticketing/${ticketId}/attachments`;
+      return this.$api
+        .post(actionURL, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to upload attachments.");
+          }
+        });
+    },
     submitTicket() {
       this.serialsSubmitting = true;
+
+      const { validFiles, errors } = this.validateAttachments(this.attachments);
+      this.attachmentErrors = errors;
+      if (errors.length > 0) {
+        this.attachments = validFiles;
+        this.serialsSubmitting = false;
+        return;
+      }
+
       const serials = this.getSerials;
       //no serial
       if (serials === undefined || serials.length == 0) {
@@ -613,14 +808,22 @@ export default {
             "Content-Type": "application/json",
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
           const mo_OID = response.data.data.mo_OID;
-          Notify.create({
-            type: "positive",
-            message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
+
+          return vm.submitTicketAttachments(mo_OID).then(() => {
+            Notify.create({
+              type: "positive",
+              message: `Thank you for submitting a ticket. Your RMA number is: ${mo_OID}`,
+            });
+          }).catch((uploadError) => {
+            Notify.create({
+              type: "warning",
+              message: `Ticket ${mo_OID} created, but attachment/remark upload failed: ${uploadError.message}`,
+            });
           });
         })
         .catch((e) => {
@@ -631,7 +834,7 @@ export default {
         })
         .finally(() => {
           this.serialsSubmitting = false;
-          vm.resetTicket();
+          vm.handleResetTicket();
         });
     },
     handleAddSN({ serial }) {
@@ -668,4 +871,117 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+.create-ticket-page {
+  padding: 16px 24px 28px;
+}
+
+.create-ticket-header,
+.create-ticket-surface {
+  border-radius: 12px;
+}
+
+.create-ticket-surface {
+  box-shadow: 0 8px 24px rgba(30, 55, 90, 0.06);
+}
+
+.form-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e8edf3;
+}
+
+.form-section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.section-title {
+  margin-bottom: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2d3d;
+}
+
+.field-row {
+  margin-bottom: 10px;
+}
+
+.field-label {
+  font-weight: 600;
+  color: #4d5b6a;
+}
+
+.field-label-inline {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #4d5b6a;
+}
+
+.field-input-sm {
+  width: 100%;
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.encrypt-toggle {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+.tracking-row .tracking-input {
+  min-width: 320px;
+}
+
+.serial-toolbar {
+  margin-bottom: 12px;
+}
+
+.serial-separator {
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+  color: #5f6b7a;
+  font-weight: 600;
+}
+
+.serial-upload-form {
+  min-width: 0;
+}
+
+.upload-btn {
+  min-width: 140px;
+}
+
+.submit-btn {
+  min-width: 220px;
+  border-radius: 10px;
+}
+
+@media (max-width: 1023px) {
+  .create-ticket-page {
+    padding: 12px;
+  }
+
+  .field-input-sm,
+  .tracking-row .tracking-input {
+    max-width: none;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 599px) {
+  .serial-separator {
+    padding-top: 0;
+  }
+
+  .upload-btn,
+  .submit-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+</style>

@@ -264,6 +264,67 @@
             Submit Ticket
           </q-btn>
         </div>
+
+        <div class="q-mt-lg">
+          <div class="row items-center justify-between q-mb-sm">
+            <div class="text-subtitle1 text-weight-bold">Attachments</div>
+            <q-btn
+              flat
+              color="primary"
+              icon="refresh"
+              label="Refresh"
+              :loading="attachmentsLoading"
+              @click="fetchAttachments(ticketId)"
+            />
+          </div>
+
+          <div v-if="attachmentsLoading" class="text-grey-7 q-py-md">
+            Loading attachments...
+          </div>
+
+          <q-banner
+            v-else-if="attachments.length === 0"
+            dense
+            rounded
+            class="bg-grey-2 text-grey-8"
+          >
+            No attachments found for this ticket.
+          </q-banner>
+
+          <q-list v-else bordered separator>
+            <q-item
+              v-for="attachment in attachments"
+              :key="attachment.fileId"
+            >
+              <q-item-section>
+                <q-item-label>{{ attachment.fileName }}</q-item-label>
+                <q-item-label caption>
+                  {{ attachment.type || "Unknown" }} • {{ formatFileSize(attachment.size) }}
+                </q-item-label>
+              </q-item-section>
+
+              <q-item-section side>
+                <div class="row items-center no-wrap q-gutter-sm">
+                  <q-btn
+                    flat
+                    color="primary"
+                    label="Download"
+                    :loading="downloadingAttachmentId === attachment.fileId"
+                    @click="downloadAttachment(attachment)"
+                  />
+                  <q-btn
+                    v-if="canDeleteAttachment"
+                    flat
+                    color="negative"
+                    label="Delete"
+                    :loading="deletingAttachmentId === attachment.fileId"
+                    @click="confirmDeleteAttachment(attachment)"
+                  />
+                </div>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </div>
       </div>
     </div>
     <div class="row justify-between">
@@ -372,6 +433,11 @@ export default {
       kcvOpt: null,
       ksiOpt: null,
       keyTypeOpt: null,
+
+      attachments: [],
+      attachmentsLoading: false,
+      downloadingAttachmentId: null,
+      deletingAttachmentId: null,
     };
   },
   created() {
@@ -387,6 +453,7 @@ export default {
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
           this.fetchAckStatus(this.ticketId),
+          this.fetchAttachments(this.ticketId),
           this.populateKeysOptOnce(),
           this.populateOrderTypeOptOnce(),
           //ensure it been populated
@@ -454,6 +521,9 @@ export default {
     },
     ackPermission() {
       return useUserStore().checkPermission("ticketing.edit.acknowledge");
+    },
+    canDeleteAttachment() {
+      return useUserStore().checkPermission("ticketing.update");
     },
   },
   methods: {
@@ -564,8 +634,8 @@ export default {
     },
     resetTicket() {
       this.isLoading = true;
-      this.fetchTicket(this.ticketId)
-        .then((ticket) => {
+      Promise.all([this.fetchTicket(this.ticketId), this.fetchAttachments(this.ticketId)])
+        .then(([ticket]) => {
           this.ticketInfo = ticket;
         })
         .finally(() => {
@@ -596,6 +666,109 @@ export default {
         })
         .finally(() => {
           this.fileUploading = false;
+        });
+    },
+    formatFileSize(size) {
+      const bytes = Number(size || 0);
+      if (Number.isNaN(bytes) || bytes <= 0) {
+        return "0 B";
+      }
+      const units = ["B", "KB", "MB", "GB"];
+      let value = bytes;
+      let unitIndex = 0;
+      while (value >= 1024 && unitIndex < units.length - 1) {
+        value /= 1024;
+        unitIndex += 1;
+      }
+      return `${value.toFixed(unitIndex === 0 ? 0 : 2)} ${units[unitIndex]}`;
+    },
+    fetchAttachments(ticketId) {
+      this.attachmentsLoading = true;
+      const link = `/ticketing/${ticketId}/attachments`;
+      return api
+        .get(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to fetch attachments.");
+          }
+          this.attachments = response.data.data || [];
+          return this.attachments;
+        })
+        .catch((error) => {
+          if (!this.loggedIn) return [];
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+          this.attachments = [];
+          return [];
+        })
+        .finally(() => {
+          this.attachmentsLoading = false;
+        });
+    },
+    downloadAttachment(attachment) {
+      this.downloadingAttachmentId = attachment.fileId;
+      const link = `/ticketing/${this.ticketId}/attachments/${attachment.fileId}/download-url`;
+      api
+        .get(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to generate download URL.");
+          }
+          const downloadUrl = response.data?.data?.downloadUrl;
+          if (!downloadUrl) {
+            throw new Error("Download URL is empty.");
+          }
+          window.open(downloadUrl, "_blank");
+        })
+        .catch((error) => {
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        })
+        .finally(() => {
+          this.downloadingAttachmentId = null;
+        });
+    },
+    confirmDeleteAttachment(attachment) {
+      this.$q
+        .dialog({
+          title: "Delete Attachment",
+          message: `Delete ${attachment.fileName}?`,
+          cancel: true,
+          persistent: true,
+        })
+        .onOk(() => {
+          this.deleteAttachment(attachment);
+        });
+    },
+    deleteAttachment(attachment) {
+      this.deletingAttachmentId = attachment.fileId;
+      const link = `/ticketing/${this.ticketId}/attachments/${attachment.fileId}`;
+      api
+        .delete(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to delete attachment.");
+          }
+          this.attachments = this.attachments.filter(
+            (file) => file.fileId !== attachment.fileId
+          );
+          Notify.create({
+            type: "positive",
+            message: "Attachment deleted successfully.",
+          });
+        })
+        .catch((error) => {
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        })
+        .finally(() => {
+          this.deletingAttachmentId = null;
         });
     },
     /**
