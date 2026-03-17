@@ -12,7 +12,9 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.constant.DropDownConstant;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
@@ -22,18 +24,27 @@ import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.customer.Company;
 import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.ticket.*;
+import us.pax.basil.mapper.LogProgramMapper;
+import us.pax.basil.mapper.RmaFileStorageMapper;
 import us.pax.basil.mapper.TicketMapper;
 import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.security.CustomUserDetails;
 import us.pax.basil.service.AddressService;
 import us.pax.basil.service.InvoiceService;
 import us.pax.basil.service.TicketService;
+import us.pax.basil.service.aws.s3.RmaAttachmentStorageService;
 import us.pax.basil.service.aws.ses.EmailService;
 import us.pax.basil.utils.AuthUtil;
+import us.pax.basil.utils.LoggingUtil;
 import us.pax.basil.utils.QueryUtils;
 
 import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -58,8 +69,60 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     
     @Autowired
     private InvoiceService invoiceService;
+
+    @Autowired
+    private RmaFileStorageMapper rmaFileStorageMapper;
+
+    @Autowired
+    private RmaAttachmentStorageService rmaAttachmentStorageService;
+
+    @Autowired
+    private LogProgramMapper logProgramMapper;
     
     private ObjectMapper objectMapper = new ObjectMapper();
+
+    /**
+     * 文档类型扩展名集合（用于后端二次校验，防止绕过前端）。
+     */
+    private static final Set<String> DOCUMENT_EXTENSIONS = new HashSet<>(Arrays.asList(
+            "pdf", "doc", "docx", "xls", "xlsx", "csv", "txt"
+    ));
+
+    /**
+     * 图片类型扩展名集合。
+     */
+    private static final Set<String> IMAGE_EXTENSIONS = new HashSet<>(Arrays.asList(
+            "jpg", "jpeg", "png", "gif"
+    ));
+
+    /**
+     * 视频类型扩展名集合。
+     */
+    private static final Set<String> VIDEO_EXTENSIONS = new HashSet<>(Arrays.asList(
+            "mp4", "mov", "avi"
+    ));
+
+    /**
+     * 文档/图片大小限制（10MB）。
+     */
+    private static final long MAX_DOC_IMAGE_SIZE = 10L * 1024L * 1024L;
+
+    /**
+     * 视频大小限制（500MB）。
+     */
+    private static final long MAX_VIDEO_SIZE = 500L * 1024L * 1024L;
+
+    /**
+     * Contact RMA 固定收件邮箱。
+     */
+    private static final String CONTACT_RMA_EMAIL = "RMAsupport@pax.us";
+
+    /**
+     * Contact RMA 截图允许扩展名。
+     */
+    private static final Set<String> CONTACT_RMA_IMAGE_EXTENSIONS = new HashSet<>(Arrays.asList(
+            "jpg", "jpeg", "png", "gif"
+    ));
     
     @Override
     public QueryResultArrayDTO ticketQuery(Integer currentPage,
@@ -964,6 +1027,504 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
         }
     }
+
+    /**
+     * 上传工单附件并记录到 MASTER_RMA_FILE_STORAGE。
+     *
+     * 业务规则：
+     * 1. 文件类型与大小限制在后端再次严格校验，防止绕过前端。
+     * 2. 支持多文件上传。
+     * 3. 可携带备注，备注写入 XREF_RESPONSE 作为工单消息。
+     * 4. 每个上传动作写入审计日志。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public QueryResultArrayDTO uploadTicketAttachments(Integer ticketId, String remark, List<MultipartFile> files) {
+        if (ticketId == null) {
+            return new QueryResultArrayDTO(null, 0, -1, "Ticket ID is required.");
+        }
+
+        if (!userHasAccess(String.valueOf(ticketId))) {
+            return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the ticket");
+        }
+
+        List<MultipartFile> uploadFiles = files == null ? Collections.emptyList() : files;
+        boolean hasRemark = remark != null && remark.trim().length() > 0;
+        if (uploadFiles.isEmpty() && !hasRemark) {
+            return new QueryResultArrayDTO(null, 0, -1, "At least one attachment or remark is required.");
+        }
+
+        ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+        try {
+            for (MultipartFile file : uploadFiles) {
+                String validationError = validateAttachmentFile(file);
+                if (validationError != null) {
+                    return new QueryResultArrayDTO(null, 0, -1, validationError);
+                }
+
+                RmaAttachmentStorageService.StoredAttachment storedAttachment =
+                        rmaAttachmentStorageService.upload(ticketId, file);
+
+                RmaFileStorage fileStorage = new RmaFileStorage();
+                fileStorage.setMoOID(ticketId);
+                fileStorage.setFileName(storedAttachment.getOriginalFileName());
+                fileStorage.setPath(storedAttachment.getObjectKey());
+                fileStorage.setSize(String.valueOf(storedAttachment.getFileSize()));
+                fileStorage.setType(storedAttachment.getContentType());
+
+                try {
+                    rmaFileStorageMapper.insertRmaFileStorage(fileStorage);
+                } catch (Exception dbEx) {
+                    // 数据库存储失败时回滚对象存储，避免“孤儿文件”。
+                    try {
+                        rmaAttachmentStorageService.delete(storedAttachment.getObjectKey());
+                    } catch (Exception deleteEx) {
+                        log.error("附件回滚删除失败，ticketId={}, key={}", ticketId, storedAttachment.getObjectKey(), deleteEx);
+                    }
+                    throw dbEx;
+                }
+
+                String downloadUrl = rmaAttachmentStorageService.generateDownloadUrl(storedAttachment.getObjectKey());
+                Map<String, Object> fileMap = new LinkedHashMap<>();
+                fileMap.put("fileId", fileStorage.getMrfOID());
+                fileMap.put("ticketId", ticketId);
+                fileMap.put("fileName", fileStorage.getFileName());
+                fileMap.put("path", fileStorage.getPath());
+                fileMap.put("size", fileStorage.getSize());
+                fileMap.put("type", fileStorage.getType());
+                fileMap.put("downloadUrl", downloadUrl);
+                resultArray.add(fileMap);
+
+                writeAttachmentAudit("UPLOAD", ticketId, fileStorage.getMrfOID(), fileStorage.getFileName(), fileStorage.getPath());
+            }
+
+            if (hasRemark) {
+                CustomUserDetails user = AuthUtil.getUser();
+                TicketResponse ticketResponse = new TicketResponse();
+                ticketResponse.setMoOID(ticketId);
+                ticketResponse.setContent(remark.trim());
+                if (user != null) {
+                    ticketResponse.setResponseBy(String.valueOf(user.getUserId()));
+                }
+                ticketMapper.insertResponse(ticketResponse);
+                writeAttachmentAudit("REMARK", ticketId, null, "remark", "XREF_RESPONSE");
+            }
+
+            return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        } catch (Exception e) {
+            log.error("上传工单附件失败，ticketId={}", ticketId, e);
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    /**
+     * 查询工单附件列表，并附带下载 URL（S3 预签名或本地 token URL）。
+     */
+    @Override
+    public QueryResultArrayDTO listTicketAttachments(Integer ticketId) {
+        if (ticketId == null) {
+            return new QueryResultArrayDTO(null, 0, -1, "Ticket ID is required.");
+        }
+
+        if (!userHasAccess(String.valueOf(ticketId))) {
+            return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the ticket");
+        }
+
+        try {
+            List<RmaFileStorage> fileStorageList = rmaFileStorageMapper.selectByTicketId(ticketId);
+            ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
+            for (RmaFileStorage fileStorage : fileStorageList) {
+                Map<String, Object> fileMap = new LinkedHashMap<>();
+                fileMap.put("fileId", fileStorage.getMrfOID());
+                fileMap.put("ticketId", fileStorage.getMoOID());
+                fileMap.put("fileName", fileStorage.getFileName());
+                fileMap.put("path", fileStorage.getPath());
+                fileMap.put("size", fileStorage.getSize());
+                fileMap.put("type", fileStorage.getType());
+                fileMap.put("downloadUrl", rmaAttachmentStorageService.generateDownloadUrl(fileStorage.getPath()));
+                resultArray.add(fileMap);
+            }
+            return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
+        } catch (Exception e) {
+            log.error("查询工单附件列表失败，ticketId={}", ticketId, e);
+            return new QueryResultArrayDTO(null, 0, -1, e.getMessage());
+        }
+    }
+
+    /**
+     * 生成单个附件下载 URL，并记录“下载行为审计日志”。
+     */
+    @Override
+    public QueryResultDTO generateAttachmentDownloadUrl(Integer ticketId, Integer fileId) {
+        if (ticketId == null || fileId == null) {
+            return new QueryResultDTO(null, -1, "Ticket ID and file ID are required.");
+        }
+
+        if (!userHasAccess(String.valueOf(ticketId))) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+
+        try {
+            RmaFileStorage fileStorage = rmaFileStorageMapper.selectByTicketIdAndFileId(ticketId, fileId);
+            if (fileStorage == null) {
+                return new QueryResultDTO(null, -1, "Attachment not found.");
+            }
+
+            String downloadUrl = rmaAttachmentStorageService.generateDownloadUrl(fileStorage.getPath());
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("fileId", fileStorage.getMrfOID());
+            result.put("ticketId", fileStorage.getMoOID());
+            result.put("fileName", fileStorage.getFileName());
+            result.put("downloadUrl", downloadUrl);
+
+            writeAttachmentAudit("DOWNLOAD", ticketId, fileStorage.getMrfOID(), fileStorage.getFileName(), fileStorage.getPath());
+            return new QueryResultDTO(result, 0, "");
+        } catch (Exception e) {
+            log.error("生成附件下载地址失败，ticketId={}, fileId={}", ticketId, fileId, e);
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    /**
+     * 删除工单附件（对象存储 + 数据库记录）。
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public QueryResultDTO deleteTicketAttachment(Integer ticketId, Integer fileId) {
+        if (ticketId == null || fileId == null) {
+            return new QueryResultDTO(null, -1, "Ticket ID and file ID are required.");
+        }
+
+        if (!userHasAccess(String.valueOf(ticketId))) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+
+        try {
+            RmaFileStorage fileStorage = rmaFileStorageMapper.selectByTicketIdAndFileId(ticketId, fileId);
+            if (fileStorage == null) {
+                return new QueryResultDTO(null, -1, "Attachment not found.");
+            }
+
+            rmaAttachmentStorageService.delete(fileStorage.getPath());
+            rmaFileStorageMapper.deleteByFileId(fileId);
+
+            writeAttachmentAudit("DELETE", ticketId, fileStorage.getMrfOID(), fileStorage.getFileName(), fileStorage.getPath());
+            return new QueryResultDTO(null, 0, "");
+        } catch (Exception e) {
+            log.error("删除附件失败，ticketId={}, fileId={}", ticketId, fileId, e);
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    /**
+     * 本地回退模式下的 token 下载实现。
+     * 说明：S3 模式不会进入该分支，前端会直接拿到 S3 预签名 URL。
+     */
+    @Override
+    public void downloadLocalAttachment(String token, HttpServletResponse response) throws IOException {
+        RmaAttachmentStorageService.LocalDownloadResource downloadResource =
+                rmaAttachmentStorageService.resolveLocalDownload(token);
+        if (downloadResource == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            response.getWriter().write("Attachment token is invalid or expired.");
+            return;
+        }
+
+        Path localPath = downloadResource.getLocalPath();
+        String contentType = Files.probeContentType(localPath);
+        if (contentType == null || contentType.trim().isEmpty()) {
+            contentType = "application/octet-stream";
+        }
+
+        response.setContentType(contentType);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + localPath.getFileName().toString() + "\"");
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0");
+        response.setDateHeader("Expires", Instant.now().toEpochMilli());
+
+        try (InputStream inputStream = Files.newInputStream(localPath)) {
+            byte[] buffer = new byte[8192];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                response.getOutputStream().write(buffer, 0, length);
+            }
+            response.flushBuffer();
+        }
+    }
+
+    /**
+     * Contact RMA：发送支持邮件（支持可选截图附件）。
+     * @param ticketId 工单号（可选）
+     * @param subject 主题（必填）
+     * @param message 内容（必填）
+     * @param screenshot 图片附件（可选）
+     */
+    @Override
+    public QueryResultDTO contactRma(String ticketId, String subject, String message, MultipartFile screenshot) {
+        CustomUserDetails user = AuthUtil.getUser();
+        if (user == null) {
+            return new QueryResultDTO(null, -1, "Unable to load account details.");
+        }
+
+        String normalizedSubject = subject == null ? "" : subject.trim();
+        String normalizedMessage = message == null ? "" : message.trim();
+        if (normalizedSubject.isEmpty()) {
+            return new QueryResultDTO(null, -1, "Subject is required.");
+        }
+        if (normalizedMessage.isEmpty()) {
+            return new QueryResultDTO(null, -1, "Message is required.");
+        }
+
+        String normalizedTicketId = ticketId == null ? "" : ticketId.trim();
+        if (!normalizedTicketId.isEmpty() && normalizedTicketId.matches("\\d+")) {
+            if (!userHasAccess(normalizedTicketId)) {
+                return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+            }
+        }
+
+        String screenshotValidationError = validateContactRmaScreenshot(screenshot);
+        if (screenshotValidationError != null) {
+            return new QueryResultDTO(null, -1, screenshotValidationError);
+        }
+
+        String customerName = user.getUsername();
+        String customerEmail = user.getEmailAddress();
+        String customerOrganization = "N/A";
+        try {
+            String companyName = userMapper.getCompanyName(user.getCompanyId());
+            if (companyName != null && companyName.trim().length() > 0) {
+                customerOrganization = companyName.trim();
+            }
+        } catch (Exception e) {
+            log.warn("Contact RMA query company name failed, companyId={}", user.getCompanyId(), e);
+        }
+
+        String submitTimestamp = Instant.now().toString();
+        String emailSubject = "[Contact RMA] " + normalizedSubject
+                + (normalizedTicketId.isEmpty() ? "" : " | Ticket " + normalizedTicketId);
+        String emailBody = buildContactRmaEmailBody(
+                normalizedMessage,
+                normalizedTicketId,
+                customerName,
+                customerOrganization,
+                customerEmail,
+                submitTimestamp
+        );
+
+        try {
+            String attachmentFileName = null;
+            String attachmentContentType = null;
+            byte[] attachmentBytes = null;
+
+            if (screenshot != null && !screenshot.isEmpty()) {
+                attachmentFileName = screenshot.getOriginalFilename();
+                attachmentContentType = screenshot.getContentType();
+                attachmentBytes = screenshot.getBytes();
+            }
+
+            boolean success = emailService.sendEmailWithAttachment(
+                    CONTACT_RMA_EMAIL,
+                    emailSubject,
+                    emailBody,
+                    attachmentFileName,
+                    attachmentContentType,
+                    attachmentBytes
+            ).join().isSuccess();
+
+            if (!success) {
+                writeContactRmaSubmissionAudit("FAIL", normalizedTicketId, customerName, submitTimestamp, normalizedSubject);
+                return new QueryResultDTO(null, -1, "Failed to send email to RMAsupport@pax.us");
+            }
+
+            writeContactRmaSubmissionAudit("PASS", normalizedTicketId, customerName, submitTimestamp, normalizedSubject);
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("to", CONTACT_RMA_EMAIL);
+            result.put("ticketId", normalizedTicketId.isEmpty() ? null : normalizedTicketId);
+            result.put("timestamp", submitTimestamp);
+            result.put("user", customerName);
+            return new QueryResultDTO(result, 0, "");
+        } catch (Exception e) {
+            log.error("Contact RMA send email failed, ticketId={}, user={}", normalizedTicketId, customerName, e);
+            writeContactRmaSubmissionAudit("FAIL", normalizedTicketId, customerName, submitTimestamp, normalizedSubject);
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    /**
+     * 校验附件类型与大小。
+     *
+     * @param file 上传文件
+     * @return 校验失败返回错误信息；成功返回 null
+     */
+    /**
+     * 校验 Contact RMA 的截图附件（仅允许图片）。
+     */
+    private String validateContactRmaScreenshot(MultipartFile screenshot) {
+        if (screenshot == null || screenshot.isEmpty()) {
+            return null;
+        }
+
+        String extension = getFileExtension(screenshot.getOriginalFilename());
+        if (extension == null || !CONTACT_RMA_IMAGE_EXTENSIONS.contains(extension)) {
+            return "Unsupported screenshot format. Only JPG/JPEG/PNG/GIF are allowed.";
+        }
+
+        if (screenshot.getSize() > MAX_DOC_IMAGE_SIZE) {
+            return "Screenshot exceeds 10 MB limit.";
+        }
+        return null;
+    }
+
+    /**
+     * 构建 Contact RMA 邮件正文（HTML）。
+     */
+    private String buildContactRmaEmailBody(String message,
+                                            String ticketId,
+                                            String customerName,
+                                            String customerOrganization,
+                                            String customerEmail,
+                                            String timestamp) {
+        String safeMessage = escapeHtml(message).replace("\n", "<br/>");
+        String safeTicketId = (ticketId == null || ticketId.isEmpty()) ? "N/A" : escapeHtml(ticketId);
+        String safeCustomerName = escapeHtml(customerName);
+        String safeCustomerOrganization = escapeHtml(customerOrganization);
+        String safeCustomerEmail = escapeHtml(customerEmail);
+        String safeTimestamp = escapeHtml(timestamp);
+
+        return "<html><body>"
+                + "<h3>Contact RMA Request</h3>"
+                + "<p><strong>Ticket ID:</strong> " + safeTicketId + "</p>"
+                + "<p><strong>Customer Name:</strong> " + safeCustomerName + "</p>"
+                + "<p><strong>Organization:</strong> " + safeCustomerOrganization + "</p>"
+                + "<p><strong>Email:</strong> " + safeCustomerEmail + "</p>"
+                + "<p><strong>Submitted At:</strong> " + safeTimestamp + "</p>"
+                + "<hr/>"
+                + "<p><strong>Message:</strong></p>"
+                + "<p>" + safeMessage + "</p>"
+                + "</body></html>";
+    }
+
+    /**
+     * Contact RMA 提交审计日志。
+     * 日志字段包含：timestamp、user、ticketId、subject、status。
+     */
+    private void writeContactRmaSubmissionAudit(String status,
+                                                String ticketId,
+                                                String userName,
+                                                String timestamp,
+                                                String subject) {
+        Integer progOid = null;
+        try {
+            progOid = LoggingUtil.addLogProgram(logProgramMapper, "CONTACT_RMA_SUBMISSION");
+            String info = String.format(
+                    "status=%s, timestamp=%s, user=%s, ticketId=%s, subject=%s",
+                    status,
+                    timestamp,
+                    userName,
+                    (ticketId == null || ticketId.isEmpty()) ? "N/A" : ticketId,
+                    subject
+            );
+            LoggingUtil.addLogProgramInfo(logProgramMapper, progOid, info);
+            LoggingUtil.updateLogProgram(logProgramMapper, progOid, status);
+            log.info("[CONTACT_RMA_AUDIT] {}", info);
+        } catch (Exception e) {
+            log.error("Contact RMA write audit log failed.", e);
+            if (progOid != null) {
+                try {
+                    LoggingUtil.updateLogProgram(logProgramMapper, progOid, LoggingUtil.FAIL);
+                } catch (Exception ignored) {
+                    // 审计补偿异常不影响主流程。
+                }
+            }
+        }
+    }
+
+    /**
+     * HTML 字符转义，防止用户输入直接拼接到 HTML。
+     */
+    private String escapeHtml(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
+    }
+
+    private String validateAttachmentFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return "Attachment cannot be empty.";
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = getFileExtension(originalFilename);
+        if (extension == null || extension.length() == 0) {
+            return "Unsupported file type: " + originalFilename;
+        }
+
+        boolean isDocument = DOCUMENT_EXTENSIONS.contains(extension);
+        boolean isImage = IMAGE_EXTENSIONS.contains(extension);
+        boolean isVideo = VIDEO_EXTENSIONS.contains(extension);
+        if (!isDocument && !isImage && !isVideo) {
+            return "Unsupported file type: " + originalFilename;
+        }
+
+        long size = file.getSize();
+        if ((isDocument || isImage) && size > MAX_DOC_IMAGE_SIZE) {
+            return "File exceeds 10 MB limit: " + originalFilename;
+        }
+        if (isVideo && size > MAX_VIDEO_SIZE) {
+            return "File exceeds 500 MB limit: " + originalFilename;
+        }
+        return null;
+    }
+
+    /**
+     * 提取文件扩展名（小写）。
+     */
+    private String getFileExtension(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        int idx = fileName.lastIndexOf('.');
+        if (idx < 0 || idx == fileName.length() - 1) {
+            return null;
+        }
+        return fileName.substring(idx + 1).toLowerCase();
+    }
+
+    /**
+     * 写入附件审计日志。
+     *
+     * 说明：
+     * 1. 通过 LOG_PROGRAM / LOG_PROGRAM_INFO 记录“上传、下载、删除、备注”动作。
+     * 2. 同时输出应用日志，便于排障与追踪。
+     */
+    private void writeAttachmentAudit(String action, Integer ticketId, Integer fileId, String fileName, String path) {
+        String programName = "RMA_ATTACHMENT_" + action;
+        Integer progOid = null;
+        try {
+            progOid = LoggingUtil.addLogProgram(logProgramMapper, programName);
+            CustomUserDetails user = AuthUtil.getUser();
+            String userName = user == null ? "unknown" : user.getUsername();
+            String info = String.format("action=%s, ticketId=%s, fileId=%s, fileName=%s, path=%s, user=%s, at=%s",
+                    action, ticketId, fileId, fileName, path, userName, Instant.now().toString());
+            LoggingUtil.addLogProgramInfo(logProgramMapper, progOid, info);
+            LoggingUtil.updateLogProgram(logProgramMapper, progOid, LoggingUtil.PASS);
+            log.info("[RMA_ATTACHMENT_AUDIT] {}", info);
+        } catch (Exception e) {
+            log.error("写入附件审计日志失败，action={}, ticketId={}, fileId={}", action, ticketId, fileId, e);
+            if (progOid != null) {
+                try {
+                    LoggingUtil.updateLogProgram(logProgramMapper, progOid, LoggingUtil.FAIL);
+                } catch (Exception ignored) {
+                    // 忽略审计日志补偿异常，避免影响主流程结果返回。
+                }
+            }
+        }
+    }
     
     private Boolean userHasAccess(String id) {
         CustomUserDetails user = AuthUtil.getUser();
@@ -972,6 +1533,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         TicketInfo ticket = ticketMapper.existingMasterOrder(id);
         if (ticket == null) {
             ticket = ticketMapper.existingPREPMasterOrder(id);
+        }
+
+        // 工单不存在时直接判定无权限，避免空指针。
+        if (ticket == null) {
+            return false;
         }
         
         return user.canViewOrEditOtherCustomersRecords(ticket.getMcOID());

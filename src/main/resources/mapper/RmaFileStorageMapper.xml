@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="us.pax.basil.mapper.RmaFileStorageMapper">
+
+    <!--
+      工单附件表字段映射。
+      说明：列名使用数据库原始命名，属性名使用 Java camelCase 风格。
+    -->
+    <resultMap id="RmaFileStorageResultMap" type="us.pax.basil.entity.ticket.RmaFileStorage">
+        <id column="MRF_OID" property="mrfOID"/>
+        <result column="MO_OID" property="moOID"/>
+        <result column="FILE_NAME" property="fileName"/>
+        <result column="PATH" property="path"/>
+        <result column="SIZE" property="size"/>
+        <result column="TYPE" property="type"/>
+    </resultMap>
+
+    <!-- 新增附件记录 -->
+    <insert id="insertRmaFileStorage" parameterType="us.pax.basil.entity.ticket.RmaFileStorage"
+            useGeneratedKeys="true" keyProperty="mrfOID" keyColumn="MRF_OID">
+        INSERT INTO BASIL_SEC_PRD.MASTER_RMA_FILE_STORAGE
+        (MO_OID, FILE_NAME, PATH, SIZE, TYPE)
+        VALUES
+        (#{moOID}, #{fileName}, #{path}, #{size}, #{type})
+    </insert>
+
+    <!-- 按工单号查询附件列表 -->
+    <select id="selectByTicketId" resultMap="RmaFileStorageResultMap">
+        SELECT MRF_OID, MO_OID, FILE_NAME, PATH, SIZE, TYPE
+        FROM BASIL_SEC_PRD.MASTER_RMA_FILE_STORAGE
+        WHERE MO_OID = #{ticketId}
+        ORDER BY MRF_OID DESC
+    </select>
+
+    <!-- 按附件主键查询 -->
+    <select id="selectByFileId" resultMap="RmaFileStorageResultMap">
+        SELECT MRF_OID, MO_OID, FILE_NAME, PATH, SIZE, TYPE
+        FROM BASIL_SEC_PRD.MASTER_RMA_FILE_STORAGE
+        WHERE MRF_OID = #{fileId}
+        LIMIT 1
+    </select>
+
+    <!-- 按工单号 + 附件主键查询 -->
+    <select id="selectByTicketIdAndFileId" resultMap="RmaFileStorageResultMap">
+        SELECT MRF_OID, MO_OID, FILE_NAME, PATH, SIZE, TYPE
+        FROM BASIL_SEC_PRD.MASTER_RMA_FILE_STORAGE
+        WHERE MO_OID = #{ticketId}
+          AND MRF_OID = #{fileId}
+        LIMIT 1
+    </select>
+
+    <!-- 按附件主键删除 -->
+    <delete id="deleteByFileId">
+        DELETE FROM BASIL_SEC_PRD.MASTER_RMA_FILE_STORAGE
+        WHERE MRF_OID = #{fileId}
+    </delete>
+
+</mapper>

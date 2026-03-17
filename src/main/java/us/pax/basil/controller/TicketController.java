@@ -19,6 +19,7 @@ package us.pax.basil.controller;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import us.pax.basil.dto.output.QueryResultArrayDTO;
@@ -30,6 +31,9 @@ import us.pax.basil.entity.ticket.TicketResponse;
 import us.pax.basil.service.TicketService;
 
 import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Api(tags = "Basil API Interface")
@@ -68,6 +72,75 @@ public class TicketController {
     @PostMapping(value = "/submitTicket", consumes = "application/json", produces = "application/json")
     public CompletableFuture<QueryResultDTO> submitTicket(@RequestBody TicketInsertion ticketInsertion) {
         return ticketService.submitTicketFuture(ticketInsertion);
+    }
+
+    /**
+     * Contact RMA：发送支持咨询邮件。
+     *
+     * 说明：
+     * 1. 收件人固定为 RMAsupport@pax.us（由后端控制，避免被篡改）。
+     * 2. 自动携带当前登录用户信息（姓名、组织、邮箱）。
+     * 3. 支持可选截图附件（图片）。
+     */
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping(value = "/contact-rma", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public QueryResultDTO contactRma(@RequestParam(value = "ticketId", required = false) String ticketId,
+                                     @RequestParam("subject") String subject,
+                                     @RequestParam("message") String message,
+                                     @RequestPart(value = "screenshot", required = false) MultipartFile screenshot) {
+        return ticketService.contactRma(ticketId, subject, message, screenshot);
+    }
+
+    /**
+     * 上传工单附件与备注。
+     * 说明：
+     * 1. 支持多文件上传。
+     * 2. 备注可为空；若有备注会写入工单消息表。
+     */
+    @PreAuthorize("hasAnyAuthority('ticketing.add', 'ticketing.update')")
+    @PostMapping(value = "/{ticketId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public QueryResultArrayDTO uploadTicketAttachments(@PathVariable("ticketId") Integer ticketId,
+                                                       @RequestParam(value = "remark", required = false) String remark,
+                                                       @RequestPart(value = "files", required = false) List<MultipartFile> files) {
+        return ticketService.uploadTicketAttachments(ticketId, remark, files);
+    }
+
+    /**
+     * 查询工单附件列表（返回预签名下载 URL）。
+     */
+    @PreAuthorize("hasAnyAuthority('ticketing.view', 'ticketing.update')")
+    @GetMapping("/{ticketId}/attachments")
+    public QueryResultArrayDTO listTicketAttachments(@PathVariable("ticketId") Integer ticketId) {
+        return ticketService.listTicketAttachments(ticketId);
+    }
+
+    /**
+     * 获取单个附件预签名下载 URL。
+     */
+    @PreAuthorize("hasAnyAuthority('ticketing.view', 'ticketing.update')")
+    @GetMapping("/{ticketId}/attachments/{fileId}/download-url")
+    public QueryResultDTO generateAttachmentDownloadUrl(@PathVariable("ticketId") Integer ticketId,
+                                                        @PathVariable("fileId") Integer fileId) {
+        return ticketService.generateAttachmentDownloadUrl(ticketId, fileId);
+    }
+
+    /**
+     * 删除工单附件。
+     */
+    @PreAuthorize("hasAnyAuthority('ticketing.update')")
+    @DeleteMapping("/{ticketId}/attachments/{fileId}")
+    public QueryResultDTO deleteTicketAttachment(@PathVariable("ticketId") Integer ticketId,
+                                                 @PathVariable("fileId") Integer fileId) {
+        return ticketService.deleteTicketAttachment(ticketId, fileId);
+    }
+
+    /**
+     * 本地回退模式下，按 token 下载附件。
+     */
+    @PreAuthorize("hasAnyAuthority('ticketing.view', 'ticketing.update')")
+    @GetMapping("/attachments/local/{token}")
+    public void downloadLocalAttachment(@PathVariable("token") String token, HttpServletResponse response) throws IOException {
+        ticketService.downloadLocalAttachment(token, response);
     }
     
     /**

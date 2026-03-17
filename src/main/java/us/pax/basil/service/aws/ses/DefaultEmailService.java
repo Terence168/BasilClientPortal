@@ -18,6 +18,16 @@ public class DefaultEmailService implements EmailService {
     }
 
     @Override
+    public CompletableFuture<SESResponse> sendEmailWithAttachment(String to,
+                                                                  String subject,
+                                                                  String htmlBody,
+                                                                  String attachmentFileName,
+                                                                  String attachmentContentType,
+                                                                  byte[] attachmentBytes) {
+        return CompletableFuture.completedFuture(SESResponse.builder().build());
+    }
+
+    @Override
     public CompletableFuture<List<SESResponse>> sendEmails(List<String> recipients, String subject, String htmlBody) {
         return CompletableFuture.completedFuture(new ArrayList<>());
     }

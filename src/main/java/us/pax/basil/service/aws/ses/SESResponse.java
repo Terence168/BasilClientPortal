@@ -24,4 +24,10 @@ public class SESResponse {
 
     @Builder.Default
     private SendEmailResponse response = null;
+
+    /**
+     * Raw Email 场景下的消息 ID（使用 SendRawEmail 时返回）。
+     */
+    @Builder.Default
+    private String messageId = null;
 }

@@ -10,6 +10,9 @@ import us.pax.basil.entity.ticket.TicketInsertionObject;
 import us.pax.basil.entity.ticket.TicketResponse;
 
 import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /***
@@ -81,5 +84,42 @@ public interface TicketService extends IService<Integer>{
     QueryResultArrayDTO queryKeyKsi(String keyType, String kcv);
 
     QueryResultArrayDTO queryKey();
+
+    /**
+     * 上传工单附件并记录文件元数据。
+     * @param ticketId 工单号
+     * @param remark 备注（可选）
+     * @param files 多文件列表（可选）
+     */
+    QueryResultArrayDTO uploadTicketAttachments(Integer ticketId, String remark, List<MultipartFile> files);
+
+    /**
+     * 查询工单附件列表（包含预签名下载 URL）。
+     */
+    QueryResultArrayDTO listTicketAttachments(Integer ticketId);
+
+    /**
+     * 获取单个附件预签名下载 URL。
+     */
+    QueryResultDTO generateAttachmentDownloadUrl(Integer ticketId, Integer fileId);
+
+    /**
+     * 删除工单附件（包含对象存储与数据库记录）。
+     */
+    QueryResultDTO deleteTicketAttachment(Integer ticketId, Integer fileId);
+
+    /**
+     * 本地回退模式下，按 token 下载文件。
+     */
+    void downloadLocalAttachment(String token, HttpServletResponse response) throws IOException;
+
+    /**
+     * Contact RMA：发送工单咨询邮件（支持图片附件）。
+     * @param ticketId 工单号（可空）
+     * @param subject 主题
+     * @param message 内容
+     * @param screenshot 截图附件（可空）
+     */
+    QueryResultDTO contactRma(String ticketId, String subject, String message, MultipartFile screenshot);
 
 }
