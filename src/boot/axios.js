@@ -34,12 +34,16 @@ export default boot(({ app, store }) => {
   //       so you can easily perform requests against your app's API
 
   const user = useUserStore(store);
+  const isPasswordEndpoint = (url) =>
+    typeof url === "string" && /(^|\/)password\//.test(url);
 
   api.interceptors.response.use(
     function (response) {
       // Any status code that lie within the range of 2xx cause this function to trigger
       // Do something with response data
-      if (user.loggedIn && response.data.code === 40000) {
+      const skipAuthHandling = isPasswordEndpoint(response?.config?.url);
+
+      if (!skipAuthHandling && user.loggedIn && response.data.code === 40000) {
         //user session expire, throw user to login page
         user.logout();
         Notify.create({
@@ -50,7 +54,7 @@ export default boot(({ app, store }) => {
         return response;
       }
 
-      if (user.loggedIn && response.data.code === 40001) {
+      if (!skipAuthHandling && user.loggedIn && response.data.code === 40001) {
         //unauthenicated, thow user to error 401 page
 
         user.toError401();

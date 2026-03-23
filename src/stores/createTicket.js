@@ -3,6 +3,45 @@ import { api } from "boot/axios";
 import { Notify } from "quasar";
 import { serialNumberUpdateQuery } from "../utils/ticketUtils";
 
+const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
+const KEY_CATEGORY_TEST = "TEST";
+
+function normalizeKeyCategory(category) {
+  const normalized = String(category || "").trim().toUpperCase();
+  if (!normalized) {
+    return "";
+  }
+  if (normalized.includes("PROD")) {
+    return KEY_CATEGORY_PRODUCTION;
+  }
+  if (normalized.includes("TEST")) {
+    return KEY_CATEGORY_TEST;
+  }
+  return normalized;
+}
+
+function buildCategoryOptions(keys) {
+  const categories = new Set(
+    (keys || []).map((key) => normalizeKeyCategory(key?.label?.keyCategory))
+  );
+  const options = [];
+  if (categories.has(KEY_CATEGORY_PRODUCTION)) {
+    options.push({ value: KEY_CATEGORY_PRODUCTION, label: "Production" });
+  }
+  if (categories.has(KEY_CATEGORY_TEST)) {
+    options.push({ value: KEY_CATEGORY_TEST, label: "Test" });
+  }
+
+  if (options.length > 0) {
+    return options;
+  }
+
+  return [
+    { value: KEY_CATEGORY_PRODUCTION, label: "Production" },
+    { value: KEY_CATEGORY_TEST, label: "Test" },
+  ];
+}
+
 export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
     orderType: null,
@@ -55,34 +94,38 @@ export const useCreateTicketStore = defineStore("createTicket", {
       this.trackingNums.splice(index, 1);
     },
     populateKeyTypeOpt(_, update) {
-      // if (this.keyTypeOpt) {
-      //   update();
-      //   return;
-      // }
+      const applyOptions = () => {
+        this.keyTypeOpt = buildCategoryOptions(this.keys);
+        if (this.keyType != null) {
+          this.populateKcvksiOpt();
+        }
+      };
+
+      if (Array.isArray(this.keys) && this.keys.length > 0) {
+        if (typeof update === "function") {
+          update(() => {
+            applyOptions();
+          });
+        } else {
+          applyOptions();
+        }
+        return;
+      }
+
       const link = "/ticketing/dropdown/key";
       api
         .get(link)
         .then((response) => {
-          update(() => {
-            const keyTypeSet = new Set();
-            this.keys = response.data.data;
-            this.keys.forEach((key) => {
-              keyTypeSet.add(key.label.keyType);
+          const payload = response?.data?.data;
+          this.keys = Array.isArray(payload) ? payload : [];
+
+          if (typeof update === "function") {
+            update(() => {
+              applyOptions();
             });
-
-            const keyTypeArray = [];
-            var index = 0;
-            for (const keyType of keyTypeSet) {
-              keyTypeArray.push({
-                value: keyType,
-                label: keyType,
-              });
-              index += 1;
-            }
-
-            this.keyTypeOpt = keyTypeArray;
-            // console.log(this.keyTypeOpt);
-          });
+          } else {
+            applyOptions();
+          }
         })
         .catch(function (error) {
           console.log(error);
@@ -94,69 +137,69 @@ export const useCreateTicketStore = defineStore("createTicket", {
         });
     },
     populateKcvksiOpt() {
-      this.kcvksi = null;
+      const previous = this.kcvksi;
+      const selectedCategory = normalizeKeyCategory(this.keyType);
 
-      if (this.keyType != null) {
-        const kcvksi = this.keys.filter(
-          (key) => key.label.keyType == this.keyType
-        );
-        const kcvArrays = [];
-        kcvksi.forEach((key) => {
-          const data = {
-            value: key.label.keyIndex,
-            label: key.label.kcv + " - " + key.label.ksi,
-            comment: key.label.comment,
-          };
-          kcvArrays.push(data);
-        });
-
-        this.kcvksiOpt = kcvArrays;
+      if (!Array.isArray(this.keys) || selectedCategory.length === 0) {
+        this.kcvksi = null;
+        this.kcvksiOpt = [];
+        return;
       }
+
+      const keyOptions = this.keys
+        .filter(
+          (key) =>
+            normalizeKeyCategory(key?.label?.keyCategory) === selectedCategory
+        )
+        .map((key) => {
+          const label = key?.label || {};
+          const keyIndex = label.keyIndex;
+          const keyId = label.keyId == null ? "" : String(label.keyId).trim();
+          const keyType = label.keyType == null ? "" : String(label.keyType);
+          const comment = label.comment == null ? "" : String(label.comment);
+          const descriptionParts = [keyType, comment].filter(
+            (part) => part != null && part.trim().length > 0
+          );
+
+          return {
+            value: keyIndex,
+            label: keyId.length > 0 ? keyId : `KEY-${keyIndex}`,
+            comment: descriptionParts.join(" | "),
+          };
+        })
+        .filter((option) => option.value != null)
+        .sort((a, b) =>
+          String(a.label).localeCompare(String(b.label), undefined, {
+            numeric: true,
+            sensitivity: "base",
+          })
+        );
+
+      this.kcvksiOpt = keyOptions;
+      this.kcvksi = keyOptions.some((option) => option.value === previous)
+        ? previous
+        : null;
     },
     populateKcvOpt(_, update) {
-      this.kcv = null;
-      this.ksi = null;
-      if (this.keyType != null) {
-        const kcvs = this.keys.filter(
-          (key) => key.label.keyType == this.keyType
-        );
-        const kcvArrays = [];
-        kcvs.forEach((key) => {
-          const data = {
-            value: key.label.kcv,
-            label: key.label.kcv,
-          };
-          kcvArrays.push(data);
-        });
-
-        this.kcvOpt = kcvArrays;
-        // console.log(this.kcvOpt);
+      this.populateKcvksiOpt();
+      if (typeof update === "function") {
+        update(() => {});
       }
     },
     populateKsiOpt(_, update) {
-      if (this.keyType != null && this.kcv != null) {
-        const keys = this.keys.filter(
-          (key) =>
-            key.label.keyType == this.keyType && key.label.kcv == this.kcv
-        );
-        const ksiArray = [];
-        keys.forEach((key) => {
-          const data = {
-            value: key.value,
-            label: key.label.ksi,
-          };
-          ksiArray.push(data);
-        });
-        this.ksiOpt = ksiArray;
-        // console.log(this.ksiOpt);
+      if (typeof update === "function") {
+        update(() => {});
       }
     },
     populateKeyTypeOptOnce() {
-      const link = "/ticketing/dropdown/key_type";
+      const link = "/ticketing/dropdown/key";
       api
         .get(link)
         .then((response) => {
-          this.keyTypeOpt = response.data.data;
+          const payload = response?.data?.data;
+          this.keys = Array.isArray(payload) ? payload : [];
+          this.keyTypeOpt = buildCategoryOptions(this.keys);
+          this.populateKcvksiOpt();
         })
         .catch(function (error) {
           console.log(error);

@@ -96,6 +96,7 @@ import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { api } from "boot/axios";
 import { Notify } from "quasar";
+import sha256 from "js-sha256";
 
 const router = useRouter();
 const route = useRoute();
@@ -133,6 +134,7 @@ const validateLink = function () {
         user_id: encryptedUserId.value,
         token: encryptedToken.value,
       },
+      withCredentials: false,
     })
     .then((response) => {
       if (response.data.resultCode === 0) {
@@ -158,12 +160,15 @@ const onSubmit = function () {
   if (newPasswordRef.value.hasError || confirmPasswordRef.value.hasError) {
     return;
   }
+  const hashedPassword = sha256(newPassword.value);
 
   api
     .post("password/recovery/complete", {
       encryptedUserId: encryptedUserId.value,
       encryptedToken: encryptedToken.value,
-      password: newPassword.value,
+      password: hashedPassword,
+    }, {
+      withCredentials: false,
     })
     .then((response) => {
       if (response.data.resultCode === 0) {

@@ -173,6 +173,7 @@ const submitForgotPassword = function () {
   api
     .post("password/recovery/request", null, {
       params: { email: forgotEmail.value },
+      withCredentials: false,
     })
     .then(() => {
       Notify.create({

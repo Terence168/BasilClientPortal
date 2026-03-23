@@ -89,7 +89,7 @@
             type="radio"
             v-model="ticketInfo.encrypt"
             value="yes"
-            disabled
+            :disabled="forceEncryptNo"
           />&nbsp;Yes&nbsp;&nbsp;
           <input
             type="radio"
@@ -98,102 +98,72 @@
             disabled
           />&nbsp;No&nbsp;
         </div>
-        <div class="row items-center" v-show="isEncrypted">
-          <div class="col-auto q-mr-sm">Test Key Type:&nbsp;</div>
-          <q-input
-              :model-value="ticketInfo.keyType"
-              disable
-              style="min-width: 200px"
-              dense
+        <div class="row items-center q-mt-sm" v-show="showKeyCategorySelection">
+          <div class="col-auto q-mr-sm">Key:&nbsp;</div>
+          <div class="col">
+            <q-option-group
+              v-if="allowKeyCategoryChoice"
+              v-model="keyType"
+              :options="availableKeyTypeOpt"
+              color="primary"
+              type="radio"
+              inline
             />
-          <!-- <div class="col-auto">
-            <q-select
-              ref="testKeyTypeSelect"
-              style="min-width: 200px"
-              label="Please select"
-              v-model="ticketInfo.keyType"
-              :options="keyTypeOpt"
-              @input-value="populateKcvOpt"
-              @update:model-value="populateKcvOpt"
-              dense
-              emit-value
-              map-options
-              disable
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div> -->
-          <div
-            class="col-auto q-mr-sm q-ml-sm"
-            v-show="ticketInfo.keyType != null"
-          >
-            KCV - KSI:&nbsp;
+            <div v-else class="text-weight-medium">{{ fixedKeyCategoryLabel }}</div>
           </div>
-          <q-input
-              :model-value="ticketInfo.kcv+' - '+ ticketInfo.ksi"
-              disable
-              style="min-width: 200px"
-              dense
-            />
-          <!-- <div class="col-auto" v-show="ticketInfo.keyType != null">
-            <q-select
-              ref="testKeyTypeSelect"
-              style="min-width: 200px"
-              label="Please select"
-              v-model="ticketInfo.kcv"
-              :options="kcvOpt"
-              @input-value="populateKsiOpt"
-              @update:model-value="populateKsiOpt"
-              dense
-              emit-value
-              map-options
-              disable
+        </div>
+
+        <div class="row items-start q-mt-sm" v-show="showCreditDebitKeySelection">
+          <div class="col-auto q-mr-sm q-pt-sm">Credit/Debit Key:&nbsp;</div>
+          <div class="col">
+            <div
+              v-for="(selectedKeyIndex, index) in selectedKeyIndexes"
+              :key="`edit-ticket-key-row-${index}`"
+              class="row items-center q-col-gutter-sm q-mb-sm"
             >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="selectedKeyIndexes[index]"
+                  :options="kcvksiOpt"
+                  label="Please select"
+                  dense
+                  clearable
+                  emit-value
+                  map-options
+                >
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey">No results</q-item-section>
+                    </q-item>
+                  </template>
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label>{{ scope.opt.label }}</q-item-label>
+                        <q-item-label caption>{{ scope.opt.comment }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
+              </div>
+              <div class="col-12 col-md-auto">
+                <q-btn
+                  v-if="index === selectedKeyIndexes.length - 1"
+                  flat
+                  color="primary"
+                  label="+ 添加密钥"
+                  @click="addKeyRow"
+                />
+                <q-btn
+                  v-if="selectedKeyIndexes.length > 1"
+                  flat
+                  color="negative"
+                  icon="remove"
+                  @click="removeKeyRow(index)"
+                />
+              </div>
+            </div>
           </div>
-          <div
-            class="col-auto q-mr-sm q-ml-sm"
-            v-show="ticketInfo.keyType != null && ticketInfo.kcv != null"
-          >
-            KSI:&nbsp;
-          </div>
-          <div
-            class="col-auto"
-            v-show="ticketInfo.keyType != null && ticketInfo.kcv != null"
-          >
-            <q-select
-              ref="testKeyTypeSelect"
-              style="min-width: 200px"
-              label="Please select"
-              v-model="ticketInfo.ksi"
-              :options="ksiOpt"
-              dense
-              emit-value
-              map-options
-              disable
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div> -->
         </div>
         <div class="q-my-sm">Shipping Address:</div>
         <div class="row">
@@ -324,6 +294,13 @@
               </q-item-section>
             </q-item>
           </q-list>
+
+          <div class="q-mt-md">
+            <div class="text-subtitle2 text-weight-medium q-mb-xs">Remark</div>
+            <q-banner dense rounded class="bg-grey-1 text-grey-9">
+              {{ ticketInfo.description || "No remark" }}
+            </q-banner>
+          </div>
         </div>
       </div>
     </div>
@@ -384,6 +361,29 @@ import { useEditTicketStore } from "src/stores/editTicket";
 import { useUserStore } from "stores/user";
 import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 
+const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
+const KEY_CATEGORY_TEST = "TEST";
+
+function normalizeOrderTypeLabel(label) {
+  return String(label || "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+}
+
+function normalizeKeyCategory(category) {
+  const normalized = String(category || "").trim().toUpperCase();
+  if (!normalized) {
+    return "";
+  }
+  if (normalized.includes("PROD")) {
+    return KEY_CATEGORY_PRODUCTION;
+  }
+  if (normalized.includes("TEST")) {
+    return KEY_CATEGORY_TEST;
+  }
+  return normalized;
+}
+
 export default {
   components: {
     MessageBoard,
@@ -412,6 +412,8 @@ export default {
         ksi: null,
         keyType: null,
         keyIndex: null,
+        keyIndexes: [],
+        description: null,
       },
       comments: [],
       editInfo: {
@@ -430,9 +432,10 @@ export default {
       showAddressModal: false,
 
       keys: null,
-      kcvOpt: null,
-      ksiOpt: null,
+      kcvksiOpt: [],
       keyTypeOpt: null,
+      keyType: null,
+      selectedKeyIndexes: [null],
 
       attachments: [],
       attachmentsLoading: false,
@@ -465,7 +468,8 @@ export default {
             
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
-
+              this.applyOrderTypeRule({ preserveSelection: true });
+              this.initializeSelectedKeyIndexes();
             }
             if (comments != null) {
               this.comments = comments;
@@ -525,6 +529,120 @@ export default {
     canDeleteAttachment() {
       return useUserStore().checkPermission("ticketing.update");
     },
+    selectedOrderTypeLabel() {
+      if (!Array.isArray(this.orderTypeOpt) || this.ticketInfo.typeOfRepair == null) {
+        return "";
+      }
+      const option = this.orderTypeOpt.find(
+        (item) => String(item.value) === String(this.ticketInfo.typeOfRepair)
+      );
+      return option ? option.label : "";
+    },
+    orderTypeRule() {
+      const normalized = normalizeOrderTypeLabel(this.selectedOrderTypeLabel);
+
+      if (
+        normalized.includes("decommission") ||
+        normalized.includes("return") ||
+        normalized.includes("diagnostic")
+      ) {
+        return {
+          forceEncryptNo: true,
+          requiresKeySelection: false,
+          allowKeyCategoryChoice: false,
+          fixedKeyCategory: null,
+        };
+      }
+
+      if (normalized.includes("debug")) {
+        return {
+          forceEncryptNo: false,
+          requiresKeySelection: true,
+          allowKeyCategoryChoice: false,
+          fixedKeyCategory: KEY_CATEGORY_TEST,
+        };
+      }
+
+      if (normalized.includes("rerepair") || normalized === "repair") {
+        return {
+          forceEncryptNo: false,
+          requiresKeySelection: true,
+          allowKeyCategoryChoice: false,
+          fixedKeyCategory: KEY_CATEGORY_PRODUCTION,
+        };
+      }
+
+      if (normalized.includes("rework")) {
+        return {
+          forceEncryptNo: false,
+          requiresKeySelection: true,
+          allowKeyCategoryChoice: true,
+          fixedKeyCategory: null,
+        };
+      }
+
+      return {
+        forceEncryptNo: false,
+        requiresKeySelection: true,
+        allowKeyCategoryChoice: true,
+        fixedKeyCategory: null,
+      };
+    },
+    forceEncryptNo() {
+      return this.orderTypeRule.forceEncryptNo;
+    },
+    requiresKeySelection() {
+      return this.orderTypeRule.requiresKeySelection;
+    },
+    allowKeyCategoryChoice() {
+      return this.orderTypeRule.allowKeyCategoryChoice;
+    },
+    fixedKeyCategory() {
+      return this.orderTypeRule.fixedKeyCategory;
+    },
+    availableKeyTypeOpt() {
+      if (!Array.isArray(this.keyTypeOpt)) {
+        return [];
+      }
+      if (this.fixedKeyCategory) {
+        return this.keyTypeOpt.filter(
+          (option) => option.value === this.fixedKeyCategory
+        );
+      }
+      return this.allowKeyCategoryChoice ? this.keyTypeOpt : [];
+    },
+    fixedKeyCategoryLabel() {
+      if (this.fixedKeyCategory === KEY_CATEGORY_PRODUCTION) {
+        return "Production";
+      }
+      if (this.fixedKeyCategory === KEY_CATEGORY_TEST) {
+        return "Test";
+      }
+      return "N/A";
+    },
+    showKeyCategorySelection() {
+      return (
+        this.isEncrypted &&
+        this.requiresKeySelection &&
+        (this.allowKeyCategoryChoice || this.fixedKeyCategory != null)
+      );
+    },
+    showCreditDebitKeySelection() {
+      return (
+        this.isEncrypted &&
+        this.requiresKeySelection &&
+        this.keyType != null &&
+        this.keyType !== ""
+      );
+    },
+  },
+  watch: {
+    keyType(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.populateKcvksiOpt();
+        this.resetKeyRows();
+      }
+    },
   },
   methods: {
     ...mapActions(useUserStore, ["logout"]),
@@ -546,6 +664,126 @@ export default {
       "removeSN",
       "updateAddress",
     ]),
+    resetKeyRows() {
+      this.selectedKeyIndexes = [null];
+    },
+    addKeyRow() {
+      this.selectedKeyIndexes.push(null);
+    },
+    removeKeyRow(index) {
+      if (this.selectedKeyIndexes.length <= 1) {
+        this.resetKeyRows();
+        return;
+      }
+      this.selectedKeyIndexes.splice(index, 1);
+    },
+    collectSelectedKeyIndexes() {
+      if (!this.isEncrypted || !this.requiresKeySelection) {
+        return { keyIndexes: [], errorMessage: null };
+      }
+
+      if (!Array.isArray(this.selectedKeyIndexes) || this.selectedKeyIndexes.length === 0) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Please add at least one Credit/Debit Key",
+        };
+      }
+
+      if (this.selectedKeyIndexes.some((keyIndex) => keyIndex == null || keyIndex === "")) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Please complete all Credit/Debit Key rows",
+        };
+      }
+
+      const keyIndexes = this.selectedKeyIndexes.map((keyIndex) => Number(keyIndex));
+      const hasInvalid = keyIndexes.some((keyIndex) => Number.isNaN(keyIndex) || keyIndex <= 0);
+      if (hasInvalid) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Invalid Credit/Debit Key selection",
+        };
+      }
+
+      const uniqueCount = new Set(keyIndexes).size;
+      if (uniqueCount !== keyIndexes.length) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Credit/Debit Key cannot be duplicated",
+        };
+      }
+
+      return { keyIndexes, errorMessage: null };
+    },
+    applyOrderTypeRule({ preserveSelection = false } = {}) {
+      if (this.forceEncryptNo) {
+        this.ticketInfo.encrypt = "no";
+        this.keyType = null;
+        this.resetKeyRows();
+        this.kcvksiOpt = [];
+        return;
+      }
+
+      if (this.ticketInfo.encrypt !== "yes") {
+        this.resetKeyRows();
+        this.kcvksiOpt = [];
+        return;
+      }
+
+      if (this.fixedKeyCategory != null) {
+        this.keyType = this.fixedKeyCategory;
+      } else if (this.allowKeyCategoryChoice) {
+        const isValid = this.availableKeyTypeOpt.some(
+          (option) => option.value === this.keyType
+        );
+        if (!isValid) {
+          const defaultOption =
+            this.availableKeyTypeOpt.find(
+              (option) => option.value === KEY_CATEGORY_PRODUCTION
+            ) || this.availableKeyTypeOpt[0];
+          this.keyType = defaultOption ? defaultOption.value : null;
+        }
+      } else {
+        this.keyType = null;
+      }
+
+      this.populateKcvksiOpt();
+      if (!preserveSelection) {
+        this.resetKeyRows();
+      }
+    },
+    initializeSelectedKeyIndexes() {
+      const incomingKeyIndexes = Array.isArray(this.ticketInfo.keyIndexes)
+        ? this.ticketInfo.keyIndexes
+        : [];
+      const normalized = incomingKeyIndexes
+        .map((item) => Number(item))
+        .filter((item) => !Number.isNaN(item) && item > 0);
+
+      if (
+        normalized.length > 0 &&
+        this.allowKeyCategoryChoice &&
+        Array.isArray(this.keys)
+      ) {
+        const firstKey = this.keys.find(
+          (item) => Number(item?.label?.keyIndex) === normalized[0]
+        );
+        const category = normalizeKeyCategory(firstKey?.label?.keyCategory);
+        if (category) {
+          this.keyType = category;
+          this.populateKcvksiOpt();
+        }
+      }
+
+      if (normalized.length > 0) {
+        this.selectedKeyIndexes = [...new Set(normalized)];
+      } else if (this.ticketInfo.keyIndex != null) {
+        const fallback = Number(this.ticketInfo.keyIndex);
+        this.selectedKeyIndexes = !Number.isNaN(fallback) && fallback > 0 ? [fallback] : [null];
+      } else {
+        this.resetKeyRows();
+      }
+    },
     handleEditTicket() {
       //valid serials and update it
       this.ticketEditing = true;
@@ -553,7 +791,7 @@ export default {
       const editSerial = this.findEditSN(this.ticketId);
 
       //If user didn't choose order type, don't allow user to submit the ticket
-      if (this.ticketInfo.orderType === null) {
+      if (this.ticketInfo.typeOfRepair === null) {
         this.$q.notify({
           type: "negative",
           message: "Please Select Order Type before Submitting.",
@@ -574,17 +812,14 @@ export default {
         }
       }
 
-      if (
-        this.isEncrypted &&
-        (this.ticketInfo.ksi === null ||
-          this.ticketInfo.keyType === null ||
-          this.ticketInfo.kcv === null)
-      ) {
+      const { keyIndexes: selectedKeyIndexes, errorMessage: keyValidationError } =
+        this.collectSelectedKeyIndexes();
+      if (keyValidationError) {
         Notify.create({
           type: "negative",
-          message: "Please Select an Unique Key for Encryption",
+          message: keyValidationError,
         });
-        this.serialsSubmitting = false;
+        this.ticketEditing = false;
         return;
       }
 
@@ -592,14 +827,19 @@ export default {
         ...editTracking,
         ...editSerial,
         isFromMaster: this.ticketInfo.isFromMaster,
-        orderType: this.ticketInfo.orderType,
+        orderType: this.ticketInfo.typeOfRepair,
         address: this.ticketInfo.address,
         typeOfRepair: this.ticketInfo.typeOfRepair,
         originalRMA: this.ticketInfo.originalRMA,
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
         encrypt: this.ticketInfo.encrypt,
-        testKeyType: this.isEncrypted ? this.ticketInfo.ksi : null,
+        testKeyType:
+          this.isEncrypted && this.requiresKeySelection && selectedKeyIndexes.length > 0
+            ? String(selectedKeyIndexes[0])
+            : null,
+        keyIndexes:
+          this.isEncrypted && this.requiresKeySelection ? selectedKeyIndexes : [],
       };
       if (payload.orderType === 3 || payload.orderType === 7) {
         payload.originalRMA = null;
@@ -637,6 +877,8 @@ export default {
       Promise.all([this.fetchTicket(this.ticketId), this.fetchAttachments(this.ticketId)])
         .then(([ticket]) => {
           this.ticketInfo = ticket;
+          this.applyOrderTypeRule({ preserveSelection: true });
+          this.initializeSelectedKeyIndexes();
         })
         .finally(() => {
           this.isLoading = false;
@@ -895,135 +1137,78 @@ export default {
       this.showAddressModal = true;
     },
     populateKeysOptOnce() {
-      const vm = this;
-      if (this.keys == null) {
-        const link = "/ticketing/dropdown/key";
-        api
-          .get(link)
-          .then((response) => {
-              const keyTypeSet = new Set();
-              this.keys = response.data.data;
-              //set up keys
-              this.keys.forEach((key) => {
-                keyTypeSet.add(key.label.keyType);
-              });
-
-              const keyTypeArray = [];
-              var index = 0;
-              for (const keyType of keyTypeSet) {
-                keyTypeArray.push({
-                  value: keyType,
-                  label: keyType,
-                });
-                index += 1;
-              }
-
-              this.keyTypeOpt = keyTypeArray;
-              
-              //set up keycv drop down menu
-              if (this.ticketInfo.keyType != null) {
-                const kcvs = this.keys.filter(
-                  (key) => key.label.keyType == this.ticketInfo.keyType
-                );
-                const kcvArrays = [];
-                kcvs.forEach((key) => {
-                  const data = {
-                    value: key.label.kcv,
-                    label: key.label.kcv,
-                  };
-                  kcvArrays.push(data);
-                });
-                this.kcvOpt = kcvArrays;
-              }
-              
-              this.populateKsiOpt();
-          })
-          .catch(function (error) {
-            if(!vm.loggedIn) return;
-            console.log(error);
-            // handle error
-            Notify.create({
-              type: "negative",
-              message: "Key Type Dropdown cannot be populated",
-            });
-          });
-      }
-    },
-    populateKeyTypeOpt() {
-      if (this.keyTypeOpt != null) {
-        return;
-      }
       const link = "/ticketing/dropdown/key";
-      api
+      return api
         .get(link)
         .then((response) => {
-          update(() => {
-            const keyTypeSet = new Set();
-            this.keys = response.data.data;
-            this.keys.forEach((key) => {
-              keyTypeSet.add(key.label.keyType);
-            });
-
-            const keyTypeArray = [];
-            var index = 0;
-            for (const keyType of keyTypeSet) {
-              keyTypeArray.push({
-                value: keyType,
-                label: keyType,
-              });
-              index += 1;
-            }
-            this.keyTypeOpt = keyTypeArray;
-            // console.log(this.keyTypeOpt);
-          });
+          const payload = response?.data?.data;
+          this.keys = Array.isArray(payload) ? payload : [];
+          this.keyTypeOpt = this.buildCategoryOptions(this.keys);
+          this.applyOrderTypeRule({ preserveSelection: true });
+          this.initializeSelectedKeyIndexes();
+          return this.keys;
         })
-        .catch(function (error) {
+        .catch((error) => {
+          if (!this.loggedIn) return [];
           console.log(error);
-          // handle error
           Notify.create({
             type: "negative",
             message: "Key Type Dropdown cannot be populated",
           });
+          return [];
         });
     },
-    populateKcvOpt() {
-      this.ticketInfo.kcv = null;
-      this.ticketInfo.ksi = null;
-      if (this.ticketInfo.keyType != null) {
-        const kcvs = this.keys.filter(
-          (key) => key.label.keyType == this.ticketInfo.keyType
-        );
-        const kcvArrays = [];
-        kcvs.forEach((key) => {
-          const data = {
-            value: key.label.kcv,
-            label: key.label.kcv,
-          };
-          kcvArrays.push(data);
-        });
-
-        this.kcvOpt = kcvArrays;
-        // console.log(this.kcvOpt);
+    buildCategoryOptions(keys) {
+      const categories = new Set(
+        (keys || []).map((key) => normalizeKeyCategory(key?.label?.keyCategory))
+      );
+      const options = [];
+      if (categories.has(KEY_CATEGORY_PRODUCTION)) {
+        options.push({ value: KEY_CATEGORY_PRODUCTION, label: "Production" });
       }
+      if (categories.has(KEY_CATEGORY_TEST)) {
+        options.push({ value: KEY_CATEGORY_TEST, label: "Test" });
+      }
+      if (options.length > 0) return options;
+      return [
+        { value: KEY_CATEGORY_PRODUCTION, label: "Production" },
+        { value: KEY_CATEGORY_TEST, label: "Test" },
+      ];
     },
-    populateKsiOpt() {
-      if (this.ticketInfo.keyType != null && this.ticketInfo.kcv != null) {
-        const keys = this.keys.filter(
+    populateKcvksiOpt() {
+      const selectedCategory = normalizeKeyCategory(this.keyType);
+      if (!Array.isArray(this.keys) || selectedCategory.length === 0) {
+        this.kcvksiOpt = [];
+        return;
+      }
+      const options = this.keys
+        .filter(
           (key) =>
-            key.label.keyType == this.ticketInfo.keyType &&
-            key.label.kcv == this.ticketInfo.kcv
-        );
-        const ksiArray = [];
-        keys.forEach((key) => {
-          const data = {
-            value: key.value,
-            label: key.label.ksi,
+            normalizeKeyCategory(key?.label?.keyCategory) === selectedCategory
+        )
+        .map((key) => {
+          const label = key?.label || {};
+          const keyId = label.keyId == null ? "" : String(label.keyId).trim();
+          const keyIndex = label.keyIndex;
+          const keyType = label.keyType == null ? "" : String(label.keyType);
+          const comment = label.comment == null ? "" : String(label.comment);
+          const desc = [keyType, comment]
+            .filter((part) => part != null && part.trim().length > 0)
+            .join(" | ");
+          return {
+            value: keyIndex,
+            label: keyId.length > 0 ? keyId : `KEY-${keyIndex}`,
+            comment: desc,
           };
-          ksiArray.push(data);
-        });
-        this.ksiOpt = ksiArray;
-        // console.log(this.ksiOpt);
-      }
+        })
+        .filter((item) => item.value != null)
+        .sort((a, b) =>
+          String(a.label).localeCompare(String(b.label), undefined, {
+            numeric: true,
+            sensitivity: "base",
+          })
+        );
+      this.kcvksiOpt = options;
     },
   },
 };

@@ -117,58 +117,89 @@
                 type="radio"
                 v-model="encrypt"
                 value="yes"
+                :disabled="forceEncryptNo"
               />&nbsp;Yes&nbsp;&nbsp;
               <input type="radio" v-model="encrypt" value="no" />&nbsp;No&nbsp;
             </div>
           </div>
 
-          <div class="row items-center field-row q-col-gutter-sm" v-show="isEncrypted">
-            <div class="col-12 col-md-3 field-label">Test Key Type</div>
-            <div class="col-12 col-md-4">
-            <q-select
-              ref="testKeyTypeSelect"
-              class="field-input-sm"
-              label="Please select"
-              v-model="keyType"
-              :options="keyTypeOpt"
-              @filter="populateKeyTypeOpt"
-              @input-value="populateKcvOpt"
-              @update:model-value="populateKcvksiOpt"
-              dense
-              emit-value
-              map-options
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
+          <div
+            class="row items-center field-row q-col-gutter-sm"
+            v-show="showKeyCategorySelection"
+          >
+            <div class="col-12 col-md-3 field-label">Key</div>
+            <div class="col-12 col-md-9">
+              <q-option-group
+                v-if="allowKeyCategoryChoice"
+                v-model="keyType"
+                :options="availableKeyTypeOpt"
+                color="primary"
+                type="radio"
+                inline
+              />
+              <div v-else class="key-fixed-choice">
+                {{ fixedKeyCategoryLabel }}
+              </div>
             </div>
-            <div class="col-12 col-md-auto field-label-inline" v-show="keyType != null">
-              KCV - KSI
-            </div>
-            <div class="col-12 col-md-4" v-show="keyType != null">
-            <q-select
-              class="field-input-sm"
-              v-model="kcvksi"
-              :options="kcvksiOpt"
-              label="Please select"
-              dense
-              clearable
-              options-selected-class="text-deep-orange"
-            >
-              <template v-slot:option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section>
-                    <q-item-label>{{ scope.opt.label }}</q-item-label>
-                    <q-item-label caption>{{ scope.opt.comment }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
+          </div>
+
+          <div
+            class="row items-center field-row q-col-gutter-sm"
+            v-show="showCreditDebitKeySelection"
+          >
+            <div class="col-12 col-md-3 field-label">Credit/Debit Key</div>
+            <div class="col-12 col-md-9">
+              <div
+                v-for="(selectedKeyIndex, index) in selectedKeyIndexes"
+                :key="`ticket-key-row-${index}`"
+                class="row items-center q-col-gutter-sm q-mb-sm"
+              >
+                <div class="col-12 col-md-7">
+                  <q-select
+                    class="field-input-sm"
+                    v-model="selectedKeyIndexes[index]"
+                    :options="kcvksiOpt"
+                    label="Please select"
+                    dense
+                    clearable
+                    emit-value
+                    map-options
+                    options-selected-class="text-deep-orange"
+                  >
+                    <template v-slot:no-option>
+                      <q-item>
+                        <q-item-section class="text-grey">
+                          No results
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                    <template v-slot:option="scope">
+                      <q-item v-bind="scope.itemProps">
+                        <q-item-section>
+                          <q-item-label>{{ scope.opt.label }}</q-item-label>
+                          <q-item-label caption>{{ scope.opt.comment }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-select>
+                </div>
+                <div class="col-12 col-md-auto key-row-actions">
+                  <q-btn
+                    v-if="index === selectedKeyIndexes.length - 1"
+                    flat
+                    color="primary"
+                    label="+ 添加密钥"
+                    @click="addKeyRow"
+                  />
+                  <q-btn
+                    v-if="selectedKeyIndexes.length > 1"
+                    flat
+                    color="negative"
+                    icon="remove"
+                    @click="removeKeyRow(index)"
+                  />
+                </div>
+              </div>
             </div>
           </div>
           <!-- <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null">KCV:&nbsp;</div>
@@ -508,6 +539,14 @@ const MAX_VIDEO_FILE_SIZE = 500 * 1024 * 1024;
 const ATTACHMENT_ACCEPT = Array.from(ALL_ALLOWED_EXTENSIONS)
   .map((ext) => `.${ext}`)
   .join(",");
+const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
+const KEY_CATEGORY_TEST = "TEST";
+
+function normalizeOrderTypeLabel(label) {
+  return String(label || "")
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
+}
 
 export default {
   components: {
@@ -530,6 +569,7 @@ export default {
       attachmentErrors: [],
       remark: "",
       attachmentAccept: ATTACHMENT_ACCEPT,
+      selectedKeyIndexes: [null],
     };
   },
 
@@ -537,15 +577,12 @@ export default {
     ...mapWritableState(useCreateTicketStore, [
       "orderType",
       "keyType",
-      "kcv",
-      "ksi",
       "trackingNums",
       "inputValue",
       "originalRMA",
       "address",
       "encrypt",
       "custType",
-      "kcvksi",
     ]),
     ...mapState(useCreateTicketStore, [
       "orderTypeOpt",
@@ -554,8 +591,6 @@ export default {
       "getAllSerials",
       "getTrackingNums",
       "custTypeOpt",
-      "kcvOpt",
-      "ksiOpt",
       "kcvksiOpt",
     ]),
     ...mapState(useUserStore, ["clientUser"]),
@@ -574,6 +609,129 @@ export default {
     companyName() {
       return user.companyName || "";
     },
+    selectedOrderTypeLabel() {
+      if (!Array.isArray(this.orderTypeOpt) || this.orderType == null) {
+        return "";
+      }
+      const option = this.orderTypeOpt.find(
+        (item) => String(item.value) === String(this.orderType)
+      );
+      return option ? option.label : "";
+    },
+    orderTypeRule() {
+      const normalized = normalizeOrderTypeLabel(this.selectedOrderTypeLabel);
+
+      if (
+        normalized.includes("decommission") ||
+        normalized.includes("return") ||
+        normalized.includes("diagnostic")
+      ) {
+        return {
+          forceEncryptNo: true,
+          requiresKeySelection: false,
+          allowKeyCategoryChoice: false,
+          fixedKeyCategory: null,
+        };
+      }
+
+      if (normalized.includes("debug")) {
+        return {
+          forceEncryptNo: false,
+          requiresKeySelection: true,
+          allowKeyCategoryChoice: false,
+          fixedKeyCategory: KEY_CATEGORY_TEST,
+        };
+      }
+
+      if (normalized.includes("rerepair") || normalized === "repair") {
+        return {
+          forceEncryptNo: false,
+          requiresKeySelection: true,
+          allowKeyCategoryChoice: false,
+          fixedKeyCategory: KEY_CATEGORY_PRODUCTION,
+        };
+      }
+
+      if (normalized.includes("rework")) {
+        return {
+          forceEncryptNo: false,
+          requiresKeySelection: true,
+          allowKeyCategoryChoice: true,
+          fixedKeyCategory: null,
+        };
+      }
+
+      return {
+        forceEncryptNo: false,
+        requiresKeySelection: true,
+        allowKeyCategoryChoice: true,
+        fixedKeyCategory: null,
+      };
+    },
+    forceEncryptNo() {
+      return this.orderTypeRule.forceEncryptNo;
+    },
+    requiresKeySelection() {
+      return this.orderTypeRule.requiresKeySelection;
+    },
+    allowKeyCategoryChoice() {
+      return this.orderTypeRule.allowKeyCategoryChoice;
+    },
+    fixedKeyCategory() {
+      return this.orderTypeRule.fixedKeyCategory;
+    },
+    availableKeyTypeOpt() {
+      if (!Array.isArray(this.keyTypeOpt)) {
+        return [];
+      }
+      if (this.fixedKeyCategory) {
+        return this.keyTypeOpt.filter(
+          (option) => option.value === this.fixedKeyCategory
+        );
+      }
+      return this.allowKeyCategoryChoice ? this.keyTypeOpt : [];
+    },
+    fixedKeyCategoryLabel() {
+      if (this.fixedKeyCategory === KEY_CATEGORY_PRODUCTION) {
+        return "Production";
+      }
+      if (this.fixedKeyCategory === KEY_CATEGORY_TEST) {
+        return "Test";
+      }
+      return "N/A";
+    },
+    showKeyCategorySelection() {
+      return (
+        this.isEncrypted &&
+        this.requiresKeySelection &&
+        (this.allowKeyCategoryChoice || this.fixedKeyCategory != null)
+      );
+    },
+    showCreditDebitKeySelection() {
+      return (
+        this.isEncrypted &&
+        this.requiresKeySelection &&
+        this.keyType != null &&
+        this.keyType !== ""
+      );
+    },
+  },
+  watch: {
+    orderType: {
+      immediate: true,
+      handler() {
+        this.applyOrderTypeRule();
+      },
+    },
+    encrypt() {
+      this.applyOrderTypeRule();
+    },
+    keyType(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.populateKcvksiOpt();
+        this.resetKeyRows();
+      }
+    },
   },
   created() {},
   methods: {
@@ -584,8 +742,6 @@ export default {
       "populateOrderTypeOpt",
       "populateKeyTypeOpt",
       "populateCustTypeOpt",
-      "populateKcvOpt",
-      "populateKsiOpt",
       "populateKcvksiOpt",
       "addSerial",
       "addSerialList",
@@ -618,6 +774,97 @@ export default {
     },
     showAddressGrid() {
       this.showAddressModal = true;
+    },
+    resetKeyRows() {
+      this.selectedKeyIndexes = [null];
+    },
+    addKeyRow() {
+      this.selectedKeyIndexes.push(null);
+    },
+    removeKeyRow(index) {
+      if (this.selectedKeyIndexes.length <= 1) {
+        this.resetKeyRows();
+        return;
+      }
+      this.selectedKeyIndexes.splice(index, 1);
+    },
+    collectSelectedKeyIndexes() {
+      if (!this.isEncrypted || !this.requiresKeySelection) {
+        return { keyIndexes: [], errorMessage: null };
+      }
+
+      if (!Array.isArray(this.selectedKeyIndexes) || this.selectedKeyIndexes.length === 0) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Please add at least one Credit/Debit Key",
+        };
+      }
+
+      if (this.selectedKeyIndexes.some((keyIndex) => keyIndex == null || keyIndex === "")) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Please complete all Credit/Debit Key rows",
+        };
+      }
+
+      const keyIndexes = this.selectedKeyIndexes.map((keyIndex) => Number(keyIndex));
+      const hasInvalid = keyIndexes.some((keyIndex) => Number.isNaN(keyIndex) || keyIndex <= 0);
+      if (hasInvalid) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Invalid Credit/Debit Key selection",
+        };
+      }
+
+      const uniqueCount = new Set(keyIndexes).size;
+      if (uniqueCount !== keyIndexes.length) {
+        return {
+          keyIndexes: [],
+          errorMessage: "Credit/Debit Key cannot be duplicated",
+        };
+      }
+
+      return { keyIndexes, errorMessage: null };
+    },
+    applyOrderTypeRule() {
+      if (this.forceEncryptNo) {
+        if (this.encrypt !== "no") {
+          this.encrypt = "no";
+        }
+        this.keyType = null;
+        this.resetKeyRows();
+        return;
+      }
+
+      if (this.encrypt !== "yes") {
+        this.resetKeyRows();
+        return;
+      }
+
+      this.populateKeyTypeOpt();
+
+      if (this.fixedKeyCategory != null) {
+        if (this.keyType !== this.fixedKeyCategory) {
+          this.keyType = this.fixedKeyCategory;
+        }
+        return;
+      }
+
+      if (this.allowKeyCategoryChoice) {
+        const currentIsValid = this.availableKeyTypeOpt.some(
+          (option) => option.value === this.keyType
+        );
+        if (!currentIsValid) {
+          const defaultOption =
+            this.availableKeyTypeOpt.find(
+              (option) => option.value === KEY_CATEGORY_PRODUCTION
+            ) || this.availableKeyTypeOpt[0];
+          this.keyType = defaultOption ? defaultOption.value : null;
+        }
+      } else {
+        this.keyType = null;
+        this.resetKeyRows();
+      }
     },
     getFileExtension(fileName) {
       if (!fileName || fileName.lastIndexOf(".") < 0) {
@@ -676,27 +923,21 @@ export default {
       this.attachments = [];
       this.attachmentErrors = [];
       this.remark = "";
+      this.resetKeyRows();
     },
     handleClickHelpUnit() {
       this.showHelpModal = true;
     },
     submitTicketAttachments(ticketId) {
       const hasAttachments = Array.isArray(this.attachments) && this.attachments.length > 0;
-      const hasRemark = this.remark && this.remark.trim().length > 0;
-
-      if (!hasAttachments && !hasRemark) {
+      if (!hasAttachments) {
         return Promise.resolve();
       }
 
       const formData = new FormData();
-      if (hasRemark) {
-        formData.append("remark", this.remark.trim());
-      }
-      if (hasAttachments) {
-        this.attachments.forEach((file) => {
-          formData.append("files", file);
-        });
-      }
+      this.attachments.forEach((file) => {
+        formData.append("files", file);
+      });
 
       const actionURL = `/ticketing/${ticketId}/attachments`;
       return this.$api
@@ -762,11 +1003,12 @@ export default {
         this.serialsSubmitting = false;
         return;
       }
-      //no test key select when user select encrypted
-      if (this.isEncrypted && (this.kcvksi === null || this.keyType === null)) {
+      const { keyIndexes: selectedKeyIndexes, errorMessage: keyValidationError } =
+        this.collectSelectedKeyIndexes();
+      if (keyValidationError) {
         Notify.create({
           type: "negative",
-          message: "Please Select an Unique Key for Encryption",
+          message: keyValidationError,
         });
         this.serialsSubmitting = false;
         return;
@@ -791,9 +1033,15 @@ export default {
       });
 
       const payload = {
-        encrypt: this.encrypt,
+        encrypt: this.forceEncryptNo ? "no" : this.encrypt,
         orderType: this.orderType,
-        testKeyType: this.isEncrypted ? this.ksi : null,
+        testKeyType:
+          this.isEncrypted && this.requiresKeySelection && selectedKeyIndexes.length > 0
+            ? String(selectedKeyIndexes[0])
+            : null,
+        keyIndexes:
+          this.isEncrypted && this.requiresKeySelection ? selectedKeyIndexes : [],
+        remark: this.remark && this.remark.trim().length > 0 ? this.remark.trim() : null,
         trackingNumbers,
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
@@ -822,7 +1070,7 @@ export default {
           }).catch((uploadError) => {
             Notify.create({
               type: "warning",
-              message: `Ticket ${mo_OID} created, but attachment/remark upload failed: ${uploadError.message}`,
+              message: `Ticket ${mo_OID} created, but attachment upload failed: ${uploadError.message}`,
             });
           });
         })
@@ -918,6 +1166,20 @@ export default {
   align-items: center;
   font-weight: 600;
   color: #4d5b6a;
+}
+
+.key-fixed-choice {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #1f2d3d;
+}
+
+.key-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .field-input-sm {

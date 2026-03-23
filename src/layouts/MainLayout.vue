@@ -254,7 +254,7 @@
           </q-file>
 
           <div class="q-pa-sm bg-blue-1 text-caption rounded-borders q-mb-md">
-            <div><strong>To:</strong> RMAsupport@pax.us</div>
+            <div><strong>To:</strong> Configured by backend</div>
             <div><strong>Customer:</strong> {{ userName }}</div>
             <div><strong>Organization:</strong> {{ companyName || "N/A" }}</div>
             <div><strong>Email:</strong> {{ userEmail }}</div>
@@ -310,7 +310,6 @@ import { Dark } from "quasar";
 import sha256 from "js-sha256";
 
 const user = useUserStore();
-const CONTACT_RMA_EMAIL = "RMAsupport@pax.us";
 const CONTACT_RMA_LOG_STORAGE_KEY = "contact_rma_submission_logs";
 
 export default {
@@ -426,13 +425,8 @@ export default {
       };
 
       const formData = new FormData();
-      formData.append("to", CONTACT_RMA_EMAIL);
       formData.append("subject", this.contactRmaSubject);
       formData.append("message", this.contactRmaMessage);
-      formData.append("timestamp", timestamp);
-      formData.append("customerName", this.userName);
-      formData.append("customerOrganization", this.companyName || "");
-      formData.append("customerEmail", this.userEmail);
       formData.append("ticketId", ticketId || "");
       if (this.contactRmaScreenshot) {
         formData.append("screenshot", this.contactRmaScreenshot);
@@ -448,39 +442,32 @@ export default {
           throw new Error(response?.data?.errorMessage || "Failed to send Contact RMA email.");
         }
 
-        this.logContactRmaSubmission(submissionLog);
+        this.logContactRmaSubmission({
+          ...submissionLog,
+          emailMessageId: response?.data?.data?.emailMessageId || null,
+          to: response?.data?.data?.to || null,
+        });
         this.$q.notify({
           type: "positive",
-          message: `Message sent to ${CONTACT_RMA_EMAIL}`,
+          message: `Message sent to ${response?.data?.data?.to || "support mailbox"}.`,
         });
         this.closeContactRmaModal();
       } catch (error) {
-        const encodedSubject = encodeURIComponent(
-          `${this.contactRmaSubject}${ticketId ? ` | Ticket ${ticketId}` : ""}`
-        );
-        const encodedBody = encodeURIComponent(
-          `Message:\n${this.contactRmaMessage}\n\nTicket ID: ${
-            ticketId || "N/A"
-          }\nCustomer Name: ${this.userName}\nOrganization: ${
-            this.companyName || "N/A"
-          }\nEmail: ${this.userEmail}\nTimestamp: ${timestamp}\nScreenshot: ${
-            this.contactRmaScreenshot
-              ? `${this.contactRmaScreenshot.name} (please attach manually if email client opens)`
-              : "N/A"
-          }`
-        );
-        window.location.href = `mailto:${CONTACT_RMA_EMAIL}?subject=${encodedSubject}&body=${encodedBody}`;
-
         this.logContactRmaSubmission({
           ...submissionLog,
-          fallback: "mailto",
+          status: "failed",
+          error:
+            error?.response?.data?.errorMessage ||
+            error?.message ||
+            "Failed to send Contact RMA email.",
         });
         this.$q.notify({
-          type: "warning",
+          type: "negative",
           message:
-            "Backend email endpoint is unavailable. Your email client has been opened as fallback.",
+            error?.response?.data?.errorMessage ||
+            error?.message ||
+            "Failed to send Contact RMA email.",
         });
-        this.closeContactRmaModal();
       } finally {
         this.contactRmaSubmitting = false;
       }
