@@ -149,7 +149,21 @@
 import { useUserStore } from "stores/user";
 
 export default {
-  props: ["filterFields"],
+  emits: ["submitted", "reset"],
+  props: {
+    filterFields: {
+      type: Array,
+      required: true,
+    },
+    submitFlagKey: {
+      type: String,
+      default: "",
+    },
+    submitFlagValue: {
+      type: [String, Number],
+      default: "1",
+    },
+  },
 
   data() {
     return {
@@ -178,14 +192,24 @@ export default {
 
   methods: {
     onSubmit() {
-      this.changeRouteByQuery(this.buildQuery());
+      this.$emit("submitted");
+      const query = this.buildQuery();
+      if (this.submitFlagKey) {
+        query[this.submitFlagKey] = this.submitFlagValue;
+      }
+      this.changeRouteByQuery(query);
     },
 
     onReset() {
+      this.$emit("reset");
       for (const fieldId in this.filter) {
         this.filter[fieldId] = "";
       }
-      this.onSubmit();
+      const query = this.buildQuery();
+      if (this.submitFlagKey && query[this.submitFlagKey] != null) {
+        delete query[this.submitFlagKey];
+      }
+      this.changeRouteByQuery(query);
     },
 
     buildQuery() {

@@ -22,14 +22,14 @@
           <div class="section-title">Ticket Information</div>
 
           <div class="row items-center field-row q-col-gutter-sm">
-            <div class="col-12 col-md-3 field-label">Order Type</div>
+            <div class="col-12 col-md-3 field-label">Order Dept</div>
             <div class="col-12 col-md-9">
             <q-select
               class="field-input-sm"
               label="Please select"
-              v-model="orderType"
-              :options="orderTypeOpt"
-              @filter="populateOrderTypeOpt"
+              v-model="orderDept"
+              :options="orderDeptOpt"
+              @filter="populateOrderDeptOpt"
               dense
               emit-value
               map-options
@@ -188,7 +188,7 @@
                     v-if="index === selectedKeyIndexes.length - 1"
                     flat
                     color="primary"
-                    label="+ 添加密钥"
+                    label="+ Add Key"
                     @click="addKeyRow"
                   />
                   <q-btn
@@ -202,50 +202,6 @@
               </div>
             </div>
           </div>
-          <!-- <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null">KCV:&nbsp;</div>
-          <div class="col-auto" v-show="keyType != null">
-            <q-select
-              ref="testKeyTypeSelect"
-              style="min-width: 200px"
-              label="Please select"
-              v-model="kcv"
-              :options="kcvOpt"
-              @input-value="populateKsiOpt"
-              @update:model-value="populateKsiOpt"
-              dense
-              emit-value
-              map-options
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div> -->
-          <!-- <div class="col-auto q-mr-sm q-ml-sm" v-show="keyType != null && kcv != null">KSI:&nbsp;</div>
-          <div class="col-auto"  v-show="keyType != null && kcv != null">
-            <q-select
-              ref="testKeyTypeSelect"
-              style="min-width: 200px"
-              label="Please select"
-              v-model="ksi"
-              :options="ksiOpt"
-              dense
-              emit-value
-              map-options
-            >
-              <template v-slot:no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    No results
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div> -->
         </div>
 
         <div class="form-section">
@@ -384,7 +340,7 @@
           <TicketEditTable
             ref="editTable"
             :isFromMaster="false"
-            :orderType="orderType"
+            :orderType="orderDept"
             :rows="getSerials"
             :containsXrefMaterials="false"
             :inputValue="inputValue"
@@ -476,6 +432,13 @@
         </div> -->
       </div>
     </div>
+    <TicketEmailPreviewModal
+      :show="showEmailPreviewModal"
+      :ticket-id="emailPreview.ticketId"
+      :email-subject="emailPreview.subject"
+      :email-content="emailPreview.content"
+      @update:show="showEmailPreviewModal = $event"
+    />
     <BaseModal
       :show="showAddressModal"
       title="Select Shipping Address"
@@ -519,6 +482,7 @@ import { mapWritableState, mapActions } from "pinia";
 import { mapState } from "pinia";
 import BaseModal from "src/components/BaseModal.vue";
 import TicketEditTable from "src/components/TicketEditTable.vue";
+import TicketEmailPreviewModal from "src/components/TicketEmailPreviewModal.vue";
 
 import AddressBlock from "src/components/AddressBlock.vue";
 import AddressGrid from "src/components/AddressGrid.vue";
@@ -542,7 +506,7 @@ const ATTACHMENT_ACCEPT = Array.from(ALL_ALLOWED_EXTENSIONS)
 const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
 const KEY_CATEGORY_TEST = "TEST";
 
-function normalizeOrderTypeLabel(label) {
+function normalizeOrderDeptLabel(label) {
   return String(label || "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
@@ -551,10 +515,10 @@ function normalizeOrderTypeLabel(label) {
 export default {
   components: {
     BaseModal,
+    TicketEmailPreviewModal,
     TicketEditTable,
     AddressBlock,
     AddressGrid,
-    TicketEditTable,
   },
   data() {
     return {
@@ -570,6 +534,12 @@ export default {
       remark: "",
       attachmentAccept: ATTACHMENT_ACCEPT,
       selectedKeyIndexes: [null],
+      showEmailPreviewModal: false,
+      emailPreview: {
+        ticketId: null,
+        subject: "",
+        content: "",
+      },
     };
   },
 
@@ -597,8 +567,19 @@ export default {
     isEncrypted() {
       return this.encrypt != null && this.encrypt === "yes";
     },
+    orderDept: {
+      get() {
+        return this.orderType;
+      },
+      set(value) {
+        this.orderType = value;
+      },
+    },
+    orderDeptOpt() {
+      return this.orderTypeOpt;
+    },
     isReRepair() {
-      return this.orderType === 4;
+      return this.orderDept === 4;
     },
     userName() {
       return user.username || "Guest";
@@ -609,17 +590,17 @@ export default {
     companyName() {
       return user.companyName || "";
     },
-    selectedOrderTypeLabel() {
-      if (!Array.isArray(this.orderTypeOpt) || this.orderType == null) {
+    selectedOrderDeptLabel() {
+      if (!Array.isArray(this.orderDeptOpt) || this.orderDept == null) {
         return "";
       }
-      const option = this.orderTypeOpt.find(
-        (item) => String(item.value) === String(this.orderType)
+      const option = this.orderDeptOpt.find(
+        (item) => String(item.value) === String(this.orderDept)
       );
       return option ? option.label : "";
     },
-    orderTypeRule() {
-      const normalized = normalizeOrderTypeLabel(this.selectedOrderTypeLabel);
+    orderDeptRule() {
+      const normalized = normalizeOrderDeptLabel(this.selectedOrderDeptLabel);
 
       if (
         normalized.includes("decommission") ||
@@ -669,16 +650,16 @@ export default {
       };
     },
     forceEncryptNo() {
-      return this.orderTypeRule.forceEncryptNo;
+      return this.orderDeptRule.forceEncryptNo;
     },
     requiresKeySelection() {
-      return this.orderTypeRule.requiresKeySelection;
+      return this.orderDeptRule.requiresKeySelection;
     },
     allowKeyCategoryChoice() {
-      return this.orderTypeRule.allowKeyCategoryChoice;
+      return this.orderDeptRule.allowKeyCategoryChoice;
     },
     fixedKeyCategory() {
-      return this.orderTypeRule.fixedKeyCategory;
+      return this.orderDeptRule.fixedKeyCategory;
     },
     availableKeyTypeOpt() {
       if (!Array.isArray(this.keyTypeOpt)) {
@@ -717,14 +698,14 @@ export default {
     },
   },
   watch: {
-    orderType: {
+    orderDept: {
       immediate: true,
       handler() {
-        this.applyOrderTypeRule();
+        this.applyOrderDeptRule();
       },
     },
     encrypt() {
-      this.applyOrderTypeRule();
+      this.applyOrderDeptRule();
     },
     keyType(newVal, oldVal) {
       if (newVal !== oldVal) {
@@ -733,13 +714,13 @@ export default {
       }
     },
   },
-  created() {},
   methods: {
     ...mapActions(useCreateTicketStore, [
       "addTrackingNum",
       "deleteTrackingNum",
       "resetTicket",
       "populateOrderTypeOpt",
+      "populateOrderTypeOptOnce",
       "populateKeyTypeOpt",
       "populateCustTypeOpt",
       "populateKcvksiOpt",
@@ -748,6 +729,12 @@ export default {
       "updateSerial",
       "removeSerial",
     ]),
+    populateOrderDeptOpt(...args) {
+      return this.populateOrderTypeOpt(...args);
+    },
+    populateOrderDeptOptOnce(...args) {
+      return this.populateOrderTypeOptOnce(...args);
+    },
     downloadBlankTemplate() {
       window.open("/blankFile.xlsx", "_self");
     },
@@ -826,7 +813,7 @@ export default {
 
       return { keyIndexes, errorMessage: null };
     },
-    applyOrderTypeRule() {
+    applyOrderDeptRule() {
       if (this.forceEncryptNo) {
         if (this.encrypt !== "no") {
           this.encrypt = "no";
@@ -928,6 +915,46 @@ export default {
     handleClickHelpUnit() {
       this.showHelpModal = true;
     },
+    setEmailPreview(preview) {
+      this.emailPreview = {
+        ticketId: preview?.ticketId ?? null,
+        subject: preview?.subject || "",
+        content: preview?.content || "",
+      };
+      this.showEmailPreviewModal = true;
+    },
+    resolveEmailPreviewFromSubmission(submitData, ticketId) {
+      const preview = {
+        ticketId: submitData?.emailTicketId ?? ticketId,
+        subject: submitData?.emailSubject || `RMA #${ticketId} Confirmation`,
+        content: submitData?.emailContent || "",
+      };
+
+      if (preview.content && preview.content.trim().length > 0) {
+        this.setEmailPreview(preview);
+        return Promise.resolve();
+      }
+
+      return this.$api
+        .get(`/ticketing/${ticketId}/email-preview`)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to load email details.");
+          }
+          const data = response?.data?.data || {};
+          this.setEmailPreview({
+            ticketId: data.emailTicketId ?? ticketId,
+            subject: data.emailSubject || preview.subject,
+            content: data.emailContent || "",
+          });
+        })
+        .catch((error) => {
+          Notify.create({
+            type: "warning",
+            message: `Ticket ${ticketId} created, but email detail preview is unavailable: ${error.message}`,
+          });
+        });
+    },
     submitTicketAttachments(ticketId) {
       const hasAttachments = Array.isArray(this.attachments) && this.attachments.length > 0;
       if (!hasAttachments) {
@@ -974,11 +1001,11 @@ export default {
         return;
       }
 
-      //If user didn't choose order type, don't allow user to submit the ticket
-      if (this.orderType === null) {
+      //If user didn't choose order dept, don't allow user to submit the ticket
+      if (this.orderDept === null) {
         Notify.create({
           type: "negative",
-          message: "Please Select Order Type before Submitting.",
+          message: "Please Select Order Dept before Submitting.",
         });
         this.serialsSubmitting = false;
         return;
@@ -1034,7 +1061,7 @@ export default {
 
       const payload = {
         encrypt: this.forceEncryptNo ? "no" : this.encrypt,
-        orderType: this.orderType,
+        orderType: this.orderDept,
         testKeyType:
           this.isEncrypted && this.requiresKeySelection && selectedKeyIndexes.length > 0
             ? String(selectedKeyIndexes[0])
@@ -1060,7 +1087,8 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          const mo_OID = response.data.data.mo_OID;
+          const submitData = response.data.data || {};
+          const mo_OID = submitData.mo_OID;
 
           return vm.submitTicketAttachments(mo_OID).then(() => {
             Notify.create({
@@ -1072,6 +1100,8 @@ export default {
               type: "warning",
               message: `Ticket ${mo_OID} created, but attachment upload failed: ${uploadError.message}`,
             });
+          }).finally(() => {
+            vm.resolveEmailPreviewFromSubmission(submitData, mo_OID);
           });
         })
         .catch((e) => {
@@ -1115,6 +1145,9 @@ export default {
           });
         });
     },
+  },
+  created() {
+    this.populateOrderDeptOptOnce();
   },
 };
 </script>

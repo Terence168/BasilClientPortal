@@ -1,30 +1,39 @@
 <template>
-  <div class="q-mx-lg">
+  <div class="edit-ticket-page q-mx-lg">
     <div class="generic-container">
-      <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header">
+      <div class="q-px-lg q-py-md text-h6 text-weight-bold filtering-header edit-ticket-title-bar">
         Edit Ticket {{ ticketId }}
+        <q-btn
+          class="email-detail-btn"
+          color="primary"
+          flat
+          icon="mail"
+          label="View email details"
+          :loading="emailPreviewLoading"
+          @click="openEmailPreview"
+        />
       </div>
     </div>
-    <div class="q-mt-lg generic-container">
-      <div class="q-px-lg q-pt-md q-mb-md q-pb-lg text-body1">
-        <div class="row q-mb-md text-weight-medium">
+    <div class="q-mt-lg generic-container edit-ticket-surface">
+      <div class="q-px-lg q-pt-md q-mb-md q-pb-lg text-body1 edit-ticket-body">
+        <div class="row q-mb-md text-weight-medium edit-ticket-status-bar">
           <div class="col">Ticket Status: Open</div>
           <div class="col-auto" @click="resetTicket">
             <q-btn color="red">Refresh Data</q-btn>
           </div>
         </div>
 
-        <div class="row items-center">
-          <div class="col-auto q-mr-sm">Order Type:&nbsp;</div>
+        <div class="row items-center ticket-info-row">
+          <div class="col-auto q-mr-sm">Order Dept:&nbsp;</div>
           <div class="col-auto">
             <q-select
               ref="orderTypeSelect"
-              style="min-width: 200px"
+              class="field-input-md"
               label="Please select"
-              v-model="ticketInfo.typeOfRepair"
-              :options="orderTypeOpt"
+              v-model="orderDept"
+              :options="orderDeptOpt"
               :disable="true"
-              @filter="populateOrderTypeOpt"
+              @filter="populateOrderDeptOpt"
               dense
               emit-value
               map-options
@@ -40,50 +49,50 @@
           </div>
         </div>
 
-        <div v-if="isReRepair" class="row items-center">
+        <div v-if="isReRepair" class="row items-center ticket-info-row">
           <div class="col-auto q-mr-sm">Original RMA#:&nbsp;</div>
           <div class="col-auto">
             <q-input
-              style="min-width: 200px"
+              class="field-input-md"
               dense
               v-model="ticketInfo.originalRMA"
             />
           </div>
         </div>
-        <div class="row items-center">
+        <div class="row items-center ticket-info-row">
           <div class="col-auto q-mr-sm">Ticket Submitter:&nbsp;</div>
           <div class="col-auto">
             <q-input
               :model-value="ticketInfo.submitterName"
               disable
-              style="min-width: 200px"
+              class="field-input-md"
               dense
             />
           </div>
         </div>
-        <div class="row items-center">
+        <div class="row items-center ticket-info-row">
           <div class="col-auto q-mr-sm">Submitter Organization:&nbsp;</div>
           <div class="col-auto">
             <q-input
               :model-value="ticketInfo.submitterOrg"
               disable
-              style="min-width: 200px"
+              class="field-input-md"
               dense
             />
           </div>
         </div>
-        <div class="row items-center">
+        <div class="row items-center ticket-info-row">
           <div class="col-auto q-mr-sm">Submitter Email:&nbsp;</div>
           <div class="col-auto">
             <q-input
               :model-value="ticketInfo.submitterEmail"
               disable
-              style="min-width: 200px"
+              class="field-input-md"
               dense
             />
           </div>
         </div>
-        <div class="row items-center">
+        <div class="row items-center ticket-info-row">
           Encrypt:&nbsp;
           <input
             type="radio"
@@ -98,7 +107,7 @@
             disabled
           />&nbsp;No&nbsp;
         </div>
-        <div class="row items-center q-mt-sm" v-show="showKeyCategorySelection">
+        <div class="row items-center q-mt-sm ticket-info-row" v-show="showKeyCategorySelection">
           <div class="col-auto q-mr-sm">Key:&nbsp;</div>
           <div class="col">
             <q-option-group
@@ -113,7 +122,7 @@
           </div>
         </div>
 
-        <div class="row items-start q-mt-sm" v-show="showCreditDebitKeySelection">
+        <div class="row items-start q-mt-sm ticket-info-row" v-show="showCreditDebitKeySelection">
           <div class="col-auto q-mr-sm q-pt-sm">Credit/Debit Key:&nbsp;</div>
           <div class="col">
             <div
@@ -151,7 +160,7 @@
                   v-if="index === selectedKeyIndexes.length - 1"
                   flat
                   color="primary"
-                  label="+ 添加密钥"
+                  label="+ ADD KEY"
                   @click="addKeyRow"
                 />
                 <q-btn
@@ -165,7 +174,7 @@
             </div>
           </div>
         </div>
-        <div class="q-my-sm">Shipping Address:</div>
+        <div class="q-my-sm section-caption">Shipping Address:</div>
         <div class="row">
           <div class="col-auto">
             <AddressBlock :address="address" @click="showAddressGrid" />
@@ -173,7 +182,7 @@
         </div>
 
         <!-- tracking number section -->
-        <div class="row q-my-sm items-center">
+        <div class="row q-my-sm items-center ticket-info-row">
           <div class="col-auto q-mr-sm">Incoming Tracking Number:&nbsp;</div>
           <div class="col">
             <q-btn
@@ -188,12 +197,11 @@
         <div
           v-for="(trackingNum, index) in getTrackingNumsByTicketId(ticketId)"
           :key="index"
-          class="row q-mb-sm items-center"
+          class="row q-mb-sm items-center tracking-row"
         >
           <q-input
-            class="q-mr-sm"
+            class="q-mr-sm tracking-input"
             v-model="trackingNum.num"
-            style="min-width: 300px"
             dense
             outlined
             @update:model-value="trackingNum.isUpdate = true"
@@ -211,7 +219,7 @@
           ref="editTable"
           :isFromMaster="ticketInfo.isFromMaster"
           :containsXrefMaterials="ticketInfo.containsXrefMaterials"
-          :orderType="ticketInfo.typeOfRepair"
+          :orderType="orderDept"
           :rows="getSerialsByTicketId(ticketId)"
           :inputValue="inputValue"
           :encrypt="ticketInfo.encrypt"
@@ -223,19 +231,18 @@
           @remove-sn="handleRemoveSN"
         />
         <!-- Button for submit ticket -->
-        <div class="row justify-center">
+        <div class="row justify-center q-mt-md">
           <q-btn
-            class="col-auto"
+            class="col-auto submit-ticket-btn"
             color="primary"
             @click="handleEditTicket"
-            style="min-width: 200px"
             :loading="ticketEditing"
           >
             Submit Ticket
           </q-btn>
         </div>
 
-        <div class="q-mt-lg">
+        <div class="q-mt-lg attachment-section">
           <div class="row items-center justify-between q-mb-sm">
             <div class="text-subtitle1 text-weight-bold">Attachments</div>
             <q-btn
@@ -304,27 +311,26 @@
         </div>
       </div>
     </div>
-    <div class="row justify-between">
+    <div class="row justify-between comment-header">
       <div
-        class="col-auto text-weight-bold text-subtitle1"
-        style="text-decoration-line: underline"
+        class="col-auto text-weight-bold text-subtitle1 comment-title"
       >
         Comments
       </div>
-      <div class="col-2 text-weight-bold q-mb-sm q-mt-sm">
+      <div class="col-auto text-weight-bold q-mb-sm q-mt-sm ack-control">
         Acknowledged:&nbsp;&nbsp;
-        <input
-          type="radio"
-          v-model="ticketInfo.acknowledged"
-          value="1"
-          @update:model-value="ackComment()"
-          :disabled="!ackPermission"
-        />&nbsp;Yes&nbsp;&nbsp;
         <input
           type="radio"
           v-model="ticketInfo.acknowledged"
           value="0"
           @update:model-value="unackComment()"
+          :disabled="!ackPermission"
+        />&nbsp;Yes&nbsp;&nbsp;
+        <input
+          type="radio"
+          v-model="ticketInfo.acknowledged"
+          value="2"
+          @update:model-value="ackComment()"
           :disabled="!ackPermission"
         />&nbsp;No&nbsp;
       </div>
@@ -334,6 +340,13 @@
       :comments="comments"
       @add-comment="addComment"
       ref="messageBoard"
+    />
+    <TicketEmailPreviewModal
+      :show="showEmailPreviewModal"
+      :ticket-id="emailPreview.ticketId"
+      :email-subject="emailPreview.subject"
+      :email-content="emailPreview.content"
+      @update:show="showEmailPreviewModal = $event"
     />
     <BaseModal
       :show="showAddressModal"
@@ -352,6 +365,7 @@ import { mapWritableState, mapActions } from "pinia";
 import { mapState, mapStores } from "pinia";
 import MessageBoard from "src/components/MessageBoard.vue";
 import TicketEditTable from "src/components/TicketEditTable.vue";
+import TicketEmailPreviewModal from "src/components/TicketEmailPreviewModal.vue";
 import AddressBlock from "src/components/AddressBlock.vue";
 import AddressGrid from "src/components/AddressGrid.vue";
 import BaseModal from "src/components/BaseModal.vue";
@@ -364,7 +378,7 @@ import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
 const KEY_CATEGORY_TEST = "TEST";
 
-function normalizeOrderTypeLabel(label) {
+function normalizeOrderDeptLabel(label) {
   return String(label || "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
@@ -388,6 +402,7 @@ export default {
   components: {
     MessageBoard,
     TicketEditTable,
+    TicketEmailPreviewModal,
     AddressBlock,
     AddressGrid,
     BaseModal,
@@ -441,6 +456,13 @@ export default {
       attachmentsLoading: false,
       downloadingAttachmentId: null,
       deletingAttachmentId: null,
+      showEmailPreviewModal: false,
+      emailPreviewLoading: false,
+      emailPreview: {
+        ticketId: null,
+        subject: "",
+        content: "",
+      },
     };
   },
   created() {
@@ -458,24 +480,24 @@ export default {
           this.fetchAckStatus(this.ticketId),
           this.fetchAttachments(this.ticketId),
           this.populateKeysOptOnce(),
-          this.populateOrderTypeOptOnce(),
+          this.populateOrderDeptOptOnce(),
           //ensure it been populated
         ])
           .then((values) => {
             const ticketInfo = values[0];
             const comments = values[1];
             const ack = values[2];
-            
+
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
-              this.applyOrderTypeRule({ preserveSelection: true });
+              this.applyOrderDeptRule({ preserveSelection: true });
               this.initializeSelectedKeyIndexes();
             }
             if (comments != null) {
               this.comments = comments;
             }
             if (ack != null) {
-              this.ticketInfo.acknowledged = ack;
+              this.ticketInfo.acknowledged = String(ack);
             }
             this.comments.forEach((c) => {
               //is the replyer == current user, mark it as green
@@ -514,8 +536,19 @@ export default {
         this.ticketInfo.encrypt != null && this.ticketInfo.encrypt === "yes"
       );
     },
+    orderDept: {
+      get() {
+        return this.ticketInfo.typeOfRepair;
+      },
+      set(value) {
+        this.ticketInfo.typeOfRepair = value;
+      },
+    },
+    orderDeptOpt() {
+      return this.orderTypeOpt;
+    },
     isReRepair() {
-      return this.ticketInfo.typeOfRepair === 4;
+      return this.orderDept === 4;
     },
     ticketId() {
       return this.$route.params.ticketId;
@@ -524,22 +557,25 @@ export default {
       return this.ticketInfo.address;
     },
     ackPermission() {
-      return useUserStore().checkPermission("ticketing.edit.acknowledge");
+      return (
+        useUserStore().checkPermission("ticketing.ack") ||
+        useUserStore().checkPermission("ticketing.edit.acknowledge")
+      );
     },
     canDeleteAttachment() {
       return useUserStore().checkPermission("ticketing.update");
     },
-    selectedOrderTypeLabel() {
-      if (!Array.isArray(this.orderTypeOpt) || this.ticketInfo.typeOfRepair == null) {
+    selectedOrderDeptLabel() {
+      if (!Array.isArray(this.orderDeptOpt) || this.orderDept == null) {
         return "";
       }
-      const option = this.orderTypeOpt.find(
-        (item) => String(item.value) === String(this.ticketInfo.typeOfRepair)
+      const option = this.orderDeptOpt.find(
+        (item) => String(item.value) === String(this.orderDept)
       );
       return option ? option.label : "";
     },
-    orderTypeRule() {
-      const normalized = normalizeOrderTypeLabel(this.selectedOrderTypeLabel);
+    orderDeptRule() {
+      const normalized = normalizeOrderDeptLabel(this.selectedOrderDeptLabel);
 
       if (
         normalized.includes("decommission") ||
@@ -589,16 +625,16 @@ export default {
       };
     },
     forceEncryptNo() {
-      return this.orderTypeRule.forceEncryptNo;
+      return this.orderDeptRule.forceEncryptNo;
     },
     requiresKeySelection() {
-      return this.orderTypeRule.requiresKeySelection;
+      return this.orderDeptRule.requiresKeySelection;
     },
     allowKeyCategoryChoice() {
-      return this.orderTypeRule.allowKeyCategoryChoice;
+      return this.orderDeptRule.allowKeyCategoryChoice;
     },
     fixedKeyCategory() {
-      return this.orderTypeRule.fixedKeyCategory;
+      return this.orderDeptRule.fixedKeyCategory;
     },
     availableKeyTypeOpt() {
       if (!Array.isArray(this.keyTypeOpt)) {
@@ -664,6 +700,12 @@ export default {
       "removeSN",
       "updateAddress",
     ]),
+    populateOrderDeptOpt(...args) {
+      return this.populateOrderTypeOpt(...args);
+    },
+    populateOrderDeptOptOnce(...args) {
+      return this.populateOrderTypeOptOnce(...args);
+    },
     resetKeyRows() {
       this.selectedKeyIndexes = [null];
     },
@@ -715,7 +757,7 @@ export default {
 
       return { keyIndexes, errorMessage: null };
     },
-    applyOrderTypeRule({ preserveSelection = false } = {}) {
+    applyOrderDeptRule({ preserveSelection = false } = {}) {
       if (this.forceEncryptNo) {
         this.ticketInfo.encrypt = "no";
         this.keyType = null;
@@ -790,11 +832,11 @@ export default {
       const editTracking = this.findEditTrackingNums(this.ticketId);
       const editSerial = this.findEditSN(this.ticketId);
 
-      //If user didn't choose order type, don't allow user to submit the ticket
-      if (this.ticketInfo.typeOfRepair === null) {
+      //If user didn't choose order dept, don't allow user to submit the ticket
+      if (this.orderDept === null) {
         this.$q.notify({
           type: "negative",
-          message: "Please Select Order Type before Submitting.",
+          message: "Please Select Order Dept before Submitting.",
         });
         this.ticketEditing = false;
         return;
@@ -827,9 +869,9 @@ export default {
         ...editTracking,
         ...editSerial,
         isFromMaster: this.ticketInfo.isFromMaster,
-        orderType: this.ticketInfo.typeOfRepair,
+        orderType: this.orderDept,
         address: this.ticketInfo.address,
-        typeOfRepair: this.ticketInfo.typeOfRepair,
+        typeOfRepair: this.orderDept,
         originalRMA: this.ticketInfo.originalRMA,
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
@@ -877,7 +919,7 @@ export default {
       Promise.all([this.fetchTicket(this.ticketId), this.fetchAttachments(this.ticketId)])
         .then(([ticket]) => {
           this.ticketInfo = ticket;
-          this.applyOrderTypeRule({ preserveSelection: true });
+          this.applyOrderDeptRule({ preserveSelection: true });
           this.initializeSelectedKeyIndexes();
         })
         .finally(() => {
@@ -1053,13 +1095,13 @@ export default {
           newComment.bgColor = "bg-green-3";
           this.comments.push(newComment);
           if (this.ackPermission) {
-            //rma clerk
+            // customer service replied: waiting customer reply
             this.ackComment();
-            this.ticketInfo.acknowledged = 1;
+            this.ticketInfo.acknowledged = "2";
           } else {
-            //customer
+            // customer replied: waiting customer service reply
             this.unackComment();
-            this.ticketInfo.acknowledged = 0;
+            this.ticketInfo.acknowledged = "1";
           }
           this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
         })
@@ -1118,7 +1160,7 @@ export default {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
           }
-          return response.data.data.acknowledged;
+          return String(response.data.data.acknowledged);
         })
         .catch((error) => {
           if(!this.loggedIn)return;
@@ -1133,6 +1175,33 @@ export default {
       this.updateAddress(address, this.ticketId);
       this.showAddressModal = false;
     },
+    openEmailPreview() {
+      this.emailPreviewLoading = true;
+      const link = `/ticketing/${this.ticketId}/email-preview`;
+      api
+        .get(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to load email details.");
+          }
+          const payload = response?.data?.data || {};
+          this.emailPreview = {
+            ticketId: payload.emailTicketId ?? this.ticketId,
+            subject: payload.emailSubject || `RMA #${this.ticketId} Confirmation`,
+            content: payload.emailContent || "",
+          };
+          this.showEmailPreviewModal = true;
+        })
+        .catch((error) => {
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        })
+        .finally(() => {
+          this.emailPreviewLoading = false;
+        });
+    },
     showAddressGrid() {
       this.showAddressModal = true;
     },
@@ -1144,7 +1213,7 @@ export default {
           const payload = response?.data?.data;
           this.keys = Array.isArray(payload) ? payload : [];
           this.keyTypeOpt = this.buildCategoryOptions(this.keys);
-          this.applyOrderTypeRule({ preserveSelection: true });
+          this.applyOrderDeptRule({ preserveSelection: true });
           this.initializeSelectedKeyIndexes();
           return this.keys;
         })
@@ -1213,4 +1282,104 @@ export default {
   },
 };
 </script>
-<style></style>
+<style scoped>
+.edit-ticket-page {
+  padding: 16px 8px 28px;
+}
+
+.edit-ticket-surface {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(30, 55, 90, 0.06);
+}
+
+.edit-ticket-title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.edit-ticket-title-text {
+  line-height: 1.3;
+}
+
+.email-detail-btn {
+  border-radius: 8px;
+}
+
+.edit-ticket-body {
+  line-height: 1.55;
+}
+
+.edit-ticket-status-bar {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e8edf3;
+}
+
+.ticket-info-row {
+  margin-bottom: 10px;
+}
+
+.field-input-md {
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.section-caption {
+  font-weight: 600;
+  color: #4d5b6a;
+}
+
+.tracking-row .tracking-input {
+  min-width: 320px;
+}
+
+.submit-ticket-btn {
+  min-width: 220px;
+  border-radius: 10px;
+}
+
+.attachment-section {
+  padding-top: 12px;
+  border-top: 1px solid #e8edf3;
+}
+
+.comment-header {
+  margin-top: 8px;
+  align-items: center;
+}
+
+.comment-title {
+  text-decoration-line: underline;
+}
+
+.ack-control {
+  white-space: nowrap;
+}
+
+@media (max-width: 1023px) {
+  .edit-ticket-page {
+    padding: 12px 0 22px;
+  }
+
+  .field-input-md,
+  .tracking-row .tracking-input {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .ack-control {
+    width: 100%;
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 599px) {
+  .submit-ticket-btn {
+    min-width: 0;
+    width: 100%;
+  }
+}
+</style>

@@ -46,6 +46,7 @@ export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
     orderType: null,
     orderTypeOpt: null,
+    orderTypeOptSource: null,
     address: null,
     trackingNums: [],
     serials: [],
@@ -84,6 +85,20 @@ export const useCreateTicketStore = defineStore("createTicket", {
     this.$refs.state.inputValue.value = "";
   },
   actions: {
+    applyOrderDeptOptions(options) {
+      const normalizedOptions = Array.isArray(options) ? options : [];
+      this.orderTypeOpt = normalizedOptions;
+      this.orderTypeOptSource = "department";
+
+      if (
+        this.orderType != null &&
+        !normalizedOptions.some(
+          (item) => String(item?.value) === String(this.orderType)
+        )
+      ) {
+        this.orderType = null;
+      }
+    },
     /**
      * Tracking number
      */
@@ -211,16 +226,16 @@ export const useCreateTicketStore = defineStore("createTicket", {
         });
     },
     populateOrderTypeOpt(_, update) {
-      if (this.orderTypeOpt) {
+      if (this.orderTypeOpt && this.orderTypeOptSource === "department") {
         update();
         return;
       }
-      const link = "/ticketing/dropdown/repair_type";
+      const link = "/ticketing/dropdown/department";
       api
         .get(link)
         .then((response) => {
           update(() => {
-            this.orderTypeOpt = response.data.data;
+            this.applyOrderDeptOptions(response?.data?.data);
           });
         })
         .catch(function (error) {
@@ -229,24 +244,29 @@ export const useCreateTicketStore = defineStore("createTicket", {
           // handle error
           Notify.create({
             type: "negative",
-            message: "Order Type Dropdown cannot be populated",
+            message: "Order Dept Dropdown cannot be populated",
           });
         });
     },
     populateOrderTypeOptOnce() {
-      const link = "/ticketing/dropdown/repair_type";
-      api
+      if (this.orderTypeOpt && this.orderTypeOptSource === "department") {
+        return Promise.resolve(this.orderTypeOpt);
+      }
+      const link = "/ticketing/dropdown/department";
+      return api
         .get(link)
         .then((response) => {
-          this.orderTypeOpt = response.data.data;
+          this.applyOrderDeptOptions(response?.data?.data);
+          return this.orderTypeOpt;
         })
         .catch(function (error) {
           console.log(error);
           // handle error
           Notify.create({
             type: "negative",
-            message: "Order Type Dropdown cannot be populated",
+            message: "Order Dept Dropdown cannot be populated",
           });
+          return [];
         });
     },
 

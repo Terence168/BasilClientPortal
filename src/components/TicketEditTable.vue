@@ -123,7 +123,20 @@
             :class="props.row.bgColor"
             @click="handleRowClick($event, props.row)"
           >
-            <q-td key="serialNumber" colspan="100%" :props="props">
+            <q-td key="cosmetic" :props="props"></q-td>
+            <q-td key="actions" :props="props">
+              <q-btn
+                v-if="showRemoveUnit"
+                flat
+                round
+                color="red-6"
+                icon="close"
+                @click.stop="
+                  handleClickRemoveUnitBySerial(props.row.serialNumber)
+                "
+              ></q-btn>
+            </q-td>
+            <q-td key="serialNumber" colspan="8" :props="props">
               <div class="text-h6 text-negative">
                 SN: {{ props.row.serialNumber }} - {{ props.row.errorMsg }}
               </div>
@@ -397,6 +410,9 @@ export default {
     },
     handleClickRemoveUnit() {
       const sn = this.modalState.serialData.serialNumber;
+      this.$emit("remove-sn", { sn });
+    },
+    handleClickRemoveUnitBySerial(sn) {
       this.$emit("remove-sn", { sn });
     },
     handleClickViewUnit(evt, row) {

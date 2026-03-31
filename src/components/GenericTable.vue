@@ -162,6 +162,18 @@
               }}
             </span>
 
+            <span v-else-if="column.id === 'action'">
+              <q-btn
+                v-if="row.actionClickable"
+                flat
+                dense
+                color="primary"
+                :label="row[column.id]"
+                @click="$emit('row-action', row)"
+              />
+              <span v-else>{{ row[column.id] }}</span>
+            </span>
+
             <span v-else>{{ row[column.id] }}</span>
           </td>
         </tr>

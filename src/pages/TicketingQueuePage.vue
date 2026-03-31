@@ -11,7 +11,11 @@
         <div class="text-subtitle1 text-weight-medium">
           Search within the table
         </div>
-        <FilterOptions :filterFields="filterFields" />
+        <FilterOptions
+          :filterFields="filterFields"
+          @submitted="onSearchSubmitted"
+          @reset="onSearchReset"
+        />
       </div>
     </div>
 
@@ -22,9 +26,29 @@
           <q-space />
           <div class="text-red">{{ total }} Open tickets</div>
         </div>
+        <div class="row q-gutter-sm q-mt-sm">
+          <q-btn
+            :color="actionFilter === 1 ? 'primary' : 'grey-5'"
+            :text-color="actionFilter === 1 ? 'white' : 'dark'"
+            unelevated
+            label="W-CS"
+            @click="setActionFilter(1)"
+          />
+          <q-btn
+            :color="actionFilter === 2 ? 'primary' : 'grey-5'"
+            :text-color="actionFilter === 2 ? 'white' : 'dark'"
+            unelevated
+            label="W-CL"
+            @click="setActionFilter(2)"
+          />
+        </div>
         <div v-if="total !== 0" class="q-pt-md">
           <div class="row justify-center">
-            <GenericTable style="max-width: 100%" :tableData="tableData" />
+            <GenericTable
+              style="max-width: 100%"
+              :tableData="tableData"
+              @row-action="handleRowAction"
+            />
           </div>
 
           <GenericPagination :pages="totalPages" :total="total" />
@@ -99,10 +123,13 @@ export default {
             sortable: true,
           },
           { id: "responder", label: "Responder", sortable: true },
+          { id: "action", label: "Action", sortable: false },
         ],
         rows: [],
       },
       total: 0,
+      actionFilter: 0,
+      searchSubmitted: false,
     };
   },
 
@@ -114,26 +141,126 @@ export default {
   },
 
   created() {
-    this.queryData();
+    this.normalizeSearchSubmittedQuery();
+    this.syncActionFilterFromRoute();
+    const queryWasNormalized = this.normalizeDefaultTypeQuery();
+    if (!queryWasNormalized) {
+      this.queryData();
+    }
   },
 
   watch: {
     $route(newRoute, oldRoute) {
       if (newRoute.path === oldRoute.path) {
+        this.syncActionFilterFromRoute();
         this.queryData();
       }
     },
   },
 
   methods: {
+    onSearchSubmitted() {
+      this.searchSubmitted = true;
+    },
+    onSearchReset() {
+      this.searchSubmitted = false;
+    },
+    normalizeSearchSubmittedQuery() {
+      if (this.$route.query?.searchSubmitted == null) {
+        return;
+      }
+      const query = { ...this.$route.query };
+      delete query.searchSubmitted;
+      this.$router.replace({ path: this.$route.path, query });
+    },
+    syncActionFilterFromRoute() {
+      const acknowledged = Number(this.$route.query?.acknowledged);
+      this.actionFilter = acknowledged === 1 || acknowledged === 2 ? acknowledged : 0;
+    },
+    hasQueueFiltersExceptType() {
+      const filterKeys = [
+        "ticketId",
+        "department",
+        "responder",
+        "status",
+        "createdDate",
+        "serialNumber",
+        "customerId",
+      ];
+      return filterKeys.some((key) => {
+        const value = this.$route.query[key];
+        return value != null && String(value).trim() !== "";
+      });
+    },
+    normalizeDefaultTypeQuery() {
+      const typeValue = this.$route.query?.type;
+      if (String(typeValue) !== "3") {
+        return false;
+      }
+      if (this.hasQueueFiltersExceptType()) {
+        return false;
+      }
+
+      const query = { ...this.$route.query };
+      delete query.type;
+      this.$router.replace({ path: this.$route.path, query });
+      return true;
+    },
+    setActionFilter(filterValue) {
+      const query = { ...this.$route.query };
+      if (this.actionFilter === filterValue) {
+        delete query.acknowledged;
+      } else {
+        query.acknowledged = String(filterValue);
+      }
+      this.$router.push({
+        path: this.$route.path,
+        query,
+      });
+    },
+    toActionLabel(acknowledged) {
+      if (Number(acknowledged) === 1) {
+        return "W-CS";
+      }
+      if (Number(acknowledged) === 2) {
+        return "W-CL";
+      }
+      return "";
+    },
+    handleRowAction(row) {
+      if (Number(row?.acknowledged) !== 1) {
+        return;
+      }
+      this.$router.push({
+        name: "edit-ticket",
+        params: { ticketId: row.ticketId },
+      });
+    },
     queryData() {
       const vm = this;
+      const params = { ...this.$route.query };
+      delete params.searchSubmitted;
+      if (this.searchSubmitted) {
+        params.searchSubmitted = 1;
+      }
 
       this.$api
-        .get("/ticketing/queue" + window.location.search)
+        .get("/ticketing/queue", { params })
         .then(function (response) {
-          vm.tableData.rows = response.data.data;
-          vm.total = response.data.total;
+          const rows = Array.isArray(response?.data?.data)
+            ? response.data.data
+            : [];
+          const mappedRows = rows.map((row) => {
+            const acknowledged = Number(row.acknowledged);
+            return {
+              ...row,
+              acknowledged,
+              action: vm.toActionLabel(acknowledged),
+              actionClickable: acknowledged === 1,
+            };
+          });
+          vm.tableData.rows = mappedRows;
+          vm.total = Number(response?.data?.total || 0);
         })
         .catch(function (error) {
           // handle error
