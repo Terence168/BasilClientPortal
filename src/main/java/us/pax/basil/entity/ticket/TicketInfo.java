@@ -38,4 +38,6 @@ public class TicketInfo {
     private String keyType;
     private String kcv;
     private String ksi;
+    private String description;
+    private List<Integer> keyIndexes;
 }

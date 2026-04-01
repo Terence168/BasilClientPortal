@@ -2,27 +2,77 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="us.pax.basil.mapper.WarrantyMapper">
     
+<!--    <select id="getWarrantyCheckBySerialNumbers" resultType="us.pax.basil.entity.warranty.WarrantyCheck">-->
+<!--        SELECT -->
+<!--            sn_list.serial_number as serialNumber,-->
+<!--            mp.PART_NUMBER_LONG as model,-->
+<!--            mp.VERSION_NUMBER as version,-->
+<!--            msn.SO_NUM as soNum,-->
+<!--            msn.PO_NUM as poNum,-->
+<!--            mc.CUSTOMER_ORGANIZATION as distName,-->
+<!--            CONCAT_WS(', ',-->
+<!--                NULLIF(mc.CUST_ADDRESS, ''),-->
+<!--                NULLIF(mc.CUST_ADDRESS2, ''),-->
+<!--                NULLIF(mc.CITY, ''),-->
+<!--                NULLIF(mc.STATE, ''),-->
+<!--                NULLIF(mc.ZIP_CODE, ''),-->
+<!--                NULLIF(mc.COUNTRY, '')-->
+<!--            ) as distAddress,-->
+<!--            msn.SHIP_DATE as warrantyStartDate,-->
+<!--            COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) as warrantyExpDate,-->
+<!--            msn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,-->
+<!--            msn.MSN_OID as msnOID,-->
+<!--            mo.MO_OID as moOID,-->
+<!--            CASE-->
+<!--                WHEN msn.MSN_OID IS NULL THEN NULL-->
+<!--                WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN 'Voided'-->
+<!--                WHEN msn.WARRANTY_END_DATE IS NULL THEN 'N/A'-->
+<!--                WHEN CURRENT_DATE <![CDATA[<]]> msn.WARRANTY_END_DATE THEN 'In Warranty'-->
+<!--                ELSE 'Out of Warranty'-->
+<!--            END as warrantyStatus-->
+<!--        FROM -->
+<!--            (-->
+<!--                <foreach item="serialNumber" index="index" collection="serialNumbers" separator="UNION ALL">-->
+<!--                    SELECT #{serialNumber} as serial_number-->
+<!--                </foreach>-->
+<!--            ) sn_list-->
+<!--        LEFT JOIN -->
+<!--            BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn ON sn_list.serial_number = msn.SERIAL_NUMBER-->
+<!--        LEFT JOIN -->
+<!--            BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID-->
+<!--        LEFT JOIN -->
+<!--            BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID-->
+<!--        LEFT JOIN -->
+<!--            BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID-->
+<!--        LEFT JOIN -->
+<!--            BASIL_ODS_PRD.MASTER_ORDER mo ON COALESCE(xm.MO_OID, pxm.MO_OID) = mo.MO_OID-->
+<!--        LEFT JOIN -->
+<!--            BASIL_SEC_PRD.PREP_MASTER_ORDER pmo ON COALESCE(xm.MO_OID, pxm.MO_OID) = pmo.MO_OID-->
+<!--        LEFT JOIN -->
+<!--            BASIL_ODS_PRD.MASTER_CUSTOMER mc ON COALESCE(mo.MC_OID, pmo.MC_OID) = mc.MC_OID-->
+<!--        ORDER BY -->
+<!--            sn_list.serial_number-->
+<!--    </select>-->
+
     <select id="getWarrantyCheckBySerialNumbers" resultType="us.pax.basil.entity.warranty.WarrantyCheck">
-        SELECT 
+        SELECT
             sn_list.serial_number as serialNumber,
             mp.PART_NUMBER_LONG as model,
             mp.VERSION_NUMBER as version,
             msn.SO_NUM as soNum,
             msn.PO_NUM as poNum,
-            mc.CUSTOMER_ORGANIZATION as distName,
+            xd.DISTRIBUTOR_NAME as distName,
             CONCAT_WS(', ',
-                NULLIF(mc.CUST_ADDRESS, ''),
-                NULLIF(mc.CUST_ADDRESS2, ''),
-                NULLIF(mc.CITY, ''),
-                NULLIF(mc.STATE, ''),
-                NULLIF(mc.ZIP_CODE, ''),
-                NULLIF(mc.COUNTRY, '')
+                NULLIF(xd.ADDRESS, ''),
+                NULLIF(xd.CITY, ''),
+                NULLIF(xd.STATE, ''),
+                NULLIF(xd.ZIP_CODE, ''),
+                NULLIF(xd.COUNTRY, '')
             ) as distAddress,
             msn.SHIP_DATE as warrantyStartDate,
             COALESCE(msn.WARRANTY_VOIDED_DATE, msn.WARRANTY_END_DATE) as warrantyExpDate,
             msn.WARRANTY_VOIDED_DATE as warrantyVoidedDate,
             msn.MSN_OID as msnOID,
-            mo.MO_OID as moOID,
             CASE
                 WHEN msn.MSN_OID IS NULL THEN NULL
                 WHEN msn.WARRANTY_VOIDED_DATE IS NOT NULL THEN 'Voided'
@@ -30,28 +80,19 @@
                 WHEN CURRENT_DATE <![CDATA[<]]> msn.WARRANTY_END_DATE THEN 'In Warranty'
                 ELSE 'Out of Warranty'
             END as warrantyStatus
-        FROM 
-            (
-                <foreach item="serialNumber" index="index" collection="serialNumbers" separator="UNION ALL">
-                    SELECT #{serialNumber} as serial_number
-                </foreach>
-            ) sn_list
-        LEFT JOIN 
+        FROM
+        (
+            <foreach item="serialNumber" index="index" collection="serialNumbers" separator="UNION ALL">
+                SELECT #{serialNumber} as serial_number
+            </foreach>
+        ) sn_list
+        LEFT JOIN
             BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn ON sn_list.serial_number = msn.SERIAL_NUMBER
-        LEFT JOIN 
+        LEFT JOIN
             BASIL_ODS_PRD.MASTER_PART mp ON msn.PART_OID = mp.PART_OID
-        LEFT JOIN 
-            BASIL_ODS_PRD.XREF_MATERIALS xm ON msn.MSN_OID = xm.MSN_OID
-        LEFT JOIN 
-            BASIL_SEC_PRD.PREP_XREF_MATERIALS pxm ON msn.MSN_OID = pxm.MSN_OID
-        LEFT JOIN 
-            BASIL_ODS_PRD.MASTER_ORDER mo ON COALESCE(xm.MO_OID, pxm.MO_OID) = mo.MO_OID
-        LEFT JOIN 
-            BASIL_SEC_PRD.PREP_MASTER_ORDER pmo ON COALESCE(xm.MO_OID, pxm.MO_OID) = pmo.MO_OID
-        LEFT JOIN 
-            BASIL_ODS_PRD.MASTER_CUSTOMER mc ON COALESCE(mo.MC_OID, pmo.MC_OID) = mc.MC_OID
-        ORDER BY 
-            sn_list.serial_number
+        LEFT JOIN
+            BASIL_ODS_PRD.XREF_DISTRIBUTOR xd on xd.XD_OID = msn.XD_OID
+        ORDER BY
+        sn_list.serial_number
     </select>
-    
 </mapper> 

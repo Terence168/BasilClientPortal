@@ -11,6 +11,7 @@ import us.pax.basil.entity.ticket.*;
 public interface TicketMapper extends BaseMapper<Integer> {
 
     List<Department> queryDepartmentList();
+    Integer queryDepartmentByOrderDeptScvOid(Integer orderDeptScvOid);
     List<OrderType> queryOrderTypeList();
     List<Status> queryStatusList();
     List<RepairType> queryRepairTypeList();
@@ -22,7 +23,9 @@ public interface TicketMapper extends BaseMapper<Integer> {
                               String responder,
                               String[] serialNumber,
                               String createdFromDate,
-                              String createdToDate
+                              String createdToDate,
+                              Integer searchSubmitted,
+                              Integer acknowledged
                               );
     List<TicketingQueue> getTicketing(Integer offset,
                                       Integer count,
@@ -35,7 +38,9 @@ public interface TicketMapper extends BaseMapper<Integer> {
                                       String responder,
                                       String[] serialNumber,
                                       String createdFromDate,
-                                      String createdToDate
+                                      String createdToDate,
+                                      Integer searchSubmitted,
+                                      Integer acknowledged
                                       );
 
     Integer getTicketingViewsTotal(String id,
@@ -80,9 +85,13 @@ public interface TicketMapper extends BaseMapper<Integer> {
 
     void insertPrep_Xref_Materials(List<SNsInsertionObject> sNsInsertionObjectList);
     void insertXref_Inbound_Tracking(@Param("trackingNumbers")List<String> trackingNumbers, @Param("mo_OID")Integer mo_OID);
+    void insertXref_Key(@Param("moOID") Integer moOID, @Param("keyIndexes") List<Integer> keyIndexes);
     void insertSingleXref_Inbound_Tracking(TrackingNum trackingNum);
+    void deleteXref_Key(@Param("moOID") Integer moOID);
     TicketInfo existingMasterOrder(String id);
     TicketInfo existingPREPMasterOrder(String id);
+    String getPrepOrderDescription(@Param("id") String id);
+    List<Integer> getXrefKeyIndexes(@Param("id") String id);
 
     List<TrackingNum> getTrackingNumber(String id);
 
@@ -113,10 +122,8 @@ public interface TicketMapper extends BaseMapper<Integer> {
     List<String> getAllKeyType();
     List<Key> getAllKey(String keyType, String kcv);
 
-    void ackMasterTicket(Long moOID);
-    void unAckMasterTicket(Long moOID);
-    void ackPrepMasterTicket(Long moOID);
-    void unAckPrepMasterTicket(Long moOID);
+    void updateMasterTicketAckStatus(@Param("moOID") Long moOID, @Param("acknowledged") Integer acknowledged);
+    void updatePrepMasterTicketAckStatus(@Param("moOID") Long moOID, @Param("acknowledged") Integer acknowledged);
 
     List<Integer> getTicketAckStatus(Long moOID);
 

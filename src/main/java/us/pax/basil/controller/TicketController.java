@@ -92,10 +92,9 @@ public class TicketController {
     }
 
     /**
-     * 上传工单附件与备注。
+     * 上传工单附件。
      * 说明：
      * 1. 支持多文件上传。
-     * 2. 备注可为空；若有备注会写入工单消息表。
      */
     @PreAuthorize("hasAnyAuthority('ticketing.add', 'ticketing.update')")
     @PostMapping(value = "/{ticketId}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -152,6 +151,15 @@ public class TicketController {
     @GetMapping("/{ticketId}")
     public QueryResultDTO viewTicket(@PathVariable(value = "ticketId", required = true) String id) {
         return ticketService.viewEditTicket(id);
+    }
+
+    /**
+     * 获取工单邮件详情预览（与提交时发送邮件内容一致）
+     */
+    @PreAuthorize("hasAnyAuthority('ticketing.view', 'ticketing.update')")
+    @GetMapping("/{ticketId}/email-preview")
+    public QueryResultDTO getTicketEmailPreview(@PathVariable("ticketId") String ticketId) {
+        return ticketService.getTicketEmailPreview(ticketId);
     }
     
     /**
@@ -219,7 +227,9 @@ public class TicketController {
                                       @RequestParam(value = "type", required = false) Integer type,
                                       @RequestParam(value = "createdDate", required = false) String createdDate,
                                       @RequestParam(value = "serialNumber", required = false) String serialNumber,
-                                      @RequestParam(value = "customerId", required = false) String customerId
+                                      @RequestParam(value = "customerId", required = false) String customerId,
+                                      @RequestParam(value = "searchSubmitted", required = false) Integer searchSubmitted,
+                                      @RequestParam(value = "acknowledged", required = false) Integer acknowledged
     ) {
         if (null == currentPage || 0 == currentPage) {
             currentPage = 1; // show the first page by default
@@ -228,13 +238,13 @@ public class TicketController {
         if (null == sizePerPage) {
             sizePerPage = 10;
         }
-        return ticketService.ticketQuery(currentPage, sizePerPage, sortColumns, ticketId, department, responder, status, type, createdDate, serialNumber, customerId);
+        return ticketService.ticketQuery(currentPage, sizePerPage, sortColumns, ticketId, department, responder, status, type, createdDate, serialNumber, customerId, searchSubmitted, acknowledged);
     }
     
     /**
      * Message board in edit ticket. both pax employee and user under this company can see it.
      */
-    @PreAuthorize("hasAnyAuthority('ticketing.update')")
+    @PreAuthorize("hasAnyAuthority('ticketing.view', 'ticketing.update')")
     @GetMapping("/{ticketId}/response")
     public QueryResultArrayDTO getResponsesForTicket(@PathVariable("ticketId") Long ticketId) {
         return ticketService.getResponse(String.valueOf(ticketId));
@@ -243,25 +253,26 @@ public class TicketController {
     /**
      * Message board in edit ticket. both pax employee and user under this company can see it.
      */
-    @PreAuthorize("hasAnyAuthority('ticketing.update')")
+    @PreAuthorize("hasAnyAuthority('ticketing.view', 'ticketing.update')")
     @PostMapping("/{ticketId}/response")
     public QueryResultDTO addResponsesForTicket(@PathVariable("ticketId") Long ticketId, @RequestBody TicketResponse response) {
-        return ticketService.insertResponse(response);
+        return ticketService.insertResponse(ticketId, response);
     }
     
     /**
-     * Message board in edit ticket. only pax employee can ack a ticket.
+     * Message board in edit ticket. only pax employee can update ack status.
      */
     @PreAuthorize("hasAnyAuthority('ticketing.ack')")
     @PutMapping("/{ticketId}/acknowledged")
-    public QueryResultDTO acknowledgeTicket(@PathVariable("ticketId") Long ticketId) {
-        return ticketService.ackTicket(ticketId);
+    public QueryResultDTO acknowledgeTicket(@PathVariable("ticketId") Long ticketId,
+                                            @RequestParam("acknowledged") Integer acknowledged) {
+        return ticketService.setTicketAckStatus(ticketId, acknowledged);
     }
     
     /**
      * Message board in edit ticket. client and pax employee can unack a ticket.
      */
-    @PreAuthorize("hasAnyAuthority('ticketing.ack')")
+    @PreAuthorize("hasAnyAuthority('ticketing.ack', 'ticketing.view', 'ticketing.update')")
     @PutMapping("/{ticketId}/unacknowledged")
     public QueryResultDTO unacknowledgeTicket(@PathVariable("ticketId") Long ticketId) {
         return ticketService.unAckTicket(ticketId);
@@ -270,7 +281,7 @@ public class TicketController {
     /**
      * Message board in edit ticket. client and pax employee can get a ticket's ack status.
      */
-    @PreAuthorize("hasAnyAuthority('ticketing.update')")
+    @PreAuthorize("hasAnyAuthority('ticketing.view', 'ticketing.update')")
     @GetMapping("/{ticketId}/acknowledged")
     public QueryResultDTO getTicketAckStatus(@PathVariable("ticketId") Long ticketId) {
         return ticketService.getTicketAckStatus(ticketId);

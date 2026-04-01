@@ -20,4 +20,6 @@ public class TicketInsertion {
     private Boolean cosmetic;//if user choose cosmetic, true
     private String encrypt;
     private String testKeyType;
+    private List<Integer> keyIndexes;
+    private String remark;
 }

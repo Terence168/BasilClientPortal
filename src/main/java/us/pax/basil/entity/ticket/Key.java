@@ -11,6 +11,8 @@ import lombok.experimental.Accessors;
 @ApiModel(value = "OrderType Object", description = "")
 public class Key{
     private Integer keyIndex;
+    private String keyId;
+    private String keyCategory;
     private String kcv;
     private String ksi;
     private String keyType;

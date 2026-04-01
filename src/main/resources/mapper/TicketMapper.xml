@@ -8,13 +8,24 @@
         BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
         JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
         JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
-        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
-        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+        LEFT JOIN (SELECT response.*
+        FROM (SELECT response.*,
+        row_number() OVER (PARTITION BY mo_oid ORDER BY response_date DESC)
+        rn
+        FROM BASIL_SEC_PRD.XREF_RESPONSE as response) AS response
+        WHERE response.rn = 1) AS res on res.MO_OID = pmo.MO_OID
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON res.RESPONSE_BY = user.U_OID
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
         <where>
-            <if test="id != null">
+            <if test="acknowledged != null">
+                AND pmo.ACKNOWLEDGED = #{acknowledged}
+            </if>
+            <if test="acknowledged == null and (searchSubmitted == null or searchSubmitted != 1)">
+                AND pmo.ACKNOWLEDGED IN (1, 2)
+            </if>
+            <if test="id != null and id != ''">
                 mc.MC_OID = #{id}
             </if>
             <if test="ticketId != null">
@@ -64,20 +75,32 @@
         scavtype.VALUE as type,
         mc.CUSTOMER_ORGANIZATION as customerOrganization,
         pmo.ORDER_DATE as createdDate,
-        user.NAME as responder
+        user.NAME as responder,
+        pmo.ACKNOWLEDGED as acknowledged
         FROM
         BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
         JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING(MC_OID)
         JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstat ON pmo.ORDER_STATUS = scavstat.SCV_OID
-        LEFT JOIN BASIL_SEC_PRD.XREF_RESPONSE resp USING(MO_OID)
-        LEFT JOIN BASIL_SEC_PRD.USERS user ON resp.RESPONSE_BY = user.U_OID
+        LEFT JOIN (SELECT response.*
+        FROM (SELECT response.*,
+        row_number() OVER (PARTITION BY mo_oid ORDER BY response_date DESC)
+        rn
+        FROM BASIL_SEC_PRD.XREF_RESPONSE as response) AS response
+        WHERE response.rn = 1) AS res on res.MO_OID = pmo.MO_OID
+        LEFT JOIN BASIL_SEC_PRD.USERS user ON res.RESPONSE_BY = user.U_OID
 
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavstatus ON pmo.ORDER_STATUS = scavstatus.SCV_OID
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavdept ON pmo.ORDER_DEPT = scavdept.SCV_OID
         LEFT JOIN BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scavtype ON pmo.ORDER_TYPE = scavtype.SCV_OID
 
         <where>
-            <if test="id !=null">
+            <if test="acknowledged != null">
+                AND pmo.ACKNOWLEDGED = #{acknowledged}
+            </if>
+            <if test="acknowledged == null and (searchSubmitted == null or searchSubmitted != 1)">
+                AND pmo.ACKNOWLEDGED IN (1, 2)
+            </if>
+            <if test="id != null and id != ''">
                 mc.MC_OID = #{id}
             </if>
             <if test="ticketId != null">
@@ -256,7 +279,7 @@
 
 
     <select id="existingMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
-        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, SUBMITTER_ID as submitterID,
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_DEPT as typeOfRepair, SUBMITTER_ID as submitterID,
         mo.mc_oid as mcOID,
         client_group as clientGroup,
         XA_OID as xaOID,
@@ -278,11 +301,12 @@
     </select>
 
     <select id="existingPREPMasterOrder" resultType="us.pax.basil.entity.ticket.TicketInfo">
-        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_TYPE as typeOfRepair, SUBMITTER_ID as submitterID,
+        SELECT MO_OID as moOID,ORDER_STATUS as orderStatus,ORDER_DEPT as typeOfRepair, SUBMITTER_ID as submitterID,
         mo.mc_oid as mcOID,
         client_group as clientGroup,
         XA_OID as xaOID,
         RMA_NUMBER as originalRMA,
+        DESCRIPTION as description,
         ZOHO_ENCRYPT as encrypt,
         mo.TEST_KEY_TYPE as keyIndex,
         mk.key_Type as keyType,
@@ -297,6 +321,17 @@
                 mo.MO_OID = #{id}
             </if>
         </where>
+    </select>
+
+    <select id="getPrepOrderDescription" resultType="java.lang.String">
+        SELECT DESCRIPTION
+        FROM BASIL_SEC_PRD.PREP_MASTER_ORDER
+        <where>
+            <if test="id != null">
+                MO_OID = #{id}
+            </if>
+        </where>
+        LIMIT 1
     </select>
 
     <select id="getTrackingNumber" resultType="us.pax.basil.entity.ticket.TrackingNum">
@@ -319,6 +354,7 @@
                 res.MO_OID = #{id}
             </if>
         </where>
+        ORDER BY res.RESPONSE_DATE ASC
     </select>
 
     <insert id="insertResponse" parameterType="us.pax.basil.entity.ticket.TicketResponse" useGeneratedKeys="true">
@@ -479,6 +515,9 @@
         <if test="sortColumns != null and sortColumns != ''">
             ORDER BY ${sortColumns}
         </if>
+        <if test="sortColumns == null or sortColumns == ''">
+            ORDER BY pmo.MO_OID DESC
+        </if>
         LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
     </select>
 
@@ -493,6 +532,17 @@
         ORDER BY
         scav.SORT_ORDER ASC
 
+    </select>
+
+    <select id="queryDepartmentByOrderDeptScvOid" resultType="java.lang.Integer">
+        SELECT
+        scav.DEPARTMENT
+        FROM
+        BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
+        WHERE
+        scav.SC_OID = 2
+        AND scav.SCV_OID = #{orderDeptScvOid}
+        LIMIT 1
     </select>
 
     <select id="queryOrderTypeList" resultType="us.pax.basil.entity.ticket.OrderType">
@@ -738,18 +788,18 @@
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
             useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, ORDER_DEPT, RMA_NUMBER, SUBMITTER_ID, XA_OID, TEST_KEY_TYPE, ZOHO_ENCRYPT)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), #{orderType}, 8, #{rmaNumber}, #{submitterID}, #{xaOID}, #{testKeyType}, #{encrypt})
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, ORDER_DEPT, RMA_NUMBER, SUBMITTER_ID, XA_OID, TEST_KEY_TYPE, ZOHO_ENCRYPT, ACKNOWLEDGED, DESCRIPTION)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), 3, #{orderDept}, #{rmaNumber}, #{submitterID}, #{xaOID}, #{testKeyType}, #{encrypt}, 1, #{description})
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="xmOID"
             keyColumn="XM_OID">
         <if test ="list!= null and list.size() > 0">
-            INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, MSN_OID, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,
+            INSERT INTO BASIL_SEC_PRD.PREP_XREF_MATERIALS (MO_OID, MSN_OID, DEPARTMENT, CUSTOMER_RMA, CUSTOMER_TERMINAL_ID,
             CUSTOMER_REPORTED_ISSUE_EXT, COSMETIC)
             VALUES
             <foreach item="item" collection="list" separator=",">
-                (#{item.moOID}, #{item.msnOID},
+                (#{item.moOID}, #{item.msnOID}, #{item.department},
                 #{item.customerRMA},#{item.customerTerminalID},#{item.customerReportedIssueExt}, #{item.cosmetic})
             </foreach>
         </if>
@@ -762,6 +812,28 @@
             (#{item}, #{mo_OID})
         </foreach>
     </insert>
+
+    <insert id="insertXref_Key">
+        <if test="keyIndexes != null and keyIndexes.size() > 0">
+            INSERT INTO BASIL_SEC_PRD.XREF_KEY (MO_OID, KEY_INDEX)
+            VALUES
+            <foreach item="item" collection="keyIndexes" separator=",">
+                (#{moOID}, #{item})
+            </foreach>
+        </if>
+    </insert>
+
+    <delete id="deleteXref_Key">
+        DELETE FROM BASIL_SEC_PRD.XREF_KEY
+        WHERE MO_OID = #{moOID}
+    </delete>
+
+    <select id="getXrefKeyIndexes" resultType="Integer">
+        SELECT KEY_INDEX
+        FROM BASIL_SEC_PRD.XREF_KEY
+        WHERE MO_OID = #{id}
+        ORDER BY XK_OID
+    </select>
 
 <!--    Edit Ticket -->
     <update id="updateXref_Inbound_Tracking" parameterType="java.util.List">
@@ -815,7 +887,7 @@
 
     <insert id="InsertXref_Inbound_Tracking">
             INSERT INTO BASIL_SEC_PRD.XREF_INBOUND_TRACKING (TRACKING_NUMBER, MO_OID) values
-            ({item.num}, #{item.moOID})
+            (#{item.num}, #{item.moOID})
     </insert>
 
     <delete id="deletePrep_Xref_Materials" parameterType="java.util.List">
@@ -885,7 +957,7 @@
         UPDATE BASIL_ODS_PRD.MASTER_ORDER
         <set>
             <if test="typeOfRepair != null">
-                ORDER_TYPE = #{typeOfRepair},
+                ORDER_DEPT = #{typeOfRepair},
             </if>
             <if test="xaOID != null">
                 XA_OID = #{xaOID},
@@ -900,7 +972,7 @@
         UPDATE BASIL_SEC_PRD.PREP_MASTER_ORDER
         <set>
             <if test="typeOfRepair != null">
-                ORDER_TYPE = #{typeOfRepair},
+                ORDER_DEPT = #{typeOfRepair},
             </if>
             <if test="xaOID != null">
                 XA_OID = #{xaOID},
@@ -912,7 +984,14 @@
     </update>
 
     <select id="getAllKeys" resultType="us.pax.basil.entity.ticket.Key">
-        SELECT distinct KEY_INDEX as keyIndex, Key_Type as keyType, KCV as kcv, KSI as ksi, Comments as comment
+        SELECT distinct
+               KEY_INDEX as keyIndex,
+               KEY_ID as keyId,
+               KEY_CATEGORY as keyCategory,
+               Key_Type as keyType,
+               KCV as kcv,
+               KSI as ksi,
+               Comments as comment
         FROM BASIL_SEC_PRD.MASTER_KEY;
     </select>
 
@@ -931,9 +1010,9 @@
         </where>
     </select>
 
-    <update id="ackPrepMasterTicket">
+    <update id="updatePrepMasterTicketAckStatus">
         update BASIL_SEC_PRD.PREP_MASTER_ORDER
-        <set> ACKNOWLEDGED = 1</set>
+        <set> ACKNOWLEDGED = #{acknowledged}</set>
         <where>
             <if test="moOID != null">
                 mo_oid = #{moOID}
@@ -941,29 +1020,9 @@
         </where>
     </update>
 
-    <update id="unAckPrepMasterTicket">
-        update BASIL_SEC_PRD.PREP_MASTER_ORDER
-        <set> ACKNOWLEDGED = 0</set>
-        <where>
-            <if test="moOID != null">
-                mo_oid = #{moOID}
-            </if>
-        </where>
-    </update>
-
-    <update id="ackMasterTicket">
-        update BASIL_SEC_PRD.PREP_MASTER_ORDER
-        <set> ACKNOWLEDGED = 1</set>
-        <where>
-            <if test="moOID != null">
-                mo_oid = #{moOID}
-            </if>
-        </where>
-    </update>
-
-    <update id="unAckMasterTicket">
-        update BASIL_SEC_PRD.PREP_MASTER_ORDER
-        <set> ACKNOWLEDGED = 0</set>
+    <update id="updateMasterTicketAckStatus">
+        update BASIL_ODS_PRD.MASTER_ORDER
+        <set> ACKNOWLEDGED = #{acknowledged}</set>
         <where>
             <if test="moOID != null">
                 mo_oid = #{moOID}

@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,6 +49,15 @@ public class RmaAttachmentStorageService {
      */
     @Value("${aws.enabled:false}")
     private boolean awsEnabled;
+
+    /**
+     * 是否允许使用 S3 作为附件存储。
+     * 说明：
+     * 1. dev 环境可通过配置显式关闭，强制走本地目录。
+     * 2. uat/prod 环境保持开启，继续走 AWS S3。
+     */
+    @Value("${rma.file-storage.use-s3:true}")
+    private boolean useS3;
 
     /**
      * AWS 区域（复用现有配置）。
@@ -159,7 +169,13 @@ public class RmaAttachmentStorageService {
         tokenRecord.setExpiredAt(Instant.now().plus(Duration.ofMinutes(presignExpireMinutes)));
         localDownloadTokens.put(token, tokenRecord);
 
-        return "/ticketing/attachments/local/" + URLEncoder.encode(token, StandardCharsets.UTF_8.name());
+        String encodedToken;
+        try {
+            encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 encoding is not supported", e);
+        }
+        return "/ticketing/attachments/local/" + encodedToken;
     }
 
     /**
@@ -209,7 +225,7 @@ public class RmaAttachmentStorageService {
      * 是否启用 S3。
      */
     public boolean isS3Available() {
-        return awsEnabled && awsCredentialsProvider != null;
+        return useS3 && awsEnabled && awsCredentialsProvider != null;
     }
 
     private String buildObjectKey(Integer ticketId, String fileName) {
@@ -217,7 +233,9 @@ public class RmaAttachmentStorageService {
         if (safePrefix.endsWith("/")) {
             safePrefix = safePrefix.substring(0, safePrefix.length() - 1);
         }
-        return safePrefix + "/" + ticketId + "/" + UUID.randomUUID().toString().replace("-", "") + "_" + fileName;
+        String extension = extractExtensionWithDot(fileName);
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        return safePrefix + "/" + ticketId + "/" + uuid + extension;
     }
 
     private Path resolveLocalPath(String objectKey) {
@@ -235,6 +253,17 @@ public class RmaAttachmentStorageService {
         String baseName = Paths.get(fileName).getFileName().toString();
         // 替换风险字符，保证对象键和本地路径可控。
         return baseName.replaceAll("[\\\\/:*?\"<>|\\s]+", "_");
+    }
+
+    private String extractExtensionWithDot(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return "";
+        }
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot < 0 || lastDot == fileName.length() - 1) {
+            return "";
+        }
+        return fileName.substring(lastDot);
     }
 
     private S3Client getS3Client() {

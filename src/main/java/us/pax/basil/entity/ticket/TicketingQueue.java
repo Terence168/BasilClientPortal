@@ -17,4 +17,5 @@ public class TicketingQueue {
     private String createdDate;
     private String responder;
     private String customerOrganization;
+    private Integer acknowledged;
 }

@@ -1,15 +1,10 @@
 package us.pax.basil.service.aws.ses;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-@Service
-@ConditionalOnProperty(name = "aws.enabled", havingValue = "false", matchIfMissing = true)
 public class DefaultEmailService implements EmailService {
 
     @Override

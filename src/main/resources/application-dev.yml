@@ -6,19 +6,18 @@ spring:
   datasource:
     #  local host
     #url: jdbc:mysql://localhost:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMutiQueries=true&zeroDateTimeBehavior=convertToNull
-    #username: root
-    #password: pax@4901
+    #username: ${BASIL_DEV_DB_USERNAME}
+    #password: ${BASIL_DEV_DB_PASSWORD}
 
     #  AWS UAT
     url: jdbc:mysql://basilmysql1.c3156zibo6aq.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-4&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
-    username: BASIL_ODS_PRD
-    password:
-      PaxUser@123
+    username: ${BASIL_DEV_DB_USERNAME}
+    password: ${BASIL_DEV_DB_PASSWORD}
 
       #  AWS PROD
       # url: jdbc:mysql://prodbasilmysql.c09xunhasest.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-5&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
-      # username: BASIL_ODS_PRD
-      # password: PaxUser@123
+      # username: ${BASIL_PROD_DB_USERNAME}
+      # password: ${BASIL_PROD_DB_PASSWORD}
 
 security:
   # urls which do not need authentication
@@ -71,10 +70,10 @@ server:
   ssl:
     enabled: false
     key-store: server.keystore
-    key-store-password: pax@4901FL!2
+    key-store-password: ${BASIL_DEV_SSL_KEY_STORE_PASSWORD}
     key-store-type: JKS
     #trust-store: src/test/resources/trust.keystore
-    #trust-store-password: pax@4901
+    #trust-store-password: ${BASIL_DEV_SSL_TRUST_STORE_PASSWORD}
     #trust-store-type: JKS
     #trust-store-provider: SUN
     #client-auth: need
@@ -94,13 +93,36 @@ frontend:
     reset: http://localhost:9000/activate-user/
 
 aws:
-  enabled: true
-  local_development: true
+  enabled: false
+  local_development: false
   region: us-east-1
-  accessKeyId: ASIA6DUFT7CDOAZBEB2T
-  secretKey: LbKB1hUtwWNeuNYzsE1JksBX6qxnMND2yVMfy1Kd
-  sessionToken: IQoJb3JpZ2luX2VjEDYaCXVzLWVhc3QtMiJGMEQCICFUjBNGVlM6ADxaZHxlgPtgBRXIPDNJTrKanPNa3CdtAiAsimLWcZf1ugqctj40pDTXTe9LYY4fXNCI7Qw8RTio0CqCAwjP//////////8BEAEaDDk2OTg2OTA5NzA5NCIMknkL078NqWNz7zXSKtYCeYXDK5WEhA8cIEHKwS49qTRRJzwLfwuC0LnH/IPcUUsKzORRZ8TFBVEMeXTr3Um9Y3FIhJvxSXpwrjnbgQl0Q0qL3ZbkooEAPcG79q8WDk7+RjREoNeadW+CTvhO7ej36BX0Ymfu4A03Kd6Tr3hkRdmoSjtAMcrpK6bSfMg63AXdVVdNoxy1Bw5ObbW1Wz1/GA0HP6jKN+wjfAIwYoQy4zRXwgiKOB6fgyOTFuMtXyNl7558B7VACIpbPQrBMelv2pLhcsL1/+ZCsVzJJSHNWyhW2BoCBzJZJk8QeQ+tFMQkfIHcDVju5l/8euwdEuBDe6x8Ftd0Bu7XP7HMQzhPGD0MeHwtmWkOTCGR0umKGzgOboS/rGlYpuwWXdxSlre1MbLnSliVCB1N3VMAGL1HyHHKoCTmbPa60G27H5ebYjeSqusKC3JC+LTwjw13D9SnaEoqvJ9VMO2o7qwGOqgBtp0rBp0CczMVz38KLdxoUjscTqW2J7vgviq5QRE0s80vDNmXeV5OwbVrgUtWyelZGm9I4neAjRBvNyLXlbOg+ZV3brHQZUhCoiuJQXFb+kGLIwrpJcvYbKBexXjD2fgE0BrK0+DnDF/Zv/gDL7AdFwel9o/YEMBV59Q84PYW8uTl34XYD3SqQSxjOSA2rlgumYIcM9VCuOs9KJ+s9ssUnDm3IVBknPDR
+  accessKeyId: ${BASIL_DEV_AWS_ACCESS_KEY_ID}
+  secretKey: ${BASIL_DEV_AWS_SECRET_KEY}
+  sessionToken: ${BASIL_DEV_AWS_SESSION_TOKEN}
   threads:
     min: 10
     max: 30
     queueLimit: 200
+
+rma:
+  file-storage:
+    # dev 环境禁用 S3，附件统一回落到项目根目录 local-root
+    use-s3: false
+
+mail:
+  smtp:
+    # dev 环境启用 SMTP 账号密码发信，不使用 AWS SES
+    enabled: true
+    host: mail.paxsz.com
+    port: 587
+    username: paxinfo
+    # 建议通过环境变量覆盖真实密码，避免明文提交凭据
+    password: ${PAX_DEV_SMTP_PASSWORD}
+    # from 地址可按实际邮箱策略调整（若服务器要求完整地址，请改为对应邮箱）
+    from: paxinfo@paxsz.com
+    auth: true
+    starttls: true
+
+contact-rma:
+  mail:
+    to: zhouxj@paxsz.com

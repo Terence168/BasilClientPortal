@@ -145,7 +145,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()
                 .sessionManagement()
-                .invalidSessionUrl("/login")
+                .invalidSessionStrategy(new JsonInvalidSessionStrategy())
             .and()
                 .httpBasic();
 

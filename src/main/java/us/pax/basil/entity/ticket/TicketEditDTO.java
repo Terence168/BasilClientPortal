@@ -18,7 +18,9 @@ public class TicketEditDTO {
     private boolean isFromMaster;
     private Integer typeOfRepair;
     private String originalRMA;
+    private String encrypt;
     private String testKeyType;
+    private List<Integer> keyIndexes;
     private List<String> deleteSerial; //xm_oid
     private List<SNsInsertionObject> addSerial;
     private List<SNsInsertionObject> updateSerial;

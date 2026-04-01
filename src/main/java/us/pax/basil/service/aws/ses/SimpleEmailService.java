@@ -4,8 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -14,7 +12,6 @@ import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.*;
 
 import javax.activation.DataHandler;
-import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -30,9 +27,7 @@ import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-@Service
 @Log4j2
-@ConditionalOnProperty(name = "aws.enabled", havingValue = "true")
 public class SimpleEmailService implements EmailService {
 
     private final SesClient sesClient;
@@ -175,7 +170,7 @@ public class SimpleEmailService implements EmailService {
             MimeMessage mimeMessage = new MimeMessage(session);
             mimeMessage.setSubject(subject, "UTF-8");
             mimeMessage.setFrom(new InternetAddress("noreply-basil@pax.us"));
-            mimeMessage.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+            mimeMessage.setRecipients(javax.mail.Message.RecipientType.TO, InternetAddress.parse(to));
 
             MimeBodyPart htmlPart = new MimeBodyPart();
             htmlPart.setContent(htmlBody, "text/html; charset=UTF-8");

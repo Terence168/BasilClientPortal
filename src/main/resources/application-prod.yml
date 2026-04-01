@@ -1,20 +1,27 @@
 spring:
+  application:
+    name: basil
+  http:
+    encoding:
+      force: true
+      charset: UTF-8
+      enabled: true
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 500MB
+      max-request-size: 1000MB
   datasource:
     #  AWS
     url: jdbc:mysql://prodbasilmysql.c09xunhasest.us-east-1.rds.amazonaws.com:3306/BASIL_ODS_PRD?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT-5&allowMultiQueries=true&zeroDateTimeBehavior=convertToNull
-    username: BASIL_ODS_PRD
-    password: PaxUser@123
+    username: ${BASIL_PROD_DB_USERNAME}
+    password: ${BASIL_PROD_DB_PASSWORD}
 
   mail:
     host: smtp.office365.com
     port: 587
     protocol: smtp
-    username: "basil@pax.us"
-    password: "Future4Pax!@"
+    username: ${BASIL_PROD_SMTP_USERNAME}
+    password: ${BASIL_PROD_SMTP_PASSWORD}
     properties:
       mail:
         transport:
@@ -80,10 +87,10 @@ server:
   ssl:
     enabled: false
     key-store: server.keystore
-    key-store-password: pax@4901FL!2
+    key-store-password: ${BASIL_PROD_SSL_KEY_STORE_PASSWORD}
     key-store-type: JKS
     #trust-store: src/test/resources/trust.keystore
-    #trust-store-password: pax@4901
+    #trust-store-password: ${BASIL_PROD_SSL_TRUST_STORE_PASSWORD}
     #trust-store-type: JKS
     #trust-store-provider: SUN
     #client-auth: need
@@ -106,6 +113,23 @@ aws:
   enabled: true
   local_development: true
   region: us-east-1
-  accessKeyId: ASIAYYH3QRFFOJWL2GFF
-  secretKey: RTsk+qZ1Gs3yDegUFWtbab5TbHWWY4jrRGTh5vZ0
-  sessionToken: IQoJb3JpZ2luX2VjEFQaCXVzLWVhc3QtMiJGMEQCIDTCpoD2du6Z8e5SiZ+oym1lE7oEV9o8oWWM3NK/xq8QAiAGD6QLVpYfZzjLe5a0NxnkfnG/sUbSHnxb7Dryig5VmirzAggdEAAaDDYwMTgyMjg5MDMxNCIMNTMccmvqEZb/ml/IKtAC4njmfCsomzXlC85x7q0pvM6ZrnZAdPbPTDynit4GKjU26p20G5jXExInfg6ZzS9wc0xA3XGd0U5GaYp+H107Lc0BoKUwF9SlQanLjTTkG17+++ON42ZWs8BpJeRc7ZC4cgqynT+8S0yUVdjtgpp7uJe0NMiu5eZFmE3ujPeMQSE8FWJMjeloOgHxxGPZ4TprtFgqPQQl7eUz0h3XVgiaRAfvj3sNIJj27y6B+AI74FB26TDYTqTDy/C1+ttXkvA3D36c53ei7U3C3aH9smb/Wb3uNdfgDWbQtdrzSbAgRkXQHho7d6/9S1jvR/h0LVG6aqQTGmvRQBSi3LwXr2Tgk/YniCTGLjNc36zlARgiDfuN4isxHeh3pgC0jPzLKSIV11CZx9ywlUTRWierR5B2KzGLpBec23VTud2LNorTyRWJwyMgOI6cb0Dkvvx1uoOMMI/JmacGOqgBnasT0FhACOQ9VY6fTqcCbz+cKUDUi3sJwfjlC7j4m4Snqfoeo2+E5jyHnbOIjpywsjpYwya+W9vwC95H8FXIXXQ3GwQd9IZQQS0wV4oeUPztBl+YssEGhqCgdKWHNM7l6f5UNWSWnozNrHjv6HbJ2u+kqbq7sTdjekFZno+x+3yujQkDV3EseotNibh43taLiK9LYf4pnMFM8W+tdShWCUN06wwDoQ1Q
+  accessKeyId: ${BASIL_PROD_AWS_ACCESS_KEY_ID}
+  secretKey: ${BASIL_PROD_AWS_SECRET_KEY}
+  sessionToken: ${BASIL_PROD_AWS_SESSION_TOKEN}
+
+rma:
+  file-storage:
+    bucket: basil-uat-cp-file-storage
+    use-s3: true
+    base-prefix: tickets
+    local-root: ./basil-uat-cp-file-storage
+    presign-expire-minutes: 30
+
+mail:
+  smtp:
+    enabled: false
+
+contact-rma:
+  mail:
+    to: RMAsupport@pax.us
+

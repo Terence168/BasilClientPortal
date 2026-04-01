@@ -33,3 +33,5 @@ target/*
 /lib/
 .vscode/settings.json
 src/main/lib/*
+/basil-uat-cp-file-storage/*
+/service-logs/*

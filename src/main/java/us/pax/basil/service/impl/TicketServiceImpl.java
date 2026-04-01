@@ -13,6 +13,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +25,7 @@ import us.pax.basil.entity.customer.Address;
 import us.pax.basil.entity.customer.Company;
 import us.pax.basil.entity.customer.Customer;
 import us.pax.basil.entity.ticket.*;
+import us.pax.basil.mapper.EmailMessageMapper;
 import us.pax.basil.mapper.LogProgramMapper;
 import us.pax.basil.mapper.RmaFileStorageMapper;
 import us.pax.basil.mapper.TicketMapper;
@@ -34,6 +36,7 @@ import us.pax.basil.service.InvoiceService;
 import us.pax.basil.service.TicketService;
 import us.pax.basil.service.aws.s3.RmaAttachmentStorageService;
 import us.pax.basil.service.aws.ses.EmailService;
+import us.pax.basil.service.aws.ses.SESResponse;
 import us.pax.basil.utils.AuthUtil;
 import us.pax.basil.utils.LoggingUtil;
 import us.pax.basil.utils.QueryUtils;
@@ -45,8 +48,11 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -55,6 +61,17 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implements TicketService {
+    private static final int CREATE_TICKET_ORDER_TYPE = 3;
+    private static final DateTimeFormatter RESPONSE_EMAIL_TIME_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+    private static final String CS_REPLY_EMAIL_SUBJECT_TEMPLATE = "RMA #%d - Customer Service Reply";
+    private static final String CS_REPLY_EMAIL_GREETING = "Hello,";
+    private static final String CS_REPLY_EMAIL_INTRO = "Customer Service has replied to your ticket.";
+    private static final String CS_REPLY_EMAIL_NOTICE = "Please login to Client Portal for further actions.";
+    private static final String CS_REPLY_EMAIL_LATEST_TITLE = "Latest Customer Service Reply";
+    private static final String CS_REPLY_EMAIL_HISTORY_TITLE = "Conversation History";
+    private static final String CS_REPLY_EMAIL_AUTO_NOTE = "This is an automated message, please do not reply directly.";
+
     @Autowired
     private EmailService emailService;
     
@@ -78,6 +95,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Autowired
     private LogProgramMapper logProgramMapper;
+
+    @Autowired
+    private EmailMessageMapper emailMessageMapper;
     
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -111,11 +131,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
      * 视频大小限制（500MB）。
      */
     private static final long MAX_VIDEO_SIZE = 500L * 1024L * 1024L;
+    private static final int MAX_ATTACHMENT_TYPE_LENGTH = 200;
 
     /**
      * Contact RMA 固定收件邮箱。
      */
-    private static final String CONTACT_RMA_EMAIL = "RMAsupport@pax.us";
+    @Autowired
+    private Environment environment;
 
     /**
      * Contact RMA 截图允许扩展名。
@@ -135,7 +157,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                                            Integer type,
                                            String createdDate,
                                            String serialNumber,
-                                           String customerId) {
+                                           String customerId,
+                                           Integer searchSubmitted,
+                                           Integer acknowledged) {
         CustomUserDetails user = AuthUtil.getUser();
         assert user != null;
         
@@ -163,7 +187,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
         try {
-            Integer total = ticketMapper.getTicketingTotal(companyId, transformInputQuery(ticketId), department, type, status, responder, transformInputQuery(serialNumber), createdFromDate, createdToDate);
+            Integer total = ticketMapper.getTicketingTotal(companyId, transformInputQuery(ticketId), department, type, status, responder, transformInputQuery(serialNumber), createdFromDate, createdToDate, searchSubmitted, acknowledged);
             List<TicketingQueue> ticketingQueueList = ticketMapper.getTicketing((currentPage - 1) * sizePerPage,
                 sizePerPage,
                 buildSortString(sortColumns),
@@ -175,7 +199,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 responder,
                 transformInputQuery(serialNumber),
                 createdFromDate,
-                createdToDate
+                createdToDate,
+                searchSubmitted,
+                acknowledged
             );
             
             for (TicketingQueue ticketingQueue : ticketingQueueList) {
@@ -187,6 +213,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 ticketingQueueMap.put("createdDate", ticketingQueue.getCreatedDate());
                 ticketingQueueMap.put("responder", ticketingQueue.getResponder());
                 ticketingQueueMap.put("customer", ticketingQueue.getCustomerOrganization());
+                ticketingQueueMap.put("acknowledged", ticketingQueue.getAcknowledged());
                 resultArray.add(ticketingQueueMap);
             }
             return new QueryResultArrayDTO(resultArray, total, 0, "");
@@ -483,6 +510,26 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 
                 List<TrackingNum> trackingNumber = ticketMapper.getTrackingNumber(id);
                 ticket.setTrackingNumbers(trackingNumber);
+
+                List<Integer> keyIndexes = ticketMapper.getXrefKeyIndexes(id);
+                if ((keyIndexes == null || keyIndexes.isEmpty())
+                        && ticket.getKeyIndex() != null
+                        && !ticket.getKeyIndex().trim().isEmpty()) {
+                    try {
+                        keyIndexes = new ArrayList<>();
+                        keyIndexes.add(Integer.valueOf(ticket.getKeyIndex().trim()));
+                    } catch (NumberFormatException ignore) {
+                        keyIndexes = new ArrayList<>();
+                    }
+                }
+                ticket.setKeyIndexes(keyIndexes == null ? new ArrayList<>() : keyIndexes);
+
+                if (ticket.getDescription() == null || ticket.getDescription().trim().isEmpty()) {
+                    String prepDescription = ticketMapper.getPrepOrderDescription(id);
+                    if (prepDescription != null && !prepDescription.trim().isEmpty()) {
+                        ticket.setDescription(prepDescription);
+                    }
+                }
                 
                 Map<String, Object> ticketingViewsMap = objectMapper.convertValue(ticket, Map.class);
                 
@@ -496,17 +543,246 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     }
     
     @Override
-    public QueryResultDTO insertResponse(TicketResponse ticketResponse) {
+    public QueryResultDTO insertResponse(Long ticketId, TicketResponse ticketResponse) {
+        if (ticketId == null || ticketResponse == null) {
+            return new QueryResultDTO(null, -1, "Ticket ID and response are required");
+        }
+        if (!userHasAccess(String.valueOf(ticketId))) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+
         CustomUserDetails user = AuthUtil.getUser();
         
         try {
+            ticketResponse.setMoOID(Math.toIntExact(ticketId));
             if (user != null) {
                 ticketResponse.setResponseBy(user.getUserId().toString());
             }
             ticketMapper.insertResponse(ticketResponse);
             Map<String, Object> resultMap = new HashMap<>();
             resultMap.put("response", ticketResponse);
+
+            // 客服回复后，自动将“工单号 + 最新回复 + 完整历史对话”发送给工单对应客户。
+            if (user != null && !user.isClientUser()) {
+                appendCustomerNotificationEmailResult(resultMap, ticketResponse, user);
+            }
+
             return new QueryResultDTO(resultMap, 0, "");
+        } catch (ArithmeticException e) {
+            return new QueryResultDTO(null, -1, "Invalid ticket id");
+        } catch (Exception e) {
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    /**
+     * 客服回复后邮件通知客户：
+     * 1. 收件人：工单提交客户邮箱；
+     * 2. 内容：工单号、最新客服回复、完整历史对话；
+     * 3. 邮件失败不影响回复写库，结果写入返回字段供前端查看。
+     */
+    private void appendCustomerNotificationEmailResult(Map<String, Object> resultMap,
+                                                       TicketResponse latestResponse,
+                                                       CustomUserDetails responderUser) {
+        Integer moOid = latestResponse.getMoOID();
+        if (moOid == null) {
+            resultMap.put("emailDeliveryResult", "Skipped: ticket id not found.");
+            return;
+        }
+
+        try {
+            String customerEmail = resolveTicketCustomerEmail(moOid);
+            if (customerEmail == null || customerEmail.trim().isEmpty()) {
+                resultMap.put("emailDeliveryResult", "Skipped: customer email not found.");
+                return;
+            }
+
+            List<TicketResponse> fullConversation = ticketMapper.getResponse(String.valueOf(moOid));
+            String subject = String.format(CS_REPLY_EMAIL_SUBJECT_TEMPLATE, moOid);
+            String content = buildCustomerReplyNotificationEmail(
+                    moOid,
+                    responderUser.getUsername(),
+                    latestResponse,
+                    fullConversation
+            );
+
+            SESResponse sesResponse = emailService.sendEmail(customerEmail, subject, content).join();
+            if (sesResponse != null && sesResponse.isSuccess()) {
+                String messageId = resolveEmailMessageId(sesResponse);
+                resultMap.put(
+                        "emailDeliveryResult",
+                        messageId == null || messageId.trim().isEmpty()
+                                ? "Success"
+                                : "Success, message ID: " + messageId
+                );
+            } else {
+                String failureMessage = "Email sending failed";
+                if (sesResponse != null
+                        && sesResponse.getException() != null
+                        && sesResponse.getException().getMessage() != null
+                        && !sesResponse.getException().getMessage().trim().isEmpty()) {
+                    failureMessage = failureMessage + ": " + sesResponse.getException().getMessage();
+                }
+                resultMap.put("emailDeliveryResult", failureMessage);
+            }
+        } catch (CompletionException e) {
+            Throwable root = e.getCause() == null ? e : e.getCause();
+            String message = root.getMessage() == null ? "Email sending failed" : root.getMessage();
+            log.error("Error sending customer notification email for ticket {}: {}", moOid, message, e);
+            resultMap.put("emailDeliveryResult", "Failed to send email: " + message);
+        } catch (Exception e) {
+            String message = e.getMessage() == null ? "Email sending failed" : e.getMessage();
+            log.error("Error preparing customer notification email for ticket {}: {}", moOid, message, e);
+            resultMap.put("emailDeliveryResult", "Failed to send email: " + message);
+        }
+    }
+
+    /**
+     * 解析工单对应客户邮箱（默认使用工单提交人邮箱）。
+     */
+    private String resolveTicketCustomerEmail(Integer moOid) {
+        String ticketId = String.valueOf(moOid);
+        TicketInfo ticket = ticketMapper.existingPREPMasterOrder(ticketId);
+        if (ticket == null) {
+            ticket = ticketMapper.existingMasterOrder(ticketId);
+        }
+        if (ticket == null || ticket.getSubmitterID() == null) {
+            return null;
+        }
+
+        User submitter = userMapper.getUserById(ticket.getSubmitterID());
+        if (submitter == null) {
+            return null;
+        }
+        return submitter.getEmail();
+    }
+
+    /**
+     * 构建“客服回复通知客户”邮件正文：包含工单号、最新客服回复与完整历史对话。
+     */
+    private String buildCustomerReplyNotificationEmail(Integer moOid,
+                                                       String responderName,
+                                                       TicketResponse latestResponse,
+                                                       List<TicketResponse> fullConversation) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;'>");
+        builder.append("<p>").append(escapeHtml(CS_REPLY_EMAIL_GREETING)).append("</p>");
+        builder.append("<p>").append(escapeHtml(CS_REPLY_EMAIL_INTRO)).append("</p>");
+        builder.append("<p><strong>Ticket ID:</strong> ").append(moOid).append("</p>");
+        builder.append("<p><strong>Notice:</strong> ").append(escapeHtml(CS_REPLY_EMAIL_NOTICE)).append("</p>");
+
+        builder.append("<hr style='border:none;border-top:1px solid #ddd;margin:16px 0;'/>");
+        builder.append("<h3 style='margin:0 0 8px 0;'>")
+                .append(escapeHtml(CS_REPLY_EMAIL_LATEST_TITLE))
+                .append("</h3>");
+        builder.append("<div style='border:1px solid #ddd;border-radius:6px;padding:10px;background:#f7fbff;'>");
+        builder.append("<div><strong>Responder:</strong> ").append(escapeHtml(responderName)).append("</div>");
+        builder.append("<div><strong>Time:</strong> ")
+                .append(formatResponseDateForEmail(latestResponse == null ? null : latestResponse.getResponseDate()))
+                .append("</div>");
+        builder.append("<div style='margin-top:8px;'>")
+                .append(formatCommentContentForEmail(latestResponse == null ? null : latestResponse.getContent()))
+                .append("</div>");
+        builder.append("</div>");
+
+        builder.append("<hr style='border:none;border-top:1px solid #ddd;margin:16px 0;'/>");
+        builder.append("<h3 style='margin:0 0 8px 0;'>")
+                .append(escapeHtml(CS_REPLY_EMAIL_HISTORY_TITLE))
+                .append("</h3>");
+
+        if (fullConversation == null || fullConversation.isEmpty()) {
+            builder.append("<p>No history found.</p>");
+        } else {
+            for (TicketResponse response : fullConversation) {
+                builder.append("<div style='border:1px solid #e5e5e5;border-radius:6px;padding:10px;margin-bottom:8px;'>");
+                builder.append("<div><strong>From:</strong> ")
+                        .append(escapeHtml(response.getResponseBy() == null ? "" : response.getResponseBy()))
+                        .append("</div>");
+                builder.append("<div><strong>Time:</strong> ")
+                        .append(formatResponseDateForEmail(response.getResponseDate()))
+                        .append("</div>");
+                builder.append("<div style='margin-top:8px;'>")
+                        .append(formatCommentContentForEmail(response.getContent()))
+                        .append("</div>");
+                builder.append("</div>");
+            }
+        }
+
+        builder.append("<p style='margin-top:16px;color:#666;'>")
+                .append(escapeHtml(CS_REPLY_EMAIL_AUTO_NOTE))
+                .append("</p>");
+        builder.append("</div>");
+        return builder.toString();
+    }
+
+    /**
+     * 评论内容邮件展示格式化：
+     * 1. 去掉基础 HTML 标签（保留文本）；
+     * 2. 进行 HTML 转义后转成换行展示。
+     */
+    private String formatCommentContentForEmail(String content) {
+        if (content == null || content.trim().isEmpty()) {
+            return "";
+        }
+        String plainText = content
+                .replaceAll("(?i)<br\\s*/?>", "\n")
+                .replaceAll("(?i)</p>", "\n")
+                .replaceAll("(?i)<p[^>]*>", "")
+                .replaceAll("(?i)<[^>]+>", "");
+        return escapeHtml(plainText).replace("\n", "<br/>");
+    }
+
+    /**
+     * 回复时间格式化，避免邮件中出现原始 Date 对象字符串。
+     */
+    private String formatResponseDateForEmail(Date responseDate) {
+        if (responseDate == null) {
+            return "";
+        }
+        return escapeHtml(RESPONSE_EMAIL_TIME_FORMATTER.format(responseDate.toInstant()));
+    }
+
+    /**
+     * 获取工单邮件预览（与提交工单时邮件模板保持一致）。
+     * <p>
+     * 用于前端在 Create/Edit 页面展示完整邮件内容。
+     */
+    @Override
+    public QueryResultDTO getTicketEmailPreview(String ticketId) {
+        if (ticketId == null || ticketId.trim().isEmpty()) {
+            return new QueryResultDTO(null, -1, "Ticket ID is required");
+        }
+        if (!userHasAccess(ticketId)) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+
+        try {
+            Integer moOID = Integer.valueOf(ticketId.trim());
+            TicketInfo ticket = ticketMapper.existingPREPMasterOrder(ticketId);
+            if (ticket == null) {
+                ticket = ticketMapper.existingMasterOrder(ticketId);
+            }
+            if (ticket == null) {
+                return new QueryResultDTO(null, -1, "Ticket Not found");
+            }
+
+            Double invoice = invoiceService.getTotalInvoice(moOID);
+            if (invoice == null) {
+                invoice = 0d;
+            }
+
+            Integer clientGroup = ticket.getClientGroup();
+            if (clientGroup == null && ticket.getMcOID() != null) {
+                Company company = userMapper.getCompanyInfo(ticket.getMcOID());
+                if (company != null) {
+                    clientGroup = company.getClientGroupId();
+                }
+            }
+
+            Map<String, Object> preview = buildEmailPreviewPayload(moOID, invoice, clientGroup);
+            return new QueryResultDTO(preview, 0, "");
+        } catch (NumberFormatException e) {
+            return new QueryResultDTO(null, -1, "Invalid ticket id");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
         }
@@ -542,6 +818,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             return new QueryResultArrayDTO(null, 0, -1, "Don't have access to the ticket");
         }
         try {
+            List<Integer> selectedKeyIndexes = normalizeTicketKeyIndexes(
+                    ticketEditDTO.getKeyIndexes(),
+                    ticketEditDTO.getTestKeyType(),
+                    ticketEditDTO.getEncrypt()
+            );
+            String primaryTestKeyType = resolvePrimaryKeyType(selectedKeyIndexes);
+
             //update tracking number part
             if (ticketEditDTO.isFromMaster()) {
                 //    void updateMasterOrder(Integer typeOfRepair, String originalRMA, String moOID, String xaOID);
@@ -549,14 +832,21 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, ticketEditDTO.getTestKeyType());
+                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, primaryTestKeyType);
             } else {
                 Integer xaOID = null;
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, ticketEditDTO.getTestKeyType());
+                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, primaryTestKeyType);
             }
+
+            Integer moOID = Integer.valueOf(id);
+            ticketMapper.deleteXref_Key(moOID);
+            if (!selectedKeyIndexes.isEmpty()) {
+                ticketMapper.insertXref_Key(moOID, selectedKeyIndexes);
+            }
+
             if (ticketEditDTO.getUpdateTracking().size() > 0) {
                 ticketMapper.updateXref_Inbound_Tracking(ticketEditDTO.getUpdateTracking());
             }
@@ -739,21 +1029,33 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             List<SNsInsertionObject> insertedSerials = ticketInsertion.getSerials();
             List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
-            Integer orderType = ticketInsertion.getOrderType();
+            Integer orderDeptScvOid = ticketInsertion.getOrderType();
+            Integer xrefDepartment = resolvePrepXrefDepartment(orderDeptScvOid);
             String originalRMA = ticketInsertion.getOriginalRMA();
             Integer xaOId = ticketInsertion.getXaOID();
+            List<Integer> selectedKeyIndexes = normalizeTicketKeyIndexes(
+                    ticketInsertion.getKeyIndexes(),
+                    ticketInsertion.getTestKeyType(),
+                    ticketInsertion.getEncrypt()
+            );
 
             TicketInsertionObject tio = new TicketInsertionObject();
-            tio.setOrderType(orderType);
+            tio.setOrderType(CREATE_TICKET_ORDER_TYPE);
+            tio.setOrderDept(orderDeptScvOid);
             tio.setRmaNumber(originalRMA);
             tio.setSubmitterID(clientId);
             tio.setXaOID(xaOId);
-            tio.setTestKeyType(ticketInsertion.getTestKeyType());
+            tio.setTestKeyType(resolvePrimaryKeyType(selectedKeyIndexes));
             tio.setEncrypt(ticketInsertion.getEncrypt());
+            tio.setDescription(normalizeRemark(ticketInsertion.getRemark()));
             int moOID = insertTicketToPMO(tio);
+            if (!selectedKeyIndexes.isEmpty()) {
+                ticketMapper.insertXref_Key(moOID, selectedKeyIndexes);
+            }
 
             for (SNsInsertionObject snsObject : insertedSerials) {
                 snsObject.setMoOID(moOID);
+                snsObject.setDepartment(xrefDepartment);
             }
 
             ticketMapper.insertPrep_Xref_Materials(insertedSerials);
@@ -770,19 +1072,37 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             Integer clientGroup = company.getClientGroupId();
             String content = constructEmail(moOID, invoice, clientGroup);
             String subject = String.format("RMA #%d Confirmation", moOID);
+            result.putAll(buildEmailPreviewPayload(moOID, invoice, clientGroup, subject, content));
 
             return emailService.sendEmail(clientEmail, subject, content)
                     .thenApply(sesResponse -> {
-                        String emailResult = sesResponse.isSuccess() ?
-                                "Success, message ID: " + sesResponse.getResponse().messageId() :
-                                "Email sending failed";
-                        result.put("emailDeliveryResult", emailResult);
-                        return new QueryResultDTO(result, 0, "");
+                        if (sesResponse != null && sesResponse.isSuccess()) {
+                            String messageId = resolveEmailMessageId(sesResponse);
+                            String emailResult = (messageId == null || messageId.trim().isEmpty())
+                                    ? "Success"
+                                    : "Success, message ID: " + messageId;
+                            result.put("emailDeliveryResult", emailResult);
+                            return new QueryResultDTO(result, 0, "");
+                        }
+
+                        String failureMessage = "Email sending failed";
+                        if (sesResponse != null
+                                && sesResponse.getException() != null
+                                && sesResponse.getException().getMessage() != null
+                                && !sesResponse.getException().getMessage().trim().isEmpty()) {
+                            failureMessage = failureMessage + ": " + sesResponse.getException().getMessage();
+                        }
+                        result.put("emailDeliveryResult", failureMessage);
+                        return new QueryResultDTO(result, -1, failureMessage);
                     })
                     .exceptionally(e -> {
-                        log.error("Error sending email: " + e.getMessage(), e);
-                        result.put("emailDeliveryResult", "Failed to send email");
-                        return new QueryResultDTO(result, -1, e.getMessage());
+                        Throwable root = e.getCause() == null ? e : e.getCause();
+                        String message = (root.getMessage() == null || root.getMessage().trim().isEmpty())
+                                ? "Failed to send email"
+                                : root.getMessage();
+                        log.error("Error sending email: {}", message, e);
+                        result.put("emailDeliveryResult", "Failed to send email: " + message);
+                        return new QueryResultDTO(result, -1, message);
                     });
         } catch (Exception e) {
             log.error("Error processing ticket submission: " + e.getMessage(), e);
@@ -799,22 +1119,34 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         List<SNsInsertionObject> sNsInsertionObjectList = ticketInsertion.getSerials();
         List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
         
-        Integer orderType = ticketInsertion.getOrderType();
+        Integer orderDeptScvOid = ticketInsertion.getOrderType();
+        Integer xrefDepartment = resolvePrepXrefDepartment(orderDeptScvOid);
         String originalRMA = ticketInsertion.getOriginalRMA();
         Integer xaOId = ticketInsertion.getXaOID();
+        List<Integer> selectedKeyIndexes = normalizeTicketKeyIndexes(
+                ticketInsertion.getKeyIndexes(),
+                ticketInsertion.getTestKeyType(),
+                ticketInsertion.getEncrypt()
+        );
         
         TicketInsertionObject tio = new TicketInsertionObject();
-        
-        tio.setOrderType(orderType);
+
+        tio.setOrderType(CREATE_TICKET_ORDER_TYPE);
+        tio.setOrderDept(orderDeptScvOid);
         tio.setRmaNumber(originalRMA);
         tio.setSubmitterID(submitterId);
         tio.setXaOID(xaOId);
-        tio.setTestKeyType(ticketInsertion.getTestKeyType());
+        tio.setTestKeyType(resolvePrimaryKeyType(selectedKeyIndexes));
         tio.setEncrypt(ticketInsertion.getEncrypt());
+        tio.setDescription(normalizeRemark(ticketInsertion.getRemark()));
         int mo_OID = insertTicketToPMO(tio);
+        if (!selectedKeyIndexes.isEmpty()) {
+            ticketMapper.insertXref_Key(mo_OID, selectedKeyIndexes);
+        }
         
         for (SNsInsertionObject snsObject : sNsInsertionObjectList) {
             snsObject.setMoOID(mo_OID);
+            snsObject.setDepartment(xrefDepartment);
         }
         try {
             ticketMapper.insertPrep_Xref_Materials(sNsInsertionObjectList);
@@ -831,6 +1163,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             Integer clientGroup = company.getClientGroupId();
             String content = constructEmail(mo_OID, invoice, clientGroup);
             String subject = String.format("RMA #%d Confirmation", mo_OID);
+            result.putAll(buildEmailPreviewPayload(mo_OID, invoice, clientGroup, subject, content));
             submitterEmail = "success@simulator.amazonses.com";
 //            Mono<String> delivery = emailService.sendEmail(submitterEmail, subject, content).map(response ->
 //                    response.isSuccess() ? "Success, message ID: " + response.getResponse().messageId()
@@ -849,6 +1182,32 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             return new QueryResultDTO(null, -1, e.getMessage());
         }
     }
+
+    /**
+     * 构建邮件预览返回体，供前端弹层直接展示。
+     */
+    private Map<String, Object> buildEmailPreviewPayload(Integer moOID, Double invoice, Integer clientGroup) throws IOException {
+        String subject = String.format("RMA #%d Confirmation", moOID);
+        String content = constructEmail(moOID, invoice, clientGroup);
+        return buildEmailPreviewPayload(moOID, invoice, clientGroup, subject, content);
+    }
+
+    /**
+     * 构建邮件预览返回体（已提供主题与正文时复用）。
+     */
+    private Map<String, Object> buildEmailPreviewPayload(Integer moOID,
+                                                         Double invoice,
+                                                         Integer clientGroup,
+                                                         String subject,
+                                                         String content) {
+        Map<String, Object> preview = new HashMap<>();
+        preview.put("emailTicketId", moOID);
+        preview.put("emailSubject", subject);
+        preview.put("emailContent", content);
+        preview.put("emailInvoice", invoice);
+        preview.put("emailClientGroup", clientGroup);
+        return preview;
+    }
     
     private String constructEmail(Integer moOID, Double invoice, Integer clientGroup) throws IOException {
         Map<String, Object> map = new HashMap<>();
@@ -857,7 +1216,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         
         MustacheFactory mf = new DefaultMustacheFactory();
         Mustache mustache = null;
-        if (clientGroup.equals(458) && invoice > 0d) {
+        if (Objects.equals(clientGroup, 458) && invoice > 0d) {
             //small client
             mustache = mf.compile("html/email/smallMktRmaEmail.mustache");
             
@@ -869,7 +1228,37 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         String emailBody = writer.toString();
         return emailBody;
     }
+
+    private Integer resolvePrepXrefDepartment(Integer orderDeptScvOid) {
+        if (orderDeptScvOid == null) {
+            throw new IllegalArgumentException("Order Dept is required.");
+        }
+
+        Integer department = ticketMapper.queryDepartmentByOrderDeptScvOid(orderDeptScvOid);
+        if (department == null) {
+            throw new IllegalArgumentException("Invalid Order Dept selection.");
+        }
+        return department;
+    }
     
+    @Override
+    public QueryResultDTO setTicketAckStatus(Long moOID, Integer acknowledged) {
+        if (!userHasAccess(String.valueOf(moOID))) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+        if (acknowledged == null || (acknowledged != 0 && acknowledged != 1 && acknowledged != 2)) {
+            return new QueryResultDTO(null, -1, "Invalid acknowledged value");
+        }
+        try {
+            ticketMapper.updateMasterTicketAckStatus(moOID, acknowledged);
+            ticketMapper.updatePrepMasterTicketAckStatus(moOID, acknowledged);
+            return new QueryResultDTO(null, 0, null);
+        } catch (Exception e) {
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    @Override
     public QueryResultDTO ackTicket(Long moOID) {
         CustomUserDetails user = AuthUtil.getUser();
         assert user != null;
@@ -877,26 +1266,12 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         if (user.isClientUser()) {
             return new QueryResultDTO(null, -1, "Don't have access to the ticket");
         }
-        try {
-            ticketMapper.ackMasterTicket(moOID);
-            ticketMapper.ackPrepMasterTicket(moOID);
-            return new QueryResultDTO(null, 0, null);
-        } catch (Exception e) {
-            return new QueryResultDTO(null, -1, e.getMessage());
-        }
+        return setTicketAckStatus(moOID, 2);
     }
     
+    @Override
     public QueryResultDTO unAckTicket(Long moOID) {
-        if (!userHasAccess(String.valueOf(moOID))) {
-            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
-        }
-        try {
-            ticketMapper.unAckMasterTicket(moOID);
-            ticketMapper.unAckPrepMasterTicket(moOID);
-            return new QueryResultDTO(null, 0, null);
-        } catch (Exception e) {
-            return new QueryResultDTO(null, -1, e.getMessage());
-        }
+        return setTicketAckStatus(moOID, 1);
     }
     
     @Override
@@ -1014,6 +1389,14 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if (key.getKsi() == null || key.getKsi().length() == 0) {
                     key.setKsi("N/A");
                 }
+
+                if (key.getKeyId() != null) {
+                    key.setKeyId(key.getKeyId().trim());
+                }
+
+                if (key.getKeyCategory() == null) {
+                    key.setKeyCategory("");
+                }
                 
                 Map<String, Object> mm = new LinkedHashMap<>();
                 Map<String, Object> keyMap = objectMapper.convertValue(key, Map.class);
@@ -1049,9 +1432,8 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
 
         List<MultipartFile> uploadFiles = files == null ? Collections.emptyList() : files;
-        boolean hasRemark = remark != null && remark.trim().length() > 0;
-        if (uploadFiles.isEmpty() && !hasRemark) {
-            return new QueryResultArrayDTO(null, 0, -1, "At least one attachment or remark is required.");
+        if (uploadFiles.isEmpty()) {
+            return new QueryResultArrayDTO(null, 0, -1, "At least one attachment is required.");
         }
 
         ArrayList<Map<String, Object>> resultArray = new ArrayList<>();
@@ -1070,7 +1452,10 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 fileStorage.setFileName(storedAttachment.getOriginalFileName());
                 fileStorage.setPath(storedAttachment.getObjectKey());
                 fileStorage.setSize(String.valueOf(storedAttachment.getFileSize()));
-                fileStorage.setType(storedAttachment.getContentType());
+                fileStorage.setType(resolveStorageFileType(
+                        storedAttachment.getOriginalFileName(),
+                        storedAttachment.getContentType()
+                ));
 
                 try {
                     rmaFileStorageMapper.insertRmaFileStorage(fileStorage);
@@ -1096,18 +1481,6 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 resultArray.add(fileMap);
 
                 writeAttachmentAudit("UPLOAD", ticketId, fileStorage.getMrfOID(), fileStorage.getFileName(), fileStorage.getPath());
-            }
-
-            if (hasRemark) {
-                CustomUserDetails user = AuthUtil.getUser();
-                TicketResponse ticketResponse = new TicketResponse();
-                ticketResponse.setMoOID(ticketId);
-                ticketResponse.setContent(remark.trim());
-                if (user != null) {
-                    ticketResponse.setResponseBy(String.valueOf(user.getUserId()));
-                }
-                ticketMapper.insertResponse(ticketResponse);
-                writeAttachmentAudit("REMARK", ticketId, null, "remark", "XREF_RESPONSE");
             }
 
             return new QueryResultArrayDTO(resultArray, resultArray.size(), 0, "");
@@ -1275,10 +1648,20 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         }
 
         String normalizedTicketId = ticketId == null ? "" : ticketId.trim();
-        if (!normalizedTicketId.isEmpty() && normalizedTicketId.matches("\\d+")) {
-            if (!userHasAccess(normalizedTicketId)) {
-                return new QueryResultDTO(null, -1, "Don't have access to the ticket");
-            }
+        if (normalizedTicketId.isEmpty()) {
+            return new QueryResultDTO(null, -1, "Ticket ID is required.");
+        }
+        if (!normalizedTicketId.matches("\\d+")) {
+            return new QueryResultDTO(null, -1, "Ticket ID must be numeric.");
+        }
+        if (!userHasAccess(normalizedTicketId)) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+
+        Integer moOid = Integer.valueOf(normalizedTicketId);
+        Integer uOid = user.getUserId();
+        if (uOid == null) {
+            return new QueryResultDTO(null, -1, "Unable to determine current user.");
         }
 
         String screenshotValidationError = validateContactRmaScreenshot(screenshot);
@@ -1309,6 +1692,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 customerEmail,
                 submitTimestamp
         );
+        String contactRmaEmail = environment.getProperty("contact-rma.mail.to", "RMAsupport@pax.us");
 
         try {
             String attachmentFileName = null;
@@ -1322,7 +1706,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
 
             boolean success = emailService.sendEmailWithAttachment(
-                    CONTACT_RMA_EMAIL,
+                    contactRmaEmail,
                     emailSubject,
                     emailBody,
                     attachmentFileName,
@@ -1332,13 +1716,15 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
             if (!success) {
                 writeContactRmaSubmissionAudit("FAIL", normalizedTicketId, customerName, submitTimestamp, normalizedSubject);
-                return new QueryResultDTO(null, -1, "Failed to send email to RMAsupport@pax.us");
+                return new QueryResultDTO(null, -1, "Failed to send email to " + contactRmaEmail);
             }
+            Integer emailMessageId = persistContactRmaEmailMessage(moOid, uOid, normalizedSubject, normalizedMessage);
 
             writeContactRmaSubmissionAudit("PASS", normalizedTicketId, customerName, submitTimestamp, normalizedSubject);
             Map<String, Object> result = new LinkedHashMap<>();
-            result.put("to", CONTACT_RMA_EMAIL);
-            result.put("ticketId", normalizedTicketId.isEmpty() ? null : normalizedTicketId);
+            result.put("to", contactRmaEmail);
+            result.put("ticketId", normalizedTicketId);
+            result.put("emailMessageId", emailMessageId);
             result.put("timestamp", submitTimestamp);
             result.put("user", customerName);
             return new QueryResultDTO(result, 0, "");
@@ -1453,6 +1839,26 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 .replace("'", "&#39;");
     }
 
+    /**
+     * 兼容不同邮件实现返回结构：
+     * 1. AWS SES 普通发送 -> response.messageId()
+     * 2. SMTP / SES Raw 发送 -> messageId
+     */
+    private String resolveEmailMessageId(SESResponse sesResponse) {
+        if (sesResponse == null) {
+            return null;
+        }
+        if (sesResponse.getMessageId() != null && !sesResponse.getMessageId().trim().isEmpty()) {
+            return sesResponse.getMessageId();
+        }
+        if (sesResponse.getResponse() != null
+                && sesResponse.getResponse().messageId() != null
+                && !sesResponse.getResponse().messageId().trim().isEmpty()) {
+            return sesResponse.getResponse().messageId();
+        }
+        return null;
+    }
+
     private String validateAttachmentFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             return "Attachment cannot be empty.";
@@ -1524,6 +1930,99 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 }
             }
         }
+    }
+
+    /**
+     * Contact RMA 邮件发送成功后，将提交信息写入 BASIL_SEC_PRD.EMAIL_MESSAGES。
+     */
+    private Integer persistContactRmaEmailMessage(Integer moOid, Integer uOid, String subject, String message) {
+        EmailMessage emailMessage = new EmailMessage()
+                .setMoOid(moOid)
+                .setUOid(uOid)
+                .setMessageSubject(subject)
+                .setMessageBody(message);
+        emailMessageMapper.insertEmailMessage(emailMessage);
+        return emailMessage.getEmOid();
+    }
+
+    private String normalizeRemark(String remark) {
+        if (remark == null) {
+            return null;
+        }
+        String trimmed = remark.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /**
+     * MASTER_RMA_FILE_STORAGE.TYPE 长度为 varchar(200)，
+     * 这里统一压缩为可安全入库的短类型值：
+     * 1) 优先文件后缀（如 PDF、XLSX）；
+     * 2) 无后缀时使用去参数的 MIME（如 text/plain）；
+     * 3) 最终兜底截断到 30 字符。
+     */
+    private String resolveStorageFileType(String fileName, String contentType) {
+        String ext = getFileExtension(fileName);
+        if (ext != null && !ext.isEmpty()) {
+            String type = ext.toUpperCase(Locale.ROOT);
+            return type.length() > MAX_ATTACHMENT_TYPE_LENGTH
+                    ? type.substring(0, MAX_ATTACHMENT_TYPE_LENGTH)
+                    : type;
+        }
+
+        String normalized = contentType == null ? "UNKNOWN" : contentType.trim();
+        int semicolonIdx = normalized.indexOf(';');
+        if (semicolonIdx > 0) {
+            normalized = normalized.substring(0, semicolonIdx).trim();
+        }
+        if (normalized.isEmpty()) {
+            normalized = "UNKNOWN";
+        }
+        return normalized.length() > MAX_ATTACHMENT_TYPE_LENGTH
+                ? normalized.substring(0, MAX_ATTACHMENT_TYPE_LENGTH)
+                : normalized;
+    }
+
+    /**
+     * 规范化密钥列表：
+     * 1. 仅在 encrypt = yes 时保留密钥；
+     * 2. 去重并保持顺序；
+     * 3. 兼容旧字段 testKeyType（当 keyIndexes 为空时回退）。
+     */
+    private List<Integer> normalizeTicketKeyIndexes(List<Integer> keyIndexes, String testKeyType, String encrypt) {
+        if (encrypt == null || !"yes".equalsIgnoreCase(encrypt.trim())) {
+            return Collections.emptyList();
+        }
+
+        LinkedHashSet<Integer> normalized = new LinkedHashSet<>();
+        if (keyIndexes != null) {
+            for (Integer keyIndex : keyIndexes) {
+                if (keyIndex != null && keyIndex > 0) {
+                    normalized.add(keyIndex);
+                }
+            }
+        }
+
+        if (normalized.isEmpty() && testKeyType != null && !testKeyType.trim().isEmpty()) {
+            try {
+                Integer fallback = Integer.valueOf(testKeyType.trim());
+                if (fallback > 0) {
+                    normalized.add(fallback);
+                }
+            } catch (NumberFormatException ignore) {
+                // Ignore invalid legacy testKeyType values.
+            }
+        }
+        return new ArrayList<>(normalized);
+    }
+
+    /**
+     * 取首个密钥写回 MASTER/PREP_MASTER_ORDER.TEST_KEY_TYPE。
+     */
+    private String resolvePrimaryKeyType(List<Integer> keyIndexes) {
+        if (keyIndexes == null || keyIndexes.isEmpty()) {
+            return null;
+        }
+        return String.valueOf(keyIndexes.get(0));
     }
     
     private Boolean userHasAccess(String id) {

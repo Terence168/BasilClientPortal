@@ -9,7 +9,7 @@
 | 数据库 | 表数量 | 字段数量 |
 |---|---:|---:|
 | BASIL_ODS_PRD | 129 | 1919 |
-| BASIL_SEC_PRD | 27 | 317 |
+| BASIL_SEC_PRD | 28 | 323 |
 
 ## 3. 表清单
 | 数据库 | 表名 | 字段数 |
@@ -145,6 +145,7 @@
 | BASIL_ODS_PRD | XREF_USER_ROLE | 3 |
 | BASIL_SEC_PRD | DEFAULT_SHIPPING | 2 |
 | BASIL_SEC_PRD | EMAIL_DISTRO | 1 |
+| BASIL_SEC_PRD | EMAIL_MESSAGES | 6 |
 | BASIL_SEC_PRD | FACT_INVOICE | 22 |
 | BASIL_SEC_PRD | LOGISTICS_TRANSACTION | 6 |
 | BASIL_SEC_PRD | MASTER_EOL | 6 |
@@ -2619,6 +2620,16 @@
 |---|---|---|---|---|
 | Email | varchar(45) | N | PRI |  |
 
+### BASIL_SEC_PRD.EMAIL_MESSAGES
+| 字段名 | 类型 | 可空 | 键 | 说明 |
+|---|---|---|---|---|
+| EM_OID | int | N | PRI | 自增主键 |
+| MO_OID | int | N | MUL | 工单号（MO_OID） |
+| U_OID | int | N | MUL | 提交消息的用户ID |
+| SENT_TIME | timestamp | N | MUL | 发送时间，默认当前时间 |
+| MESSAGE_SUBJECT | varchar(255) | Y |  | 消息主题 |
+| MESSAGE_BODY | text | Y |  | 消息正文 |
+
 ### BASIL_SEC_PRD.FACT_INVOICE
 | 字段名 | 类型 | 可空 | 键 | 说明 |
 |---|---|---|---|---|
@@ -2684,7 +2695,7 @@
 | MRF_OID | int | N | PRI |  |
 | PATH | varchar(255) | Y |  |  |
 | SIZE | varchar(10) | Y |  |  |
-| TYPE | varchar(30) | Y |  |  |
+| TYPE | varchar(200) | Y |  |  |
 
 ### BASIL_SEC_PRD.PREP_MASTER_ORDER
 | 字段名 | 类型 | 可空 | 键 | 说明 |

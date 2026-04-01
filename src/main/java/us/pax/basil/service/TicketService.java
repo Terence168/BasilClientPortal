@@ -41,7 +41,9 @@ public interface TicketService extends IService<Integer>{
                                      Integer type,
                                      String createdDate,
                                      String serialNumber,
-                                     String customerOrganization);
+                                     String customerOrganization,
+                                     Integer searchSubmitted,
+                                     Integer acknowledged);
 
     QueryResultArrayDTO ticketQueryViews(Integer currentPage,
                                     Integer sizePerPage,
@@ -69,10 +71,12 @@ public interface TicketService extends IService<Integer>{
     QueryResultDTO submitTicket(TicketInsertion ticketInsertion);
     CompletableFuture<QueryResultDTO> submitTicketFuture(TicketInsertion ticketInsertion);
     QueryResultDTO viewEditTicket(String id);
-    QueryResultDTO insertResponse(TicketResponse ticketResponse);
+    QueryResultDTO getTicketEmailPreview(String ticketId);
+    QueryResultDTO insertResponse(Long ticketId, TicketResponse ticketResponse);
     QueryResultArrayDTO getResponse(String id);
     QueryResultArrayDTO editTicket(String id, TicketEditDTO ticketEditDTO);
 
+    QueryResultDTO setTicketAckStatus(Long moOID, Integer acknowledged);
     QueryResultDTO ackTicket(Long moOID);
     QueryResultDTO unAckTicket(Long moOID);
     QueryResultDTO getTicketAckStatus(Long moOID);

@@ -26,12 +26,14 @@ public class TicketInsertionObject {
     private Date orderDate;
 
     private Integer orderType;
+    private Integer orderDept;
 
     private String rmaNumber;
     private Integer submitterID;
     private Integer xaOID;
     private String encrypt;
     private String testKeyType;
+    private String description;
     public void setOrderDateToCurrentDate() {
         this.orderDate = new Date();
     }

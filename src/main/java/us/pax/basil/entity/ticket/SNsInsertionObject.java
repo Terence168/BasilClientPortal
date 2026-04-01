@@ -20,6 +20,7 @@ public class SNsInsertionObject {
     private Integer moOID; //ticket id
     private Integer xmOID;
     private Integer msnOID; //this is the master serial number which used to link to serial number
+    private Integer department;
     private String customerRMA;
     private String customerTerminalID;
     private String customerReportedIssueExt;

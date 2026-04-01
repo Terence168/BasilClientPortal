@@ -32,6 +32,7 @@ import us.pax.basil.mapper.UserMapper;
 import us.pax.basil.property.FrontEndProperties;
 import us.pax.basil.service.PasswordService;
 import us.pax.basil.service.aws.ses.EmailService;
+import us.pax.basil.service.aws.ses.SESResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.crypto.Cipher;
@@ -40,6 +41,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.sql.Timestamp;
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -107,7 +109,13 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
             templateData.put("subject", subject);
 
             return emailService.sendTemplatedEmail(subject, "simpleMessage", templateData, email)
-                    .thenApply(sesResponse -> new SqlResultDTO( 0, "Password reset email sent successfully."))
+                    .thenApply(emailResponses -> {
+                        if (hasSuccessfulDelivery(emailResponses)) {
+                            return new SqlResultDTO(0, "Password reset email sent successfully.");
+                        }
+                        log.error("Password reset email delivery failed. recipient={}", email);
+                        return new SqlResultDTO(-1, "Failed to send password reset email.");
+                    })
                     .exceptionally(e -> {
                         log.error("Error sending email: " + e.getMessage(), e);
                         return new SqlResultDTO(-1, "Failed to send password reset email.");
@@ -191,7 +199,12 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
             templateData.put("subject", subject);
 
             return emailService.sendTemplatedEmail(subject, "simpleMessage", templateData, user.getEmail())
-                    .thenApply(sesResponse -> new SqlResultDTO(0, GENERIC_RECOVERY_MSG))
+                    .thenApply(emailResponses -> {
+                        if (!hasSuccessfulDelivery(emailResponses)) {
+                            log.error("Password recovery email delivery failed. recipient={}", user.getEmail());
+                        }
+                        return new SqlResultDTO(0, GENERIC_RECOVERY_MSG);
+                    })
                     .exceptionally(e -> {
                         log.error("Failed to send password recovery email: {}", e.getMessage(), e);
                         return new SqlResultDTO(0, GENERIC_RECOVERY_MSG);
@@ -364,6 +377,11 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
             templateData.put("subject", subject);
 
             emailService.sendTemplatedEmail(subject, "simpleMessage", templateData, user.getEmail())
+                    .thenAccept(emailResponses -> {
+                        if (!hasSuccessfulDelivery(emailResponses)) {
+                            log.error("Password changed notification email delivery failed. recipient={}", user.getEmail());
+                        }
+                    })
                     .exceptionally(e -> {
                         log.error("Failed to send password updated notification: {}", e.getMessage(), e);
                         return null;
@@ -371,5 +389,21 @@ public class PasswordServiceImpl extends ServiceImpl<PasswordMapper, Integer> im
         } catch (Exception e) {
             log.error("Failed to build password changed notification: {}", e.getMessage(), e);
         }
+    }
+
+    /**
+     * 鍒ゆ柇閭欢鍙戦€佹槸鍚﹀瓨鍦ㄨ嚦灏戜竴鏉℃垚鍔熺粨鏋溿€?     *
+     * @param responses 閭欢鍙戦€佺粨鏋滈泦鍚?     * @return true 琛ㄧず鑷冲皯涓€鏉″彂閫佹垚鍔燂紱false 琛ㄧず鍏ㄩ儴澶辫触鎴栨棤缁撴灉
+     */
+    private boolean hasSuccessfulDelivery(List<SESResponse> responses) {
+        if (responses == null || responses.isEmpty()) {
+            return false;
+        }
+        for (SESResponse response : responses) {
+            if (response != null && response.isSuccess()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
