@@ -22,14 +22,14 @@
           <div class="section-title">Ticket Information</div>
 
           <div class="row items-center field-row q-col-gutter-sm">
-            <div class="col-12 col-md-3 field-label">Order Dept</div>
+            <div class="col-12 col-md-3 field-label">Order Type</div>
             <div class="col-12 col-md-9">
             <q-select
               class="field-input-sm"
               label="Please select"
-              v-model="orderDept"
-              :options="orderDeptOpt"
-              @filter="populateOrderDeptOpt"
+              v-model="orderType"
+              :options="orderTypeOpt"
+              @filter="populateOrderTypeOpt"
               dense
               emit-value
               map-options
@@ -340,7 +340,7 @@
           <TicketEditTable
             ref="editTable"
             :isFromMaster="false"
-            :orderType="orderDept"
+            :orderType="orderType"
             :rows="getSerials"
             :containsXrefMaterials="false"
             :inputValue="inputValue"
@@ -419,17 +419,6 @@
             Submit
           </q-btn>
         </div>
-        <!-- Button for test email -->
-        <!-- <div class="row justify-center">
-          <q-btn
-            class="col-auto"
-            color="primary"
-            @click="testEmailSerivce"
-            style="min-width: 200px"
-          >
-            Test Email
-          </q-btn>
-        </div> -->
       </div>
     </div>
     <TicketEmailPreviewModal
@@ -506,7 +495,7 @@ const ATTACHMENT_ACCEPT = Array.from(ALL_ALLOWED_EXTENSIONS)
 const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
 const KEY_CATEGORY_TEST = "TEST";
 
-function normalizeOrderDeptLabel(label) {
+function normalizeOrderTypeLabel(label) {
   return String(label || "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
@@ -567,19 +556,8 @@ export default {
     isEncrypted() {
       return this.encrypt != null && this.encrypt === "yes";
     },
-    orderDept: {
-      get() {
-        return this.orderType;
-      },
-      set(value) {
-        this.orderType = value;
-      },
-    },
-    orderDeptOpt() {
-      return this.orderTypeOpt;
-    },
     isReRepair() {
-      return this.orderDept === 4;
+      return this.orderType === 4;
     },
     userName() {
       return user.username || "Guest";
@@ -590,17 +568,17 @@ export default {
     companyName() {
       return user.companyName || "";
     },
-    selectedOrderDeptLabel() {
-      if (!Array.isArray(this.orderDeptOpt) || this.orderDept == null) {
+    selectedOrderTypeLabel() {
+      if (!Array.isArray(this.orderTypeOpt) || this.orderType == null) {
         return "";
       }
-      const option = this.orderDeptOpt.find(
-        (item) => String(item.value) === String(this.orderDept)
+      const option = this.orderTypeOpt.find(
+        (item) => String(item.value) === String(this.orderType)
       );
       return option ? option.label : "";
     },
-    orderDeptRule() {
-      const normalized = normalizeOrderDeptLabel(this.selectedOrderDeptLabel);
+    orderTypeRule() {
+      const normalized = normalizeOrderTypeLabel(this.selectedOrderTypeLabel);
 
       if (
         normalized.includes("decommission") ||
@@ -650,16 +628,16 @@ export default {
       };
     },
     forceEncryptNo() {
-      return this.orderDeptRule.forceEncryptNo;
+      return this.orderTypeRule.forceEncryptNo;
     },
     requiresKeySelection() {
-      return this.orderDeptRule.requiresKeySelection;
+      return this.orderTypeRule.requiresKeySelection;
     },
     allowKeyCategoryChoice() {
-      return this.orderDeptRule.allowKeyCategoryChoice;
+      return this.orderTypeRule.allowKeyCategoryChoice;
     },
     fixedKeyCategory() {
-      return this.orderDeptRule.fixedKeyCategory;
+      return this.orderTypeRule.fixedKeyCategory;
     },
     availableKeyTypeOpt() {
       if (!Array.isArray(this.keyTypeOpt)) {
@@ -698,14 +676,14 @@ export default {
     },
   },
   watch: {
-    orderDept: {
+    orderType: {
       immediate: true,
       handler() {
-        this.applyOrderDeptRule();
+        this.applyOrderTypeRule();
       },
     },
     encrypt() {
-      this.applyOrderDeptRule();
+      this.applyOrderTypeRule();
     },
     keyType(newVal, oldVal) {
       if (newVal !== oldVal) {
@@ -714,13 +692,13 @@ export default {
       }
     },
   },
+  created() {},
   methods: {
     ...mapActions(useCreateTicketStore, [
       "addTrackingNum",
       "deleteTrackingNum",
       "resetTicket",
       "populateOrderTypeOpt",
-      "populateOrderTypeOptOnce",
       "populateKeyTypeOpt",
       "populateCustTypeOpt",
       "populateKcvksiOpt",
@@ -729,12 +707,6 @@ export default {
       "updateSerial",
       "removeSerial",
     ]),
-    populateOrderDeptOpt(...args) {
-      return this.populateOrderTypeOpt(...args);
-    },
-    populateOrderDeptOptOnce(...args) {
-      return this.populateOrderTypeOptOnce(...args);
-    },
     downloadBlankTemplate() {
       window.open("/blankFile.xlsx", "_self");
     },
@@ -813,7 +785,7 @@ export default {
 
       return { keyIndexes, errorMessage: null };
     },
-    applyOrderDeptRule() {
+    applyOrderTypeRule() {
       if (this.forceEncryptNo) {
         if (this.encrypt !== "no") {
           this.encrypt = "no";
@@ -1001,11 +973,11 @@ export default {
         return;
       }
 
-      //If user didn't choose order dept, don't allow user to submit the ticket
-      if (this.orderDept === null) {
+      //If user didn't choose order type, don't allow user to submit the ticket
+      if (this.orderType === null) {
         Notify.create({
           type: "negative",
-          message: "Please Select Order Dept before Submitting.",
+          message: "Please Select Order Type before Submitting.",
         });
         this.serialsSubmitting = false;
         return;
@@ -1061,7 +1033,7 @@ export default {
 
       const payload = {
         encrypt: this.forceEncryptNo ? "no" : this.encrypt,
-        orderType: this.orderDept,
+        orderType: this.orderType,
         testKeyType:
           this.isEncrypted && this.requiresKeySelection && selectedKeyIndexes.length > 0
             ? String(selectedKeyIndexes[0])
@@ -1145,9 +1117,6 @@ export default {
           });
         });
     },
-  },
-  created() {
-    this.populateOrderDeptOptOnce();
   },
 };
 </script>

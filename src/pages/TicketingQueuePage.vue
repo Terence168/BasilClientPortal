@@ -31,14 +31,14 @@
             :color="actionFilter === 1 ? 'primary' : 'grey-5'"
             :text-color="actionFilter === 1 ? 'white' : 'dark'"
             unelevated
-            label="W-CS"
+            label="RMA Action Required"
             @click="setActionFilter(1)"
           />
           <q-btn
             :color="actionFilter === 2 ? 'primary' : 'grey-5'"
             :text-color="actionFilter === 2 ? 'white' : 'dark'"
             unelevated
-            label="W-CL"
+            label="Customer Action Required"
             @click="setActionFilter(2)"
           />
         </div>
@@ -220,10 +220,10 @@ export default {
     },
     toActionLabel(acknowledged) {
       if (Number(acknowledged) === 1) {
-        return "W-CS";
+        return "RMA";
       }
       if (Number(acknowledged) === 2) {
-        return "W-CL";
+        return "Customer";
       }
       return "";
     },

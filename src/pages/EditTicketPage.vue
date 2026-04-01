@@ -322,17 +322,21 @@
         <input
           type="radio"
           v-model="ticketInfo.acknowledged"
-          value="0"
-          @update:model-value="unackComment()"
+          value="2"
           :disabled="!ackPermission"
-        />&nbsp;Yes&nbsp;&nbsp;
+        />&nbsp;Customer Action Required&nbsp;&nbsp;
         <input
           type="radio"
           v-model="ticketInfo.acknowledged"
-          value="2"
-          @update:model-value="ackComment()"
+          value="1"
           :disabled="!ackPermission"
-        />&nbsp;No&nbsp;
+        />&nbsp;RMA Action Required&nbsp;&nbsp;
+        <input
+          type="radio"
+          v-model="ticketInfo.acknowledged"
+          value="0"
+          :disabled="!ackPermission"
+        />&nbsp;No Action Required&nbsp;
       </div>
     </div>
     <MessageBoard
@@ -477,7 +481,6 @@ export default {
         Promise.all([
           this.getTicket(this.ticketId),
           this.fetchComments(this.ticketId),
-          this.fetchAckStatus(this.ticketId),
           this.fetchAttachments(this.ticketId),
           this.populateKeysOptOnce(),
           this.populateOrderDeptOptOnce(),
@@ -486,18 +489,16 @@ export default {
           .then((values) => {
             const ticketInfo = values[0];
             const comments = values[1];
-            const ack = values[2];
 
             if (ticketInfo != null) {
               this.ticketInfo = ticketInfo;
+              // Do not preselect acknowledged when opening the page.
+              this.ticketInfo.acknowledged = null;
               this.applyOrderDeptRule({ preserveSelection: true });
               this.initializeSelectedKeyIndexes();
             }
             if (comments != null) {
               this.comments = comments;
-            }
-            if (ack != null) {
-              this.ticketInfo.acknowledged = String(ack);
             }
             this.comments.forEach((c) => {
               //is the replyer == current user, mark it as green
@@ -1082,6 +1083,23 @@ export default {
     addComment(comment) {
       const user = useUserStore();
       const { username } = user;
+      const acknowledgedRaw = this.ticketInfo.acknowledged;
+      const isAcknowledgedSelected =
+        acknowledgedRaw === "0" ||
+        acknowledgedRaw === "1" ||
+        acknowledgedRaw === "2";
+      if (
+        this.ackPermission &&
+        !isAcknowledgedSelected
+      ) {
+        this.$refs.messageBoard.editor = comment.content;
+        Notify.create({
+          type: "negative",
+          message: "Please select Acknowledged before submitting comment.",
+        });
+        return;
+      }
+      const acknowledged = Number(acknowledgedRaw);
       //call backend api to update it
       const link = `/ticketing/${this.ticketId}/response`;
       api
@@ -1095,12 +1113,10 @@ export default {
           newComment.bgColor = "bg-green-3";
           this.comments.push(newComment);
           if (this.ackPermission) {
-            // customer service replied: waiting customer reply
-            this.ackComment();
-            this.ticketInfo.acknowledged = "2";
+            this.setAckStatus(acknowledged);
           } else {
             // customer replied: waiting customer service reply
-            this.unackComment();
+            this.setAckStatus(1);
             this.ticketInfo.acknowledged = "1";
           }
           this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
@@ -1113,31 +1129,18 @@ export default {
           });
         });
     },
-    ackComment() {
-      //can backend to ack the ticket
-      const link = `/ticketing/${this.ticketId}/acknowledged`;
-      const vm = this;
-      api
-        .put(link)
-        .then((response) => {
-          if (response.data.resultCode !== 0) {
-            throw new Error(response.data.errorMessage);
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-          Notify.create({
-            type: "negative",
-            message: error.message,
-          });
-        });
-    },
-    unackComment() {
-      //can backend to unack the ticket
-      const link = `/ticketing/${this.ticketId}/unacknowledged`;
-      const vm = this;
-      api
-        .put(link)
+    setAckStatus(acknowledged) {
+      const link = this.ackPermission
+        ? `/ticketing/${this.ticketId}/acknowledged`
+        : `/ticketing/${this.ticketId}/unacknowledged`;
+      const request = this.ackPermission
+        ? api.put(link, null, {
+            params: {
+              acknowledged,
+            },
+          })
+        : api.put(link);
+      return request
         .then((response) => {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
