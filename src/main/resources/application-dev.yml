@@ -72,11 +72,7 @@ server:
     key-store: server.keystore
     key-store-password: ${BASIL_DEV_SSL_KEY_STORE_PASSWORD}
     key-store-type: JKS
-    #trust-store: src/test/resources/trust.keystore
-    #trust-store-password: ${BASIL_DEV_SSL_TRUST_STORE_PASSWORD}
-    #trust-store-type: JKS
-    #trust-store-provider: SUN
-    #client-auth: need
+
 http_pool:
   max_total: 200
   default_max_per_route: 100
