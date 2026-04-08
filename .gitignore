@@ -35,4 +35,4 @@ target/*
 src/main/lib/*
 /basil-uat-cp-file-storage/*
 /service-logs/*
-src/main/resources/application-dev.yml
+src/main/resources/*

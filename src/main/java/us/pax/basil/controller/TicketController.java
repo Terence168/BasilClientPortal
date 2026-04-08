@@ -286,6 +286,12 @@ public class TicketController {
     public QueryResultDTO getTicketAckStatus(@PathVariable("ticketId") Long ticketId) {
         return ticketService.getTicketAckStatus(ticketId);
     }
+
+    @PreAuthorize("hasAuthority('ticketing.update')")
+    @PutMapping("/{ticketId}/close")
+    public QueryResultDTO closePrepTicket(@PathVariable("ticketId") Long ticketId) {
+        return ticketService.closePrepTicket(ticketId);
+    }
     
     @GetMapping("/dropdown/department")
     public QueryResultArrayDTO departmentDropDown() {

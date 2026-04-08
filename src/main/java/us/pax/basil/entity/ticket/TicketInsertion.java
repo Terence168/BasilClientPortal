@@ -12,6 +12,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain =  true)
 public class TicketInsertion {
+    private Integer mcOID;
+    private Integer orderDept;
+    // Backward compatibility for old clients that still submit "orderType".
     private Integer orderType;
     private List<SNsInsertionObject> serials;
     private List<String>  trackingNumbers;

@@ -144,6 +144,9 @@
         <if test="sortColumns != null and sortColumns != ''">
             ORDER BY ${sortColumns}
         </if>
+        <if test="sortColumns == null or sortColumns == ''">
+            ORDER BY pmo.MO_OID DESC
+        </if>
         LIMIT #{offset,jdbcType=INTEGER},#{count,jdbcType=INTEGER}
     </select>
 
@@ -527,8 +530,8 @@
         scav.VALUE as department
         FROM
         BASIL_SEC_PRD.SUPPORT_CLIENT_ATTRIBUTE_VALUES scav
-        WHERE
-        scav.SC_OID = 2
+        WHERE scav.SC_OID = 2
+        AND scav.VALUE <![CDATA[<>]]> 'LOGISTICS'
         ORDER BY
         scav.SORT_ORDER ASC
 
@@ -788,8 +791,13 @@
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
             useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, ORDER_DEPT, RMA_NUMBER, SUBMITTER_ID, XA_OID, TEST_KEY_TYPE, ZOHO_ENCRYPT, ACKNOWLEDGED, DESCRIPTION)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), 3, #{orderDept}, #{rmaNumber}, #{submitterID}, #{xaOID}, #{testKeyType}, #{encrypt}, 1, #{description})
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, ORDER_DEPT, RMA_NUMBER, SUBMITTER_ID, XA_OID, SHIPPING_ADDRESS, TEST_KEY_TYPE, ZOHO_ENCRYPT, ACKNOWLEDGED, DESCRIPTION)
+        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), 3, #{orderDept}, #{rmaNumber}, #{submitterID}, #{xaOID},
+                (SELECT CONCAT(ATTENTION_TO, CHAR(13), CHAR(10), SHIP_TO_COMPANY, CHAR(13), CHAR(10), ADDRESS, CHAR(13), CHAR(10), CITY, ' ', STATE, ' ', ZIP_CODE)
+                 FROM BASIL_SEC_PRD.XREF_ADDRESS
+                 WHERE XA_OID = #{xaOID}
+                 LIMIT 1),
+                #{testKeyType}, #{encrypt}, 1, #{description})
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="xmOID"
@@ -976,6 +984,12 @@
             </if>
             <if test="xaOID != null">
                 XA_OID = #{xaOID},
+                SHIPPING_ADDRESS = (
+                    SELECT CONCAT(ATTENTION_TO, CHAR(13), CHAR(10), SHIP_TO_COMPANY, CHAR(13), CHAR(10), ADDRESS, CHAR(13), CHAR(10), CITY, ' ', STATE, ' ', ZIP_CODE)
+                    FROM BASIL_SEC_PRD.XREF_ADDRESS
+                    WHERE XA_OID = #{xaOID}
+                    LIMIT 1
+                ),
             </if>
                 RMA_NUMBER = #{originalRMA},
                 TEST_KEY_TYPE = #{testKeyType}
@@ -1018,6 +1032,12 @@
                 mo_oid = #{moOID}
             </if>
         </where>
+    </update>
+
+    <update id="closePrepTicket">
+        UPDATE BASIL_SEC_PRD.PREP_MASTER_ORDER
+        SET ORDER_STATUS = 13
+        WHERE MO_OID = #{moOID}
     </update>
 
     <update id="updateMasterTicketAckStatus">

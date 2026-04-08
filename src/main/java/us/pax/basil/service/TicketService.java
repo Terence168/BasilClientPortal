@@ -80,6 +80,7 @@ public interface TicketService extends IService<Integer>{
     QueryResultDTO ackTicket(Long moOID);
     QueryResultDTO unAckTicket(Long moOID);
     QueryResultDTO getTicketAckStatus(Long moOID);
+    QueryResultDTO closePrepTicket(Long moOID);
 
     QueryResultArrayDTO queryCustomerOrg();
 

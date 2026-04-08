@@ -13,7 +13,7 @@
   
   <groupId>us.pax.basil</groupId>
   <artifactId>BasilClientPortal</artifactId>
-  <version>1.01.00-20260331</version>
+  <version>1.01.00-20260407</version>
   <packaging>jar</packaging>
 
   <properties>
@@ -285,5 +285,25 @@
       </plugin>
     </plugins>
   </build>
+
+  <!-- 启用 SMTP 连接集成测试时加 -Psmtp-connect-test，避免 PowerShell 把 -Drun.xxx 拆坏 -->
+  <profiles>
+    <profile>
+      <id>smtp-connect-test</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <run.smtp.connect.test>true</run.smtp.connect.test>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

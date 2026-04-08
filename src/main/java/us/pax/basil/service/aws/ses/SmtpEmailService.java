@@ -50,6 +50,26 @@ public class SmtpEmailService implements EmailService {
 
     private final boolean startTlsEnabled;
 
+    /**
+     * true：端口上直接 TLS（如 465/8465），与 STARTTLS 互斥。
+     */
+    private final boolean sslImplicit;
+
+    /**
+     * 信任的主机模式，传给 JavaMail 的 mail.smtp.ssl.trust（如 smtp 主机名或 *）；空则使用默认校验。
+     */
+    private final String sslTrust;
+
+    /**
+     * EHLO/HELO 中声明的主机名；空则使用 JVM 默认本机名（部分网络环境下默认名会导致对端断连）。
+     */
+    private final String ehloHostname;
+
+    /**
+     * SSL/TLS 协议列表，如 TLSv1.2；空则使用 JVM 默认。
+     */
+    private final String sslProtocols;
+
     public SmtpEmailService(Executor asyncExecutor,
                             EmailTemplateService templateService,
                             String smtpHost,
@@ -58,7 +78,11 @@ public class SmtpEmailService implements EmailService {
                             String smtpPassword,
                             String fromAddress,
                             boolean smtpAuth,
-                            boolean startTlsEnabled) {
+                            boolean startTlsEnabled,
+                            boolean sslImplicit,
+                            String sslTrust,
+                            String ehloHostname,
+                            String sslProtocols) {
         this.asyncExecutor = asyncExecutor;
         this.templateService = templateService;
         this.smtpHost = smtpHost;
@@ -68,6 +92,10 @@ public class SmtpEmailService implements EmailService {
         this.fromAddress = fromAddress;
         this.smtpAuth = smtpAuth;
         this.startTlsEnabled = startTlsEnabled;
+        this.sslImplicit = sslImplicit;
+        this.sslTrust = sslTrust;
+        this.ehloHostname = ehloHostname;
+        this.sslProtocols = sslProtocols;
     }
 
     @Override
@@ -187,21 +215,70 @@ public class SmtpEmailService implements EmailService {
     }
 
     /**
-     * 构建 SMTP 会话。
-     * 说明：
-     * 1. 当 smtpAuth=true 时使用用户名/密码鉴权。
-     * 2. startTlsEnabled 由配置控制，便于 dev 环境快速切换。
+     * 构建与当前实例一致的 JavaMail SMTP 属性（供会话创建与集成测试复用）。
      */
-    private Session buildMailSession() {
+    public static Properties buildSmtpJavaMailProperties(String smtpHost,
+                                                         int smtpPort,
+                                                         boolean smtpAuth,
+                                                         boolean startTlsEnabled,
+                                                         boolean sslImplicit,
+                                                         String sslTrust,
+                                                         String ehloHostname,
+                                                         String sslProtocols) {
         Properties properties = new Properties();
         properties.put("mail.transport.protocol", "smtp");
         properties.put("mail.smtp.host", smtpHost);
         properties.put("mail.smtp.port", String.valueOf(smtpPort));
         properties.put("mail.smtp.auth", String.valueOf(smtpAuth));
-        properties.put("mail.smtp.starttls.enable", String.valueOf(startTlsEnabled));
         properties.put("mail.smtp.connectiontimeout", "10000");
         properties.put("mail.smtp.timeout", "10000");
         properties.put("mail.smtp.writetimeout", "10000");
+
+        if (sslImplicit) {
+            properties.put("mail.smtp.ssl.enable", "true");
+            properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            properties.put("mail.smtp.socketFactory.port", String.valueOf(smtpPort));
+            properties.put("mail.smtp.socketFactory.fallback", "false");
+            properties.put("mail.smtp.starttls.enable", "false");
+        } else {
+            properties.put("mail.smtp.starttls.enable", String.valueOf(startTlsEnabled));
+        }
+
+        if (sslTrust != null && sslTrust.trim().length() > 0) {
+            properties.put("mail.smtp.ssl.trust", sslTrust.trim());
+        }
+        // 未设置时 JavaMail 会用 InetAddress.getLocalHost().getHostName()，在部分 Windows 上会得到无效名，
+        // 对端可能在 EHLO 后直接 RST；显式给出一个通用名避免该问题。
+        if (ehloHostname != null && ehloHostname.trim().length() > 0) {
+            properties.put("mail.smtp.localhost", ehloHostname.trim());
+        } else {
+            properties.put("mail.smtp.localhost", "localhost");
+        }
+        if (sslProtocols != null && sslProtocols.trim().length() > 0) {
+            properties.put("mail.smtp.ssl.protocols", sslProtocols.trim());
+        }
+
+        return properties;
+    }
+
+    /**
+     * 构建 SMTP 会话。
+     * 说明：
+     * 1. 当 smtpAuth=true 时使用用户名/密码鉴权。
+     * 2. sslImplicit=true 时使用隐式 SSL（常见 465），并关闭 STARTTLS。
+     * 3. sslImplicit=false 时由 startTlsEnabled 控制是否 STARTTLS（常见 587/2525）。
+     */
+    private Session buildMailSession() {
+        Properties properties = buildSmtpJavaMailProperties(
+                smtpHost,
+                smtpPort,
+                smtpAuth,
+                startTlsEnabled,
+                sslImplicit,
+                sslTrust,
+                ehloHostname,
+                sslProtocols
+        );
 
         if (!smtpAuth) {
             return Session.getInstance(properties);

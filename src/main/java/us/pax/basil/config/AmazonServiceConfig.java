@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -68,26 +69,54 @@ public class AmazonServiceConfig {
     @Value("${mail.smtp.starttls:true}")
     private boolean smtpStarttls;
 
+    @Value("${mail.smtp.ssl.enable:false}")
+    private boolean smtpSslEnable;
+
+    @Value("${mail.smtp.ssl.trust:}")
+    private String smtpSslTrust;
+
+    @Value("${mail.smtp.ssl.protocols:}")
+    private String smtpSslProtocols;
+
+    @Value("${mail.smtp.ehlo-hostname:}")
+    private String smtpEhloHostname;
+
     @Bean
     public AwsCredentialsProvider awsCredentialsProvider() {
         try {
-            if (!accessKeyId.isEmpty() && !secretKey.isEmpty() && !sessionToken.isEmpty() && localDevelopment) {
-                // Using temporary credentials
-                return StaticCredentialsProvider.create(AwsSessionCredentials.create(accessKeyId, secretKey, sessionToken));
-            } else {
-                // Using EC2 instance default credentials
-                return DefaultCredentialsProvider.create();
+            if (localDevelopment && hasValue(accessKeyId) && hasValue(secretKey)) {
+                if (hasValue(sessionToken)) {
+                    log.info("Using static AWS session credentials for local development.");
+                    return StaticCredentialsProvider.create(
+                            AwsSessionCredentials.create(accessKeyId, secretKey, sessionToken)
+                    );
+                }
+                log.info("Using static AWS basic credentials for local development.");
+                return StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKeyId, secretKey));
             }
+
+            // Using AWS default credentials chain (env/profile/instance role)
+            return DefaultCredentialsProvider.create();
         } catch (Exception e) {
             log.error("Failed to create AWS credentials provider. Fallback service may be used.", e);
             return null;
         }
     }
 
+    private boolean hasValue(String value) {
+        return value != null && !value.trim().isEmpty() && !"null".equalsIgnoreCase(value.trim());
+    }
+
     @Bean
     public EmailService emailService() {
         if (smtpEnabled) {
-            log.info("Email service initialized with SMTP provider (non-SES mode).");
+            log.info(
+                    "Email service initialized with SMTP provider (non-SES mode). host={}, port={}, sslImplicit={}, startTls={}.",
+                    smtpHost,
+                    smtpPort,
+                    smtpSslEnable,
+                    smtpStarttls
+            );
             return new SmtpEmailService(
                     awsExecutor,
                     emailTemplateService,
@@ -97,7 +126,11 @@ public class AmazonServiceConfig {
                     smtpPassword,
                     smtpFrom,
                     smtpAuth,
-                    smtpStarttls
+                    smtpStarttls,
+                    smtpSslEnable,
+                    smtpSslTrust,
+                    smtpEhloHostname,
+                    smtpSslProtocols
             );
         }
 

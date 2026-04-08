@@ -16,6 +16,9 @@ public class TicketEditDTO {
     private Address address;
     private Integer mcOID;
     private boolean isFromMaster;
+    // Preferred request field for ORDER_DEPT in Edit Ticket API.
+    private Integer orderDept;
+    // Backward compatibility for old clients.
     private Integer typeOfRepair;
     private String originalRMA;
     private String encrypt;

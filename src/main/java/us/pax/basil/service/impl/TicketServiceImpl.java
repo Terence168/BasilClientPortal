@@ -824,6 +824,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                     ticketEditDTO.getEncrypt()
             );
             String primaryTestKeyType = resolvePrimaryKeyType(selectedKeyIndexes);
+            Integer orderDeptScvOid = resolveSubmittedOrderDept(ticketEditDTO);
 
             //update tracking number part
             if (ticketEditDTO.isFromMaster()) {
@@ -832,13 +833,13 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updateMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, primaryTestKeyType);
+                ticketMapper.updateMasterOrder(orderDeptScvOid, ticketEditDTO.getOriginalRMA(), id, xaOID, primaryTestKeyType);
             } else {
                 Integer xaOID = null;
                 if (ticketEditDTO.getAddress() != null) {
                     xaOID = ticketEditDTO.getAddress().getXaOid();
                 }
-                ticketMapper.updatePrepMasterOrder(ticketEditDTO.getTypeOfRepair(), ticketEditDTO.getOriginalRMA(), id, xaOID, primaryTestKeyType);
+                ticketMapper.updatePrepMasterOrder(orderDeptScvOid, ticketEditDTO.getOriginalRMA(), id, xaOID, primaryTestKeyType);
             }
 
             Integer moOID = Integer.valueOf(id);
@@ -1005,9 +1006,10 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
     @Override
     public int insertTicketToPMO(TicketInsertionObject tio) { // PMO is prep_master_order
         CustomUserDetails user = AuthUtil.getUser();
-        Integer companyId = user.getCompanyId();
         tio.setSubmitterID(user.getUserId());
-        tio.setMcOID(companyId);
+        if (tio.getMcOID() == null) {
+            tio.setMcOID(user.getCompanyId());
+        }
         tio.setOrderStatus("12");
         tio.setOrderDateToCurrentDate();
         ticketMapper.insertPrep_Master_Order(tio);
@@ -1025,11 +1027,11 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
             String clientEmail = user.getEmailAddress();
             Integer clientId = user.getUserId();
-            Integer companyId = user.getCompanyId();
+            Integer companyId = resolveSubmittedCompanyId(ticketInsertion, user);
 
             List<SNsInsertionObject> insertedSerials = ticketInsertion.getSerials();
             List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
-            Integer orderDeptScvOid = ticketInsertion.getOrderType();
+            Integer orderDeptScvOid = resolveSubmittedOrderDept(ticketInsertion);
             Integer xrefDepartment = resolvePrepXrefDepartment(orderDeptScvOid);
             String originalRMA = ticketInsertion.getOriginalRMA();
             Integer xaOId = ticketInsertion.getXaOID();
@@ -1042,6 +1044,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             TicketInsertionObject tio = new TicketInsertionObject();
             tio.setOrderType(CREATE_TICKET_ORDER_TYPE);
             tio.setOrderDept(orderDeptScvOid);
+            tio.setMcOID(companyId);
             tio.setRmaNumber(originalRMA);
             tio.setSubmitterID(clientId);
             tio.setXaOID(xaOId);
@@ -1112,14 +1115,15 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
     @Override
     public QueryResultDTO submitTicket(TicketInsertion ticketInsertion) {
-        Integer submitterId = AuthUtil.getUser().getUserId();
-        String submitterEmail = AuthUtil.getUser().getEmailAddress();
-        Integer companyId = AuthUtil.getUser().getCompanyId();
+        CustomUserDetails user = AuthUtil.getUser();
+        Integer submitterId = user.getUserId();
+        String submitterEmail = user.getEmailAddress();
+        Integer companyId = resolveSubmittedCompanyId(ticketInsertion, user);
         
         List<SNsInsertionObject> sNsInsertionObjectList = ticketInsertion.getSerials();
         List<String> trackingNumbers = ticketInsertion.getTrackingNumbers();
         
-        Integer orderDeptScvOid = ticketInsertion.getOrderType();
+        Integer orderDeptScvOid = resolveSubmittedOrderDept(ticketInsertion);
         Integer xrefDepartment = resolvePrepXrefDepartment(orderDeptScvOid);
         String originalRMA = ticketInsertion.getOriginalRMA();
         Integer xaOId = ticketInsertion.getXaOID();
@@ -1133,6 +1137,7 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         tio.setOrderType(CREATE_TICKET_ORDER_TYPE);
         tio.setOrderDept(orderDeptScvOid);
+        tio.setMcOID(companyId);
         tio.setRmaNumber(originalRMA);
         tio.setSubmitterID(submitterId);
         tio.setXaOID(xaOId);
@@ -1239,6 +1244,72 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             throw new IllegalArgumentException("Invalid Order Dept selection.");
         }
         return department;
+    }
+
+    /**
+     * Unified accessor for submitted order department.
+     * Priority: orderDept -> orderType (legacy payload field).
+     */
+    private Integer resolveSubmittedOrderDept(TicketInsertion ticketInsertion) {
+        if (ticketInsertion == null) {
+            return null;
+        }
+        if (ticketInsertion.getOrderDept() != null) {
+            return ticketInsertion.getOrderDept();
+        }
+        return ticketInsertion.getOrderType();
+    }
+
+    /**
+     * Unified accessor for submitted customer organization.
+     * For client users, always use current session company.
+     * For internal users, prefer submitted mcOID from dropdown.
+     */
+    private Integer resolveSubmittedCompanyId(TicketInsertion ticketInsertion, CustomUserDetails user) {
+        if (user.isClientUser()) {
+            return user.getCompanyId();
+        }
+        if (ticketInsertion != null && ticketInsertion.getMcOID() != null) {
+            return ticketInsertion.getMcOID();
+        }
+        return user.getCompanyId();
+    }
+
+    /**
+     * Unified accessor for submitted order department in Edit Ticket.
+     * Priority: orderDept -> typeOfRepair (legacy payload field).
+     */
+    private Integer resolveSubmittedOrderDept(TicketEditDTO ticketEditDTO) {
+        if (ticketEditDTO == null) {
+            return null;
+        }
+        if (ticketEditDTO.getOrderDept() != null) {
+            return ticketEditDTO.getOrderDept();
+        }
+        return ticketEditDTO.getTypeOfRepair();
+    }
+
+    @Override
+    public QueryResultDTO closePrepTicket(Long moOID) {
+        if (moOID == null) {
+            return new QueryResultDTO(null, -1, "Ticket ID is required");
+        }
+        if (!userHasAccess(String.valueOf(moOID))) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+        try {
+            TicketInfo prepTicket = ticketMapper.existingPREPMasterOrder(String.valueOf(moOID));
+            if (prepTicket == null) {
+                return new QueryResultDTO(null, -1, "Ticket not found in PREP_MASTER_ORDER");
+            }
+            int affectedRows = ticketMapper.closePrepTicket(moOID);
+            if (affectedRows <= 0) {
+                return new QueryResultDTO(null, -1, "Failed to close ticket");
+            }
+            return new QueryResultDTO(null, 0, "Ticket closed successfully");
+        } catch (Exception e) {
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
     }
     
     @Override
@@ -1640,25 +1711,23 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
 
         String normalizedSubject = subject == null ? "" : subject.trim();
         String normalizedMessage = message == null ? "" : message.trim();
-        if (normalizedSubject.isEmpty()) {
-            return new QueryResultDTO(null, -1, "Subject is required.");
-        }
         if (normalizedMessage.isEmpty()) {
             return new QueryResultDTO(null, -1, "Message is required.");
         }
 
         String normalizedTicketId = ticketId == null ? "" : ticketId.trim();
+        Integer moOid = 0;
         if (normalizedTicketId.isEmpty()) {
-            return new QueryResultDTO(null, -1, "Ticket ID is required.");
+            normalizedTicketId = "0";
+        } else {
+            if (!normalizedTicketId.matches("\\d+")) {
+                return new QueryResultDTO(null, -1, "Ticket ID must be numeric.");
+            }
+            moOid = Integer.valueOf(normalizedTicketId);
+            if (moOid != 0 && !userHasAccess(normalizedTicketId)) {
+                return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+            }
         }
-        if (!normalizedTicketId.matches("\\d+")) {
-            return new QueryResultDTO(null, -1, "Ticket ID must be numeric.");
-        }
-        if (!userHasAccess(normalizedTicketId)) {
-            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
-        }
-
-        Integer moOid = Integer.valueOf(normalizedTicketId);
         Integer uOid = user.getUserId();
         if (uOid == null) {
             return new QueryResultDTO(null, -1, "Unable to determine current user.");
@@ -1679,6 +1748,9 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
             }
         } catch (Exception e) {
             log.warn("Contact RMA query company name failed, companyId={}", user.getCompanyId(), e);
+        }
+        if (normalizedSubject.isEmpty()) {
+            normalizedSubject = buildDefaultContactRmaSubject(customerOrganization, customerName);
         }
 
         String submitTimestamp = Instant.now().toString();
@@ -1787,6 +1859,16 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 + "<p><strong>Message:</strong></p>"
                 + "<p>" + safeMessage + "</p>"
                 + "</body></html>";
+    }
+
+    private String buildDefaultContactRmaSubject(String customerOrganization, String customerName) {
+        String orgPart = customerOrganization == null ? "" : customerOrganization.trim();
+        String userPart = customerName == null ? "" : customerName.trim();
+        String prefix = (orgPart + " " + userPart).trim();
+        if (prefix.isEmpty()) {
+            return "Contact RMA";
+        }
+        return prefix + " Contact RMA";
     }
 
     /**
