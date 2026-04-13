@@ -188,7 +188,7 @@ import { useCreateTicketStore } from "src/stores/createTicket";
 export default {
   props: [
     "isFromMaster",
-    "orderType",
+    "orderDept",
     "rows",
     "containsXrefMaterials",
     "inputValue",
@@ -332,7 +332,7 @@ export default {
     totalInvoice() {
       const serials = this.rows;
       let amt = 0;
-      if (this.orderType === 3) {
+      if (this.orderDept === 3) {
         //repair
         serials.forEach((s) => {
           if (s.valid === true && s.warrantyStatus === "Out Of Warranty") {
@@ -340,7 +340,7 @@ export default {
           }
         });
       }
-      if (this.orderType === 7) {
+      if (this.orderDept === 7) {
         //diagnostic
         serials.forEach((s) => {
           if (s.valid === true) {
@@ -349,7 +349,7 @@ export default {
         });
       }
       // if (
-      //   this.orderType === 65 &&
+      //   this.orderDept === 65 &&
       //   this.encrypt != null &&
       //   this.encrypt === "yes"
       // ) {
@@ -368,7 +368,7 @@ export default {
       serials.forEach((s) => {
         {
           //cosmetic
-          if (s.valid === true && s.cosmetic === true && this.orderType != 65) {
+          if (s.valid === true && s.cosmetic === true && this.orderDept != 65) {
             amt = amt + s.cosmeticPrice;
           }
         }

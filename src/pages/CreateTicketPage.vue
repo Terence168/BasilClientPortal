@@ -22,14 +22,14 @@
           <div class="section-title">Ticket Information</div>
 
           <div class="row items-center field-row q-col-gutter-sm">
-            <div class="col-12 col-md-3 field-label">Order Type</div>
+            <div class="col-12 col-md-3 field-label">Order Dept</div>
             <div class="col-12 col-md-9">
             <q-select
               class="field-input-sm"
               label="Please select"
-              v-model="orderType"
-              :options="orderTypeOpt"
-              @filter="populateOrderTypeOpt"
+              v-model="orderDept"
+              :options="orderDeptOpt"
+              @filter="populateOrderDeptOpt"
               dense
               emit-value
               map-options
@@ -340,7 +340,7 @@
           <TicketEditTable
             ref="editTable"
             :isFromMaster="false"
-            :orderType="orderType"
+            :orderDept="orderDept"
             :rows="getSerials"
             :containsXrefMaterials="false"
             :inputValue="inputValue"
@@ -495,7 +495,7 @@ const ATTACHMENT_ACCEPT = Array.from(ALL_ALLOWED_EXTENSIONS)
 const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
 const KEY_CATEGORY_TEST = "TEST";
 
-function normalizeOrderTypeLabel(label) {
+function normalizeOrderDeptLabel(label) {
   return String(label || "")
     .toLowerCase()
     .replace(/[^a-z]/g, "");
@@ -533,31 +533,31 @@ export default {
   },
 
   computed: {
-    ...mapWritableState(useCreateTicketStore, [
-      "orderType",
-      "keyType",
-      "trackingNums",
-      "inputValue",
-      "originalRMA",
-      "address",
-      "encrypt",
-      "custType",
-    ]),
-    ...mapState(useCreateTicketStore, [
-      "orderTypeOpt",
-      "keyTypeOpt",
-      "getSerials",
-      "getAllSerials",
-      "getTrackingNums",
-      "custTypeOpt",
-      "kcvksiOpt",
-    ]),
+    ...mapWritableState(useCreateTicketStore, {
+      orderDept: "orderDept",
+      keyType: "keyType",
+      trackingNums: "trackingNums",
+      inputValue: "inputValue",
+      originalRMA: "originalRMA",
+      address: "address",
+      encrypt: "encrypt",
+      custType: "custType",
+    }),
+    ...mapState(useCreateTicketStore, {
+      orderDeptOpt: "orderDeptOpt",
+      keyTypeOpt: "keyTypeOpt",
+      getSerials: "getSerials",
+      getAllSerials: "getAllSerials",
+      getTrackingNums: "getTrackingNums",
+      custTypeOpt: "custTypeOpt",
+      kcvksiOpt: "kcvksiOpt",
+    }),
     ...mapState(useUserStore, ["clientUser"]),
     isEncrypted() {
       return this.encrypt != null && this.encrypt === "yes";
     },
     isReRepair() {
-      return this.orderType === 4;
+      return this.orderDept === 4;
     },
     userName() {
       return user.username || "Guest";
@@ -568,17 +568,17 @@ export default {
     companyName() {
       return user.companyName || "";
     },
-    selectedOrderTypeLabel() {
-      if (!Array.isArray(this.orderTypeOpt) || this.orderType == null) {
+    selectedOrderDeptLabel() {
+      if (!Array.isArray(this.orderDeptOpt) || this.orderDept == null) {
         return "";
       }
-      const option = this.orderTypeOpt.find(
-        (item) => String(item.value) === String(this.orderType)
+      const option = this.orderDeptOpt.find(
+        (item) => String(item.value) === String(this.orderDept)
       );
       return option ? option.label : "";
     },
-    orderTypeRule() {
-      const normalized = normalizeOrderTypeLabel(this.selectedOrderTypeLabel);
+    orderDeptRule() {
+      const normalized = normalizeOrderDeptLabel(this.selectedOrderDeptLabel);
 
       if (
         normalized.includes("decommission") ||
@@ -628,16 +628,16 @@ export default {
       };
     },
     forceEncryptNo() {
-      return this.orderTypeRule.forceEncryptNo;
+      return this.orderDeptRule.forceEncryptNo;
     },
     requiresKeySelection() {
-      return this.orderTypeRule.requiresKeySelection;
+      return this.orderDeptRule.requiresKeySelection;
     },
     allowKeyCategoryChoice() {
-      return this.orderTypeRule.allowKeyCategoryChoice;
+      return this.orderDeptRule.allowKeyCategoryChoice;
     },
     fixedKeyCategory() {
-      return this.orderTypeRule.fixedKeyCategory;
+      return this.orderDeptRule.fixedKeyCategory;
     },
     availableKeyTypeOpt() {
       if (!Array.isArray(this.keyTypeOpt)) {
@@ -676,14 +676,14 @@ export default {
     },
   },
   watch: {
-    orderType: {
+    orderDept: {
       immediate: true,
       handler() {
-        this.applyOrderTypeRule();
+        this.applyOrderDeptRule();
       },
     },
     encrypt() {
-      this.applyOrderTypeRule();
+      this.applyOrderDeptRule();
     },
     keyType(newVal, oldVal) {
       if (newVal !== oldVal) {
@@ -692,21 +692,24 @@ export default {
       }
     },
   },
-  created() {},
+  created() {
+    this.initializeCreateTicketPage();
+  },
   methods: {
-    ...mapActions(useCreateTicketStore, [
-      "addTrackingNum",
-      "deleteTrackingNum",
-      "resetTicket",
-      "populateOrderTypeOpt",
-      "populateKeyTypeOpt",
-      "populateCustTypeOpt",
-      "populateKcvksiOpt",
-      "addSerial",
-      "addSerialList",
-      "updateSerial",
-      "removeSerial",
-    ]),
+    ...mapActions(useCreateTicketStore, {
+      addTrackingNum: "addTrackingNum",
+      deleteTrackingNum: "deleteTrackingNum",
+      resetTicket: "resetTicket",
+      populateOrderDeptOpt: "populateOrderDeptOpt",
+      populateOrderDeptOptOnce: "populateOrderDeptOptOnce",
+      populateKeyTypeOpt: "populateKeyTypeOpt",
+      populateCustTypeOpt: "populateCustTypeOpt",
+      populateKcvksiOpt: "populateKcvksiOpt",
+      addSerial: "addSerial",
+      addSerialList: "addSerialList",
+      updateSerial: "updateSerial",
+      removeSerial: "removeSerial",
+    }),
     downloadBlankTemplate() {
       window.open("/blankFile.xlsx", "_self");
     },
@@ -785,7 +788,7 @@ export default {
 
       return { keyIndexes, errorMessage: null };
     },
-    applyOrderTypeRule() {
+    applyOrderDeptRule() {
       if (this.forceEncryptNo) {
         if (this.encrypt !== "no") {
           this.encrypt = "no";
@@ -875,6 +878,10 @@ export default {
           });
         });
       }
+    },
+    initializeCreateTicketPage() {
+      this.handleResetTicket();
+      this.populateOrderDeptOptOnce();
     },
     handleResetTicket() {
       this.resetTicket();
@@ -973,11 +980,19 @@ export default {
         return;
       }
 
-      //If user didn't choose order type, don't allow user to submit the ticket
-      if (this.orderType === null) {
+      //If user didn't choose order dept, don't allow user to submit the ticket
+      if (this.orderDept === null) {
         Notify.create({
           type: "negative",
-          message: "Please Select Order Type before Submitting.",
+          message: "Please Select Order Dept before Submitting.",
+        });
+        this.serialsSubmitting = false;
+        return;
+      }
+      if (!this.clientUser && (this.custType === null || this.custType === "")) {
+        Notify.create({
+          type: "negative",
+          message: "Please Select Customer Organization before Submitting.",
         });
         this.serialsSubmitting = false;
         return;
@@ -1033,7 +1048,7 @@ export default {
 
       const payload = {
         encrypt: this.forceEncryptNo ? "no" : this.encrypt,
-        orderType: this.orderType,
+        orderDept: this.orderDept,
         testKeyType:
           this.isEncrypted && this.requiresKeySelection && selectedKeyIndexes.length > 0
             ? String(selectedKeyIndexes[0])
@@ -1045,6 +1060,7 @@ export default {
         originalRMA: this.originalRMA,
         serials: sNsInsertionObjects,
         xaOID: this.address.xaOid,
+        mcOID: this.clientUser ? user.companyId : this.custType,
       };
 
       const vm = this;

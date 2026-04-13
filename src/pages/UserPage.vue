@@ -135,6 +135,7 @@
           label="Client User?"
           :true-value="1"
           :false-value="0"
+          :disable="isClientUser"
         />
 
         <q-select
@@ -142,13 +143,13 @@
           name="customerId"
           class="q-mb-sm"
           outlined
-          use-input
+          :use-input="!isClientUser"
           v-model="modalFormData.customerName"
           :options="customers"
           label="Customer"
-          hint="Minimum 3 characters to trigger filtering"
+          :hint="isClientUser ? '' : 'Minimum 3 characters to trigger filtering'"
           @filter="filterCustomerFn"
-          :readonly="modalFormOptions.action === 'View'"
+          :readonly="modalFormOptions.action === 'View' || isClientUser"
           dense
         >
           <template v-slot:no-option>
@@ -302,10 +303,25 @@ export default {
       return Math.ceil(this.total / perPage);
     },
 
+    isClientUser() {
+      return user.isClientUser;
+    },
+
     filteredRoles() {
-      return this.allRoles
-        ? this.allRoles.filter((roleType) => roleType.roles.length > 0)
-        : [];
+      if (!this.allRoles) return [];
+      let roles = this.allRoles.filter((roleType) => roleType.roles.length > 0);
+      if (this.isClientUser) {
+        // 客户管理员：始终只显示 Client 角色组
+        roles = roles.filter((roleType) => roleType.roleTypeName === 'Client');
+      } else {
+        // Pax Employee：根据 "Client User?" 勾选状态决定显示哪个角色组
+        if (this.modalFormData.standardUser === 1) {
+          roles = roles.filter((roleType) => roleType.roleTypeName === 'Client');
+        } else {
+          roles = roles.filter((roleType) => roleType.roleTypeName !== 'Client');
+        }
+      }
+      return roles;
     },
   },
 
@@ -317,6 +333,13 @@ export default {
     $route(newRoute, oldRoute) {
       if (newRoute.path === oldRoute.path) {
         this.queryData();
+      }
+    },
+
+    // 切换 Client User 状态时，清空已选角色，避免勾选了不可见分组的角色
+    'modalFormData.standardUser'() {
+      if (this.modalFormOptions.action === 'Add') {
+        this.rolesSelected = [];
       }
     },
   },
@@ -392,22 +415,60 @@ export default {
         payload.companyId = this.modalFormData.customerName.value;
       }
 
+      this.modalFormOptions.submitting = true;
+
       this.$api.post(actionURL, payload).then(function (response) {
         const c = response.data.resultCode;
-        if (c && c < -1) {
+        const apiMsg = response.data.errorMessage || "";
+
+        if (c != null && c < 0) {
+          if (vm.modalFormOptions.action === "Add" && c === -1) {
+            if (user.email === payload.email) {
+              user.getUserDetails();
+            }
+            Notify.create({
+              type: "warning",
+              message:
+                apiMsg ||
+                "User added, but the welcome email could not be sent.",
+            });
+            vm.showModal = false;
+            vm.queryData();
+            return;
+          }
           Notify.create({
             type: "negative",
-            message: response.data.errorMessage,
+            message: apiMsg || "Operation failed",
           });
-        } else {
-          // self-update
-          if (user.email === payload.email) {
-            user.getUserDetails();
-          }
-
-          vm.showModal = false;
-          vm.queryData();
+          return;
         }
+
+        if (user.email === payload.email) {
+          user.getUserDetails();
+        }
+
+        const successText =
+          apiMsg.trim().length > 0
+            ? apiMsg
+            : vm.modalFormOptions.action === "Add"
+              ? "User added successfully."
+              : "User updated successfully.";
+        Notify.create({
+          type: "positive",
+          message: successText,
+        });
+
+        vm.showModal = false;
+        vm.queryData();
+      }).catch(function (error) {
+        Notify.create({
+          type: "negative",
+          message: error.response && error.response.data && error.response.data.errorMessage
+            ? error.response.data.errorMessage
+            : (error.message || "Failed to submit"),
+        });
+      }).finally(function () {
+        vm.modalFormOptions.submitting = false;
       });
     },
 
@@ -422,6 +483,14 @@ export default {
       this.modalFormData.standardUser = 1;
 
       this.rolesSelected = [];
+
+      // 客户管理员：Customer 固定为当前用户的公司
+      if (user.isClientUser) {
+        this.modalFormData.customerName = {
+          value: user.companyId,
+          label: user.companyName,
+        };
+      }
 
       this.showModal = true;
 
@@ -441,8 +510,11 @@ export default {
           vm.allRoles = response.data.data || [];
         })
         .catch(function (error) {
-          // handle error
           console.log(error);
+          Notify.create({
+            type: "negative",
+            message: "Failed to load roles",
+          });
         });
     },
 

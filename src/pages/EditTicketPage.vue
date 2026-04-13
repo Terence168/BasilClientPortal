@@ -17,7 +17,29 @@
     <div class="q-mt-lg generic-container edit-ticket-surface">
       <div class="q-px-lg q-pt-md q-mb-md q-pb-lg text-body1 edit-ticket-body">
         <div class="row q-mb-md text-weight-medium edit-ticket-status-bar">
-          <div class="col">Ticket Status: Open</div>
+          <div class="col">Ticket Status: {{ ticketStatusLabel }}</div>
+          <div class="col-auto q-mr-sm">
+            <q-btn
+              v-if="!isTicketClosed"
+              class="close-ticket-btn"
+              color="negative"
+              :disable="closingTicket || ticketInfo.isFromMaster || !canDeleteAttachment"
+              :loading="closingTicket"
+              @click="confirmCloseTicket"
+            >
+              CLOSE TICKET
+            </q-btn>
+            <q-btn
+              v-else
+              class="reopen-ticket-btn"
+              color="positive"
+              :disable="reopeningTicket || ticketInfo.isFromMaster || !canDeleteAttachment"
+              :loading="reopeningTicket"
+              @click="confirmReopenTicket"
+            >
+              REOPEN
+            </q-btn>
+          </div>
           <div class="col-auto" @click="resetTicket">
             <q-btn color="red">Refresh Data</q-btn>
           </div>
@@ -27,12 +49,11 @@
           <div class="col-auto q-mr-sm">Order Dept:&nbsp;</div>
           <div class="col-auto">
             <q-select
-              ref="orderTypeSelect"
+              ref="orderDeptSelect"
               class="field-input-md"
               label="Please select"
               v-model="orderDept"
               :options="orderDeptOpt"
-              :disable="true"
               @filter="populateOrderDeptOpt"
               dense
               emit-value
@@ -104,7 +125,6 @@
             type="radio"
             v-model="ticketInfo.encrypt"
             value="no"
-            disabled
           />&nbsp;No&nbsp;
         </div>
         <div class="row items-center q-mt-sm ticket-info-row" v-show="showKeyCategorySelection">
@@ -219,7 +239,7 @@
           ref="editTable"
           :isFromMaster="ticketInfo.isFromMaster"
           :containsXrefMaterials="ticketInfo.containsXrefMaterials"
-          :orderType="orderDept"
+          :orderDept="orderDept"
           :rows="getSerialsByTicketId(ticketId)"
           :inputValue="inputValue"
           :encrypt="ticketInfo.encrypt"
@@ -230,30 +250,9 @@
           @update-sn="handleUpdateSN"
           @remove-sn="handleRemoveSN"
         />
-        <!-- Button for submit ticket -->
-        <div class="row justify-center q-mt-md">
-          <q-btn
-            class="col-auto submit-ticket-btn"
-            color="primary"
-            @click="handleEditTicket"
-            :loading="ticketEditing"
-          >
-            Submit Ticket
-          </q-btn>
-        </div>
 
         <div class="q-mt-lg attachment-section">
-          <div class="row items-center justify-between q-mb-sm">
-            <div class="text-subtitle1 text-weight-bold">Attachments</div>
-            <q-btn
-              flat
-              color="primary"
-              icon="refresh"
-              label="Refresh"
-              :loading="attachmentsLoading"
-              @click="fetchAttachments(ticketId)"
-            />
-          </div>
+          <div class="text-subtitle1 text-weight-bold q-mb-sm">Attachments</div>
 
           <div v-if="attachmentsLoading" class="text-grey-7 q-py-md">
             Loading attachments...
@@ -303,10 +302,72 @@
           </q-list>
 
           <div class="q-mt-md">
-            <div class="text-subtitle2 text-weight-medium q-mb-xs">Remark</div>
-            <q-banner dense rounded class="bg-grey-1 text-grey-9">
-              {{ ticketInfo.description || "No remark" }}
+            <div class="text-subtitle2 text-weight-medium q-mb-sm">Upload New Attachments</div>
+            <div class="text-caption text-grey-7 q-mb-xs">
+              New files are added when you click Update Ticket. Remove existing files with Delete if needed.
+            </div>
+            <q-file
+              v-model="newAttachments"
+              outlined
+              dense
+              clearable
+              multiple
+              use-chips
+              counter
+              label="Select files to upload"
+              :accept="attachmentAccept"
+              @update:model-value="onNewAttachmentChange"
+            >
+              <template v-slot:prepend>
+                <q-icon name="attach_file" />
+              </template>
+              <template v-slot:hint>
+                Supported: PDF, DOC/DOCX, XLS/XLSX, CSV, TXT, JPG/JPEG, PNG, GIF,
+                MP4, MOV, AVI
+              </template>
+            </q-file>
+            <div class="text-caption text-grey-7 q-mt-xs">
+              Size limit: 10 MB for documents/images, 500 MB for videos.
+            </div>
+            <q-banner
+              v-if="attachmentErrors.length > 0"
+              dense
+              rounded
+              class="bg-red-1 text-negative q-mt-sm"
+            >
+              <div
+                v-for="(error, index) in attachmentErrors"
+                :key="`attachment-error-${index}`"
+              >
+                {{ error }}
+              </div>
             </q-banner>
+          </div>
+
+          <div class="q-mt-md">
+            <div class="text-subtitle2 text-weight-medium q-mb-xs">Remark</div>
+            <q-input
+              v-model="ticketInfo.description"
+              type="textarea"
+              autogrow
+              outlined
+              dense
+              maxlength="1000"
+              counter
+              label="Remark"
+              placeholder="Please enter remarks (optional)"
+            />
+          </div>
+
+          <div class="row justify-center q-mt-md">
+            <q-btn
+              class="col-auto submit-ticket-btn"
+              color="primary"
+              @click="handleEditTicket"
+              :loading="ticketEditing"
+            >
+              Update Ticket
+            </q-btn>
           </div>
         </div>
       </div>
@@ -381,6 +442,24 @@ import { batchSerialNumberQuery } from "src/utils/ticketUtils";
 
 const KEY_CATEGORY_PRODUCTION = "PRODUCTION";
 const KEY_CATEGORY_TEST = "TEST";
+/** PREP_MASTER_ORDER.ORDER_STATUS：开放 */
+const TICKET_STATUS_OPEN = "12";
+/** PREP_MASTER_ORDER.ORDER_STATUS：已关闭 */
+const TICKET_STATUS_CLOSED = "13";
+
+const DOC_EXTENSIONS = new Set(["pdf", "doc", "docx", "xls", "xlsx", "csv", "txt"]);
+const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif"]);
+const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "avi"]);
+const ALL_ALLOWED_EXTENSIONS = new Set([
+  ...DOC_EXTENSIONS,
+  ...IMAGE_EXTENSIONS,
+  ...VIDEO_EXTENSIONS,
+]);
+const MAX_DOC_IMAGE_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_VIDEO_FILE_SIZE = 500 * 1024 * 1024;
+const ATTACHMENT_ACCEPT = Array.from(ALL_ALLOWED_EXTENSIONS)
+  .map((ext) => `.${ext}`)
+  .join(",");
 
 function normalizeOrderDeptLabel(label) {
   return String(label || "")
@@ -443,6 +522,8 @@ export default {
       },
       isLoading: false,
       ticketEditing: false,
+      closingTicket: false,
+      reopeningTicket: false,
 
       file: null,
       fileUploading: false,
@@ -467,6 +548,10 @@ export default {
         subject: "",
         content: "",
       },
+
+      newAttachments: [],
+      attachmentErrors: [],
+      attachmentAccept: ATTACHMENT_ACCEPT,
     };
   },
   created() {
@@ -519,14 +604,11 @@ export default {
       // already being observed
       { immediate: true }
     );
-    // this.populateKeysOptOnce();
-    // this.populateOrderTypeOptOnce();
-    // this.populateKeyTypeOptOnce();
   },
   mounted() {},
   computed: {
     ...mapState(useUserStore, ["email", "loggedIn", "sessionTimeLeft"]),
-    ...mapState(useCreateTicketStore, ["orderTypeOpt"]),
+    ...mapState(useCreateTicketStore, ["orderDeptOpt"]),
     ...mapWritableState(useEditTicketStore, [
       "getTrackingNumsByTicketId",
       "getSerialsByTicketId",
@@ -545,9 +627,6 @@ export default {
         this.ticketInfo.typeOfRepair = value;
       },
     },
-    orderDeptOpt() {
-      return this.orderTypeOpt;
-    },
     isReRepair() {
       return this.orderDept === 4;
     },
@@ -565,6 +644,15 @@ export default {
     },
     canDeleteAttachment() {
       return useUserStore().checkPermission("ticketing.update");
+    },
+    isTicketClosed() {
+      return String(this.ticketInfo.orderStatus) === TICKET_STATUS_CLOSED;
+    },
+    ticketStatusLabel() {
+      const s = String(this.ticketInfo.orderStatus);
+      if (s === TICKET_STATUS_CLOSED) return "Closed";
+      if (s === TICKET_STATUS_OPEN) return "Open";
+      return "Open";
     },
     selectedOrderDeptLabel() {
       if (!Array.isArray(this.orderDeptOpt) || this.orderDept == null) {
@@ -674,6 +762,16 @@ export default {
     },
   },
   watch: {
+    orderDept(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.applyOrderDeptRule();
+      }
+    },
+    "ticketInfo.encrypt"(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.applyOrderDeptRule();
+      }
+    },
     keyType(newVal, oldVal) {
       if (newVal !== oldVal) {
         this.populateKcvksiOpt();
@@ -684,8 +782,8 @@ export default {
   methods: {
     ...mapActions(useUserStore, ["logout"]),
     ...mapActions(useCreateTicketStore, [
-      "populateOrderTypeOpt",
-      "populateOrderTypeOptOnce",
+      "populateOrderDeptOpt",
+      "populateOrderDeptOptOnce",
     ]),
     ...mapActions(useEditTicketStore, [
       "fetchTicket",
@@ -701,12 +799,6 @@ export default {
       "removeSN",
       "updateAddress",
     ]),
-    populateOrderDeptOpt(...args) {
-      return this.populateOrderTypeOpt(...args);
-    },
-    populateOrderDeptOptOnce(...args) {
-      return this.populateOrderTypeOptOnce(...args);
-    },
     resetKeyRows() {
       this.selectedKeyIndexes = [null];
     },
@@ -866,17 +958,40 @@ export default {
         return;
       }
 
+      if (this.attachmentErrors.length > 0) {
+        Notify.create({
+          type: "negative",
+          message: "Please fix attachment errors before submitting.",
+        });
+        this.ticketEditing = false;
+        return;
+      }
+
+      const pendingFiles = Array.isArray(this.newAttachments)
+        ? this.newAttachments
+        : this.newAttachments
+          ? [this.newAttachments]
+          : [];
+      for (const file of pendingFiles) {
+        const attachErr = this.validateAttachment(file);
+        if (attachErr) {
+          Notify.create({ type: "negative", message: attachErr });
+          this.ticketEditing = false;
+          return;
+        }
+      }
+
       const payload = {
         ...editTracking,
         ...editSerial,
         isFromMaster: this.ticketInfo.isFromMaster,
-        orderType: this.orderDept,
+        orderDept: this.orderDept,
         address: this.ticketInfo.address,
-        typeOfRepair: this.orderDept,
         originalRMA: this.ticketInfo.originalRMA,
         clientGroup: this.clientGroup,
         mcOID: this.ticketInfo.mcOID,
         encrypt: this.ticketInfo.encrypt,
+        description: this.ticketInfo.description,
         testKeyType:
           this.isEncrypted && this.requiresKeySelection && selectedKeyIndexes.length > 0
             ? String(selectedKeyIndexes[0])
@@ -884,10 +999,11 @@ export default {
         keyIndexes:
           this.isEncrypted && this.requiresKeySelection ? selectedKeyIndexes : [],
       };
-      if (payload.orderType === 3 || payload.orderType === 7) {
+      if (payload.orderDept === 3 || payload.orderDept === 7) {
         payload.originalRMA = null;
       }
       const actionURL = "/ticketing/" + this.ticketId;
+      const vm = this;
 
       api
         .put(actionURL, payload, {
@@ -895,9 +1011,20 @@ export default {
             "Content-Type": "application/json",
           },
         })
-        .then(function (response) {
+        .then(async (response) => {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);
+          }
+          try {
+            await vm.syncPendingAttachmentsAfterUpdate();
+          } catch (attachErr) {
+            Notify.create({
+              type: "warning",
+              message:
+                attachErr.message ||
+                "Ticket updated, but attachment upload failed.",
+            });
+            return;
           }
           Notify.create({
             type: "positive",
@@ -911,8 +1038,82 @@ export default {
           });
         })
         .finally(() => {
-          this.resetTicket();
-          this.ticketEditing = false;
+          vm.resetTicket();
+          vm.ticketEditing = false;
+        });
+    },
+    confirmCloseTicket() {
+      this.$q
+        .dialog({
+          title: "Close Ticket",
+          message: "Are you sure you want to close this ticket?",
+          cancel: true,
+          persistent: true,
+        })
+        .onOk(() => {
+          this.closeTicket();
+        });
+    },
+    confirmReopenTicket() {
+      this.$q
+        .dialog({
+          title: "Reopen Ticket",
+          message: "Are you sure you want to reopen this ticket?",
+          cancel: true,
+          persistent: true,
+        })
+        .onOk(() => {
+          this.reopenTicket();
+        });
+    },
+    closeTicket() {
+      this.closingTicket = true;
+      const link = `/ticketing/${this.ticketId}/close`;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to close ticket.");
+          }
+          this.ticketInfo.orderStatus = TICKET_STATUS_CLOSED;
+          Notify.create({
+            type: "positive",
+            message: "Ticket closed successfully.",
+          });
+        })
+        .catch((error) => {
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        })
+        .finally(() => {
+          this.closingTicket = false;
+        });
+    },
+    reopenTicket() {
+      this.reopeningTicket = true;
+      const link = `/ticketing/${this.ticketId}/reopen`;
+      api
+        .put(link)
+        .then((response) => {
+          if (response.data.resultCode !== 0) {
+            throw new Error(response.data.errorMessage || "Failed to reopen ticket.");
+          }
+          this.ticketInfo.orderStatus = TICKET_STATUS_OPEN;
+          Notify.create({
+            type: "positive",
+            message: "Ticket reopened successfully.",
+          });
+        })
+        .catch((error) => {
+          Notify.create({
+            type: "negative",
+            message: error.message,
+          });
+        })
+        .finally(() => {
+          this.reopeningTicket = false;
         });
     },
     resetTicket() {
@@ -1083,6 +1284,19 @@ export default {
     addComment(comment) {
       const user = useUserStore();
       const { username } = user;
+      const normalizedComment = String(comment?.content || "")
+        .replace(/<br\s*\/?>/gi, " ")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .trim();
+      if (normalizedComment.length === 0) {
+        this.$refs.messageBoard.editor = comment.content || "";
+        Notify.create({
+          type: "negative",
+          message: "Comment cannot be empty.",
+        });
+        return;
+      }
       const acknowledgedRaw = this.ticketInfo.acknowledged;
       const isAcknowledgedSelected =
         acknowledgedRaw === "0" ||
@@ -1247,6 +1461,74 @@ export default {
         { value: KEY_CATEGORY_TEST, label: "Test" },
       ];
     },
+    getFileExtension(fileName) {
+      if (!fileName || fileName.lastIndexOf(".") < 0) {
+        return "";
+      }
+      return fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
+    },
+    validateAttachment(file) {
+      const extension = this.getFileExtension(file.name);
+      if (!ALL_ALLOWED_EXTENSIONS.has(extension)) {
+        return `Unsupported file type: ${file.name}`;
+      }
+      const isVideo = VIDEO_EXTENSIONS.has(extension);
+      const maxSize = isVideo ? MAX_VIDEO_FILE_SIZE : MAX_DOC_IMAGE_FILE_SIZE;
+      if (file.size > maxSize) {
+        const limitText = isVideo ? "500 MB" : "10 MB";
+        return `File exceeds ${limitText}: ${file.name}`;
+      }
+      return null;
+    },
+    onNewAttachmentChange(files) {
+      const normalizedFiles = Array.isArray(files) ? files : files ? [files] : [];
+      const errors = [];
+      const validFiles = [];
+      normalizedFiles.forEach((file) => {
+        const error = this.validateAttachment(file);
+        if (error) {
+          errors.push(error);
+        } else {
+          validFiles.push(file);
+        }
+      });
+      this.attachmentErrors = errors;
+      if (errors.length > 0) {
+        this.newAttachments = validFiles;
+        errors.forEach((message) => {
+          Notify.create({ type: "negative", message });
+        });
+      }
+    },
+    /**
+     * 在工单 PUT 成功后执行：若用户已选新文件则追加上传，不删除已有附件（删除请用列表中的 Delete）。
+     */
+    async syncPendingAttachmentsAfterUpdate() {
+      const files = Array.isArray(this.newAttachments)
+        ? this.newAttachments
+        : this.newAttachments
+          ? [this.newAttachments]
+          : [];
+      if (files.length === 0) {
+        return;
+      }
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append("files", file);
+      });
+      const response = await api.post(
+        `/ticketing/${this.ticketId}/attachments`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      if (response.data.resultCode !== 0) {
+        throw new Error(
+          response.data.errorMessage || "Failed to upload attachments."
+        );
+      }
+      this.newAttachments = [];
+      this.attachmentErrors = [];
+    },
     populateKcvksiOpt() {
       const selectedCategory = normalizeKeyCategory(this.keyType);
       if (!Array.isArray(this.keys) || selectedCategory.length === 0) {
@@ -1341,6 +1623,11 @@ export default {
 .submit-ticket-btn {
   min-width: 220px;
   border-radius: 10px;
+}
+
+.close-ticket-btn,
+.reopen-ticket-btn {
+  min-width: 140px;
 }
 
 .attachment-section {

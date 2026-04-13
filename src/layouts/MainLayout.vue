@@ -201,9 +201,7 @@
             label="Ticket ID"
             maxlength="50"
             lazy-rules
-            :rules="[
-              (val) => (val && val.trim().length > 0) || 'Ticket ID is required',
-            ]"
+            :rules="[]"
           />
 
           <q-input
@@ -214,9 +212,7 @@
             label="Subject"
             maxlength="200"
             lazy-rules
-            :rules="[
-              (val) => (val && val.trim().length > 0) || 'Subject is required',
-            ]"
+            :rules="[]"
           />
 
           <q-input
@@ -312,6 +308,47 @@ import sha256 from "js-sha256";
 const user = useUserStore();
 const CONTACT_RMA_LOG_STORAGE_KEY = "contact_rma_submission_logs";
 
+// 每个主菜单 Tab 对应的子菜单项（按显示顺序），用于点击 Tab 时跳转到第一个有权限的子页面
+const TAB_SUBMENU_CONFIG = {
+  RMAStatus: [
+    { routeName: "status", permission: "status" },
+    { routeName: "shipping", permission: "shipping" },
+    { routeName: "quarantine", permission: "quarantine" },
+    { routeName: "warranty-check", permission: "warranty_check" },
+  ],
+  Ticketing: [
+    { routeName: "ticketing-queue", permission: "ticketing.queue", requireNonClient: true },
+    { routeName: "view-tickets", permission: "ticketing.view" },
+    { routeName: "create-ticket", permission: "ticketing.add" },
+  ],
+  Sales: [
+    { routeName: "sales-order", permission: "sales.order" },
+  ],
+  privilege: [
+    { routeName: "role-type", permission: "privilege.role-type.view" },
+    { routeName: "role", permission: "privilege.role.view" },
+    { routeName: "user", permission: "privilege.user.view" },
+  ],
+  Account: [
+    { routeName: "account-set" },
+    { routeName: "customer" },
+    { routeName: "notification" },
+  ],
+};
+
+// 路由名称 → Tab 名称的反向映射，用于根据当前路由同步 Tab 状态
+const ROUTE_TAB_MAP = {};
+Object.entries(TAB_SUBMENU_CONFIG).forEach(([tabName, items]) => {
+  items.forEach((item) => {
+    ROUTE_TAB_MAP[item.routeName] = tabName;
+  });
+});
+ROUTE_TAB_MAP["rma"] = "RMAStatus";
+ROUTE_TAB_MAP["ticketing"] = "Ticketing";
+ROUTE_TAB_MAP["edit-ticket"] = "Ticketing";
+ROUTE_TAB_MAP["privilege"] = "privilege";
+ROUTE_TAB_MAP["account"] = "Account";
+
 export default {
   name: "MainLayout",
 
@@ -341,6 +378,24 @@ export default {
       uat,
       // darkMode: "auto",
     };
+  },
+
+  watch: {
+    tab(newTab, oldTab) {
+      if (newTab === oldTab) return;
+      if (this.isCurrentRouteUnderTab(newTab)) return;
+      this.navigateToFirstPermittedRoute(newTab);
+    },
+    "$route.name": {
+      immediate: true,
+      handler(routeName) {
+        if (!routeName) return;
+        const targetTab = ROUTE_TAB_MAP[routeName];
+        if (targetTab && this.tab !== targetTab) {
+          this.tab = targetTab;
+        }
+      },
+    },
   },
 
   computed: {
@@ -505,6 +560,24 @@ export default {
     },
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);
+    },
+    isCurrentRouteUnderTab(tabName) {
+      const currentRouteName = this.$route?.name;
+      if (!currentRouteName) return false;
+      return ROUTE_TAB_MAP[currentRouteName] === tabName;
+    },
+    navigateToFirstPermittedRoute(tabName) {
+      const items = TAB_SUBMENU_CONFIG[tabName];
+      if (!items || items.length === 0) return;
+      const userStore = useUserStore();
+      const firstPermitted = items.find((item) => {
+        if (item.requireNonClient && userStore.isClientUser) return false;
+        if (item.permission && !userStore.checkPermission(item.permission)) return false;
+        return true;
+      });
+      if (firstPermitted) {
+        this.$router.push({ name: firstPermitted.routeName });
+      }
     },
     toggleDarkMode(value, evt) {
       Dark.set(value);

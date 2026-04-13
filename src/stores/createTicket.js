@@ -44,9 +44,9 @@ function buildCategoryOptions(keys) {
 
 export const useCreateTicketStore = defineStore("createTicket", {
   state: () => ({
-    orderType: null,
-    orderTypeOpt: null,
-    orderTypeOptSource: null,
+    orderDept: null,
+    orderDeptOpt: null,
+    orderDeptOptSource: null,
     address: null,
     trackingNums: [],
     serials: [],
@@ -87,16 +87,16 @@ export const useCreateTicketStore = defineStore("createTicket", {
   actions: {
     applyOrderDeptOptions(options) {
       const normalizedOptions = Array.isArray(options) ? options : [];
-      this.orderTypeOpt = normalizedOptions;
-      this.orderTypeOptSource = "department";
+      this.orderDeptOpt = normalizedOptions;
+      this.orderDeptOptSource = "department";
 
       if (
-        this.orderType != null &&
+        this.orderDept != null &&
         !normalizedOptions.some(
-          (item) => String(item?.value) === String(this.orderType)
+          (item) => String(item?.value) === String(this.orderDept)
         )
       ) {
-        this.orderType = null;
+        this.orderDept = null;
       }
     },
     /**
@@ -225,8 +225,12 @@ export const useCreateTicketStore = defineStore("createTicket", {
           });
         });
     },
-    populateOrderTypeOpt(_, update) {
-      if (this.orderTypeOpt && this.orderTypeOptSource === "department") {
+    populateOrderDeptOpt(_, update) {
+      if (
+        Array.isArray(this.orderDeptOpt) &&
+        this.orderDeptOpt.length > 0 &&
+        this.orderDeptOptSource === "department"
+      ) {
         update();
         return;
       }
@@ -234,6 +238,12 @@ export const useCreateTicketStore = defineStore("createTicket", {
       api
         .get(link)
         .then((response) => {
+          if (response?.data?.resultCode !== 0) {
+            throw new Error(
+              response?.data?.errorMessage ||
+                "Order Dept Dropdown cannot be populated"
+            );
+          }
           update(() => {
             this.applyOrderDeptOptions(response?.data?.data);
           });
@@ -248,16 +258,26 @@ export const useCreateTicketStore = defineStore("createTicket", {
           });
         });
     },
-    populateOrderTypeOptOnce() {
-      if (this.orderTypeOpt && this.orderTypeOptSource === "department") {
-        return Promise.resolve(this.orderTypeOpt);
+    populateOrderDeptOptOnce() {
+      if (
+        Array.isArray(this.orderDeptOpt) &&
+        this.orderDeptOpt.length > 0 &&
+        this.orderDeptOptSource === "department"
+      ) {
+        return Promise.resolve(this.orderDeptOpt);
       }
       const link = "/ticketing/dropdown/department";
       return api
         .get(link)
         .then((response) => {
+          if (response?.data?.resultCode !== 0) {
+            throw new Error(
+              response?.data?.errorMessage ||
+                "Order Dept Dropdown cannot be populated"
+            );
+          }
           this.applyOrderDeptOptions(response?.data?.data);
-          return this.orderTypeOpt;
+          return this.orderDeptOpt;
         })
         .catch(function (error) {
           console.log(error);
@@ -391,5 +411,5 @@ export const useCreateTicketStore = defineStore("createTicket", {
     },
   },
 
-  persist: true,
+  persist: false,
 });
