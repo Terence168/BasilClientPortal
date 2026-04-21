@@ -106,7 +106,7 @@ The warranty status is calculated based on:
 
   <groupId>us.pax.basil</groupId>
     <artifactId>BasilClientPortal</artifactId>
-    <version>1.01.00-20260407</version>
+    <version>1.01.00-20260421</version>
     <packaging>jar</packaging>
 
 2. make sure your local maven has:  com.paxcq.cloud, if not please find it in /paxcq.zip

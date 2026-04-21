@@ -126,8 +126,12 @@ public interface TicketMapper extends BaseMapper<Integer> {
     void updatePrepMasterTicketAckStatus(@Param("moOID") Long moOID, @Param("acknowledged") Integer acknowledged);
     int closePrepTicket(@Param("moOID") Long moOID);
 
+    int reopenPrepTicket(@Param("moOID") Long moOID);
+
     List<Integer> getTicketAckStatus(Long moOID);
 
     List<Customer> getAllCustomerOrg();
+
+    String getGreetMessageBodyByOid(@Param("gmOid") Integer gmOid);
 
 }

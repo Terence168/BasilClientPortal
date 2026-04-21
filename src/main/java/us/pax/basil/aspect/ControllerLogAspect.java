@@ -8,10 +8,15 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import us.pax.basil.dto.output.QueryResultArrayDTO;
+import us.pax.basil.dto.output.QueryResultDTO;
+import us.pax.basil.utils.SqlResults;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Method;
 import java.security.Principal;
+import java.util.HashSet;
+import java.util.Set;
 
 /***
  * ============================================================================
@@ -32,6 +37,15 @@ import java.security.Principal;
 @Component
 @Log4j2
 public class ControllerLogAspect {
+    private static final Set<String> LIGHT_LOG_ENDPOINT_SUFFIXES = new HashSet<>();
+
+    static {
+        LIGHT_LOG_ENDPOINT_SUFFIXES.add("/email-preview");
+        LIGHT_LOG_ENDPOINT_SUFFIXES.add("/queue");
+        LIGHT_LOG_ENDPOINT_SUFFIXES.add("/viewTickets");
+        LIGHT_LOG_ENDPOINT_SUFFIXES.add("/dropdown/status");
+    }
+
     @Pointcut("execution(public * us.pax.basil.controller.*.*(..))")
     private void pointCut() {
     }
@@ -44,9 +58,11 @@ public class ControllerLogAspect {
 
         MethodSignature signature = (MethodSignature) pjp.getSignature();
         Method method = signature.getMethod();
+        String requestUri = httpServletRequest.getRequestURI();
+        boolean lightLog = shouldUseLightLog(requestUri);
 
         log.info("============================================================================");
-        log.info("Request Resource: {}", httpServletRequest.getRequestURI());
+        log.info("Request Resource: {}", requestUri);
         log.info("Request Method: {}", httpServletRequest.getMethod());
         log.info("Request Param: {}", httpServletRequest.getParameterMap());
 
@@ -58,10 +74,67 @@ public class ControllerLogAspect {
         log.info("");
         Object result = pjp.proceed();
         log.info("");
-        log.info("API Response: {}", result);
+        if (lightLog) {
+            log.info("API Response: {}", buildCompactResponseLog(result));
+        } else {
+            log.info("API Response: {}", result);
+        }
         long costTime = System.currentTimeMillis() - startTime;
         log.info("API [{}] Process Completed, Time Consumed: {}.{} s", method.getName(), costTime/1000, String.format("%03d", costTime % 1000));
         log.info("============================================================================");
         return result;
+    }
+
+    private boolean shouldUseLightLog(String requestUri) {
+        if (requestUri == null || requestUri.trim().isEmpty()) {
+            return false;
+        }
+        for (String suffix : LIGHT_LOG_ENDPOINT_SUFFIXES) {
+            if (requestUri.endsWith(suffix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String buildCompactResponseLog(Object result) {
+        if (result == null) {
+            return "null";
+        }
+
+        if (result instanceof QueryResultArrayDTO) {
+            QueryResultArrayDTO response = (QueryResultArrayDTO) result;
+            int size = response.getData() == null ? 0 : response.getData().size();
+            return String.format(
+                    "QueryResultArrayDTO(resultCode=%d, total=%d, dataSize=%d, errorMessage=%s)",
+                    response.getResultCode(),
+                    response.getTotal(),
+                    size,
+                    response.getErrorMessage()
+            );
+        }
+
+        if (result instanceof QueryResultDTO) {
+            QueryResultDTO response = (QueryResultDTO) result;
+            int size = response.getData() == null ? 0 : response.getData().size();
+            return String.format(
+                    "QueryResultDTO(resultCode=%d, dataSize=%d, errorMessage=%s)",
+                    response.getResultCode(),
+                    size,
+                    response.getErrorMessage()
+            );
+        }
+
+        if (result instanceof SqlResults) {
+            SqlResults response = (SqlResults) result;
+            return String.format(
+                    "SqlResults(resultCode=%d, errorMessage=%s, type=%s)",
+                    response.getResultCode(),
+                    response.getErrorMessage(),
+                    result.getClass().getSimpleName()
+            );
+        }
+
+        return result.getClass().getSimpleName();
     }
 }

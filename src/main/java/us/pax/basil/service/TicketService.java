@@ -82,6 +82,11 @@ public interface TicketService extends IService<Integer>{
     QueryResultDTO getTicketAckStatus(Long moOID);
     QueryResultDTO closePrepTicket(Long moOID);
 
+    /**
+     * 将 PREP 工单从关闭(ORDER_STATUS=13)恢复为开放(ORDER_STATUS=12)。
+     */
+    QueryResultDTO reopenPrepTicket(Long moOID);
+
     QueryResultArrayDTO queryCustomerOrg();
 
     QueryResultArrayDTO queryKeyKcv(String keyType);

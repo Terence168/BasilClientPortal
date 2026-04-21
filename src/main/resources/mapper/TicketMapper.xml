@@ -791,13 +791,22 @@
 
     <insert id="insertPrep_Master_Order" parameterType="us.pax.basil.entity.ticket.TicketInsertionObject"
             useGeneratedKeys="true" keyProperty="moOID" keyColumn="MO_OID">
-        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, ORDER_DEPT, RMA_NUMBER, SUBMITTER_ID, XA_OID, SHIPPING_ADDRESS, TEST_KEY_TYPE, ZOHO_ENCRYPT, ACKNOWLEDGED, DESCRIPTION)
-        VALUES (#{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), 3, #{orderDept}, #{rmaNumber}, #{submitterID}, #{xaOID},
-                (SELECT CONCAT(ATTENTION_TO, CHAR(13), CHAR(10), SHIP_TO_COMPANY, CHAR(13), CHAR(10), ADDRESS, CHAR(13), CHAR(10), CITY, ' ', STATE, ' ', ZIP_CODE)
-                 FROM BASIL_SEC_PRD.XREF_ADDRESS
-                 WHERE XA_OID = #{xaOID}
-                 LIMIT 1),
-                #{testKeyType}, #{encrypt}, 1, #{description})
+        INSERT INTO BASIL_SEC_PRD.PREP_MASTER_ORDER
+            (MC_OID, ORDER_STATUS, ORDER_DATE, ORDER_TYPE, ORDER_DEPT, RMA_NUMBER, SUBMITTER_ID, XA_OID,
+             SHIPPING_ADDRESS, ATTENTION_TO, SHIP_TO_COMPANY, ADDRESS, ADDRESS2, CITY, STATE, ZIP_CODE,
+             TEST_KEY_TYPE, ZOHO_ENCRYPT, ACKNOWLEDGED, DESCRIPTION)
+        SELECT
+            #{mcOID}, #{orderStatus}, DATE_FORMAT(#{orderDate}, '%Y-%m-%d %H:%i:%s'), 3, #{orderDept},
+            #{rmaNumber}, #{submitterID}, #{xaOID},
+            CONCAT(IFNULL(xa.ATTENTION_TO,''), CHAR(13), CHAR(10),
+                   IFNULL(xa.SHIP_TO_COMPANY,''), CHAR(13), CHAR(10),
+                   IFNULL(xa.ADDRESS,''), CHAR(13), CHAR(10),
+                   IFNULL(xa.CITY,''), ' ', IFNULL(xa.STATE,''), ' ', IFNULL(xa.ZIP_CODE,'')),
+            xa.ATTENTION_TO, xa.SHIP_TO_COMPANY, xa.ADDRESS, xa.ADDRESS2, xa.CITY, xa.STATE, xa.ZIP_CODE,
+            #{testKeyType}, #{encrypt}, 1, #{description}
+        FROM BASIL_SEC_PRD.XREF_ADDRESS xa
+        WHERE xa.XA_OID = #{xaOID}
+        LIMIT 1
     </insert>
 
     <insert id="insertPrep_Xref_Materials" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="xmOID"
@@ -977,24 +986,32 @@
     </update>
 
     <update id="updatePrepMasterOrder" >
-        UPDATE BASIL_SEC_PRD.PREP_MASTER_ORDER
+        UPDATE BASIL_SEC_PRD.PREP_MASTER_ORDER pmo
+        <if test="xaOID != null">
+            JOIN BASIL_SEC_PRD.XREF_ADDRESS xa ON xa.XA_OID = #{xaOID}
+        </if>
         <set>
             <if test="typeOfRepair != null">
-                ORDER_DEPT = #{typeOfRepair},
+                pmo.ORDER_DEPT = #{typeOfRepair},
             </if>
             <if test="xaOID != null">
-                XA_OID = #{xaOID},
-                SHIPPING_ADDRESS = (
-                    SELECT CONCAT(ATTENTION_TO, CHAR(13), CHAR(10), SHIP_TO_COMPANY, CHAR(13), CHAR(10), ADDRESS, CHAR(13), CHAR(10), CITY, ' ', STATE, ' ', ZIP_CODE)
-                    FROM BASIL_SEC_PRD.XREF_ADDRESS
-                    WHERE XA_OID = #{xaOID}
-                    LIMIT 1
-                ),
+                pmo.XA_OID = #{xaOID},
+                pmo.SHIPPING_ADDRESS = CONCAT(IFNULL(xa.ATTENTION_TO,''), CHAR(13), CHAR(10),
+                                              IFNULL(xa.SHIP_TO_COMPANY,''), CHAR(13), CHAR(10),
+                                              IFNULL(xa.ADDRESS,''), CHAR(13), CHAR(10),
+                                              IFNULL(xa.CITY,''), ' ', IFNULL(xa.STATE,''), ' ', IFNULL(xa.ZIP_CODE,'')),
+                pmo.ATTENTION_TO    = xa.ATTENTION_TO,
+                pmo.SHIP_TO_COMPANY = xa.SHIP_TO_COMPANY,
+                pmo.ADDRESS         = xa.ADDRESS,
+                pmo.ADDRESS2        = xa.ADDRESS2,
+                pmo.CITY            = xa.CITY,
+                pmo.STATE           = xa.STATE,
+                pmo.ZIP_CODE        = xa.ZIP_CODE,
             </if>
-                RMA_NUMBER = #{originalRMA},
-                TEST_KEY_TYPE = #{testKeyType}
+                pmo.RMA_NUMBER   = #{originalRMA},
+                pmo.TEST_KEY_TYPE = #{testKeyType}
         </set>
-        WHERE MO_OID = #{moOID}
+        WHERE pmo.MO_OID = #{moOID}
     </update>
 
     <select id="getAllKeys" resultType="us.pax.basil.entity.ticket.Key">
@@ -1040,6 +1057,14 @@
         WHERE MO_OID = #{moOID}
     </update>
 
+    <!-- 将 PREP 工单从已关闭(13)恢复为开放(12)，仅当当前为关闭状态时更新 -->
+    <update id="reopenPrepTicket">
+        UPDATE BASIL_SEC_PRD.PREP_MASTER_ORDER
+        SET ORDER_STATUS = 12
+        WHERE MO_OID = #{moOID}
+          AND ORDER_STATUS = 13
+    </update>
+
     <update id="updateMasterTicketAckStatus">
         update BASIL_ODS_PRD.MASTER_ORDER
         <set> ACKNOWLEDGED = #{acknowledged}</set>
@@ -1078,6 +1103,12 @@
         VERSION as version
         FROM  BASIL_ODS_PRD.MASTER_CUSTOMER
         ORDER BY CUSTOMER_ORGANIZATION
+    </select>
+
+    <select id="getGreetMessageBodyByOid" resultType="String">
+        SELECT MESSAGE_BODY
+        FROM BASIL_SEC_PRD.GREET_MESSAGES
+        WHERE GM_OID = #{gmOid}
     </select>
 </mapper>
 

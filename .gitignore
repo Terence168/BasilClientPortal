@@ -36,3 +36,5 @@ src/main/lib/*
 /basil-uat-cp-file-storage/*
 /service-logs/*
 src/main/resources/*
+scripts/local-env-secrets.ps1
+scripts/local-env-secrets.example.ps1

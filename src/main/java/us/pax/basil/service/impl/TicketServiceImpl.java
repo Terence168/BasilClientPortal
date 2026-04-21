@@ -45,12 +45,13 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletableFuture;
@@ -1220,14 +1221,20 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
         map.put("invoice", invoice);
         
         MustacheFactory mf = new DefaultMustacheFactory();
-        Mustache mustache = null;
+        Mustache mustache;
+        Integer gmOid;
         if (Objects.equals(clientGroup, 458) && invoice > 0d) {
-            //small client
-            mustache = mf.compile("html/email/smallMktRmaEmail.mustache");
-            
+            // 小客户并且有发票金额：读取 GM_OID=2 的模板
+            gmOid = 2;
         } else {
-            mustache = mf.compile("html/email/midLargeRmaEmail.mustache");
+            // 其他场景：读取 GM_OID=1 的模板
+            gmOid = 1;
         }
+        String messageBody = ticketMapper.getGreetMessageBodyByOid(gmOid);
+        if (messageBody == null) {
+            throw new IllegalStateException("Greet message body not found.");
+        }
+        mustache = mf.compile(new StringReader(messageBody), "greetMessage-" + gmOid);
         StringWriter writer = new StringWriter();
         mustache.execute(writer, map).flush();
         String emailBody = writer.toString();
@@ -1307,6 +1314,29 @@ public class TicketServiceImpl extends ServiceImpl<TicketMapper, Integer> implem
                 return new QueryResultDTO(null, -1, "Failed to close ticket");
             }
             return new QueryResultDTO(null, 0, "Ticket closed successfully");
+        } catch (Exception e) {
+            return new QueryResultDTO(null, -1, e.getMessage());
+        }
+    }
+
+    @Override
+    public QueryResultDTO reopenPrepTicket(Long moOID) {
+        if (moOID == null) {
+            return new QueryResultDTO(null, -1, "Ticket ID is required");
+        }
+        if (!userHasAccess(String.valueOf(moOID))) {
+            return new QueryResultDTO(null, -1, "Don't have access to the ticket");
+        }
+        try {
+            TicketInfo prepTicket = ticketMapper.existingPREPMasterOrder(String.valueOf(moOID));
+            if (prepTicket == null) {
+                return new QueryResultDTO(null, -1, "Ticket not found in PREP_MASTER_ORDER");
+            }
+            int affectedRows = ticketMapper.reopenPrepTicket(moOID);
+            if (affectedRows <= 0) {
+                return new QueryResultDTO(null, -1, "Failed to reopen ticket (ticket is not closed)");
+            }
+            return new QueryResultDTO(null, 0, "Ticket reopened successfully");
         } catch (Exception e) {
             return new QueryResultDTO(null, -1, e.getMessage());
         }
