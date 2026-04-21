@@ -26,22 +26,6 @@
           <q-space />
           <div class="text-red">{{ total }} Open tickets</div>
         </div>
-        <div class="row q-gutter-sm q-mt-sm">
-          <q-btn
-            :color="actionFilter === 1 ? 'primary' : 'grey-5'"
-            :text-color="actionFilter === 1 ? 'white' : 'dark'"
-            unelevated
-            label="RMA Action Required"
-            @click="setActionFilter(1)"
-          />
-          <q-btn
-            :color="actionFilter === 2 ? 'primary' : 'grey-5'"
-            :text-color="actionFilter === 2 ? 'white' : 'dark'"
-            unelevated
-            label="Customer Action Required"
-            @click="setActionFilter(2)"
-          />
-        </div>
         <div v-if="total !== 0" class="q-pt-md">
           <div class="row justify-center">
             <GenericTable
@@ -228,7 +212,8 @@ export default {
       return "";
     },
     handleRowAction(row) {
-      if (Number(row?.acknowledged) !== 1) {
+      const acknowledged = Number(row?.acknowledged);
+      if (acknowledged !== 1 && acknowledged !== 2) {
         return;
       }
       this.$router.push({
@@ -240,6 +225,8 @@ export default {
       const vm = this;
       const params = { ...this.$route.query };
       delete params.searchSubmitted;
+      // Ticketing Queue 仅保留 RMA 单据
+      params.acknowledged = 1;
       if (this.searchSubmitted) {
         params.searchSubmitted = 1;
       }
@@ -256,7 +243,7 @@ export default {
               ...row,
               acknowledged,
               action: vm.toActionLabel(acknowledged),
-              actionClickable: acknowledged === 1,
+              actionClickable: acknowledged === 1 || acknowledged === 2,
             };
           });
           vm.tableData.rows = mappedRows;

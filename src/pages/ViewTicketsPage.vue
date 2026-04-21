@@ -95,6 +95,7 @@ export default {
             sortable: true,
           },
           { id: "responder", label: "Responder", sortable: true },
+          { id: "actionRequired", label: "Action Required", sortable: false },
           { id: "ticketEdit", label: "Edit", sortable: false },
         ],
         rows: [],
@@ -115,6 +116,7 @@ export default {
           sortable: true,
         },
         { id: "responder", label: "Responder", sortable: true },
+        { id: "actionRequired", label: "Action Required", sortable: false },
       ];
     }
   },
@@ -144,7 +146,11 @@ export default {
       this.$api
         .get("/ticketing/viewTickets" + window.location.search)
         .then(function (response) {
-          vm.tableData.rows = response.data.data;
+          const rows = Array.isArray(response?.data?.data) ? response.data.data : [];
+          vm.tableData.rows = rows.map((row) => ({
+            ...row,
+            actionRequired: Number(row?.acknowledged) === 2 ? "Customer" : "",
+          }));
           vm.total = response.data.total;
         })
         .catch(function (error) {

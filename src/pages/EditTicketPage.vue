@@ -379,25 +379,15 @@
         Comments
       </div>
       <div class="col-auto text-weight-bold q-mb-sm q-mt-sm ack-control">
-        Acknowledged:&nbsp;&nbsp;
-        <input
-          type="radio"
-          v-model="ticketInfo.acknowledged"
-          value="2"
-          :disabled="!ackPermission"
-        />&nbsp;Customer Action Required&nbsp;&nbsp;
-        <input
-          type="radio"
-          v-model="ticketInfo.acknowledged"
-          value="1"
-          :disabled="!ackPermission"
-        />&nbsp;RMA Action Required&nbsp;&nbsp;
-        <input
-          type="radio"
-          v-model="ticketInfo.acknowledged"
-          value="0"
-          :disabled="!ackPermission"
-        />&nbsp;No Action Required&nbsp;
+        <q-btn
+          label="No Action Required"
+          color="primary"
+          unelevated
+          no-caps
+          :disable="!ackPermission"
+          :loading="settingNoAction"
+          @click="handleNoActionRequired"
+        />
       </div>
     </div>
     <MessageBoard
@@ -419,7 +409,10 @@
       :width="972"
       @update:show="showAddressModal = false"
     >
-      <AddressGrid @selectShippingAddress="selectShippingAddress" />
+      <AddressGrid
+        :customer="ticketInfo.mcOID"
+        @selectShippingAddress="selectShippingAddress"
+      />
     </BaseModal>
   </div>
 </template>
@@ -552,6 +545,7 @@ export default {
       newAttachments: [],
       attachmentErrors: [],
       attachmentAccept: ATTACHMENT_ACCEPT,
+      settingNoAction: false,
     };
   },
   created() {
@@ -765,6 +759,11 @@ export default {
     orderDept(newVal, oldVal) {
       if (newVal !== oldVal) {
         this.applyOrderDeptRule();
+      }
+    },
+    "ticketInfo.mcOID"(newVal, oldVal) {
+      if (newVal !== oldVal && oldVal != null) {
+        this.ticketInfo.address = null;
       }
     },
     "ticketInfo.encrypt"(newVal, oldVal) {
@@ -1297,24 +1296,8 @@ export default {
         });
         return;
       }
-      const acknowledgedRaw = this.ticketInfo.acknowledged;
-      const isAcknowledgedSelected =
-        acknowledgedRaw === "0" ||
-        acknowledgedRaw === "1" ||
-        acknowledgedRaw === "2";
-      if (
-        this.ackPermission &&
-        !isAcknowledgedSelected
-      ) {
-        this.$refs.messageBoard.editor = comment.content;
-        Notify.create({
-          type: "negative",
-          message: "Please select Acknowledged before submitting comment.",
-        });
-        return;
-      }
-      const acknowledged = Number(acknowledgedRaw);
-      //call backend api to update it
+      // 客服发送 acknowledged=2，客户发送 acknowledged=1
+      const acknowledged = useUserStore().isClientUser ? 1 : 2;
       const link = `/ticketing/${this.ticketId}/response`;
       api
         .post(link, comment)
@@ -1326,13 +1309,8 @@ export default {
           newComment.responseBy = username;
           newComment.bgColor = "bg-green-3";
           this.comments.push(newComment);
-          if (this.ackPermission) {
-            this.setAckStatus(acknowledged);
-          } else {
-            // customer replied: waiting customer service reply
-            this.setAckStatus(1);
-            this.ticketInfo.acknowledged = "1";
-          }
+          this.setAckStatus(acknowledged);
+          this.ticketInfo.acknowledged = String(acknowledged);
           this.$nextTick(() => this.$refs.messageBoard.scrollToBottom());
         })
         .catch((error) => {
@@ -1343,18 +1321,23 @@ export default {
           });
         });
     },
+    handleNoActionRequired() {
+      this.settingNoAction = true;
+      this.setAckStatus(0)
+        .then(() => {
+          this.ticketInfo.acknowledged = "0";
+          Notify.create({
+            type: "positive",
+            message: "Acknowledged set to No Action Required.",
+          });
+        })
+        .finally(() => {
+          this.settingNoAction = false;
+        });
+    },
     setAckStatus(acknowledged) {
-      const link = this.ackPermission
-        ? `/ticketing/${this.ticketId}/acknowledged`
-        : `/ticketing/${this.ticketId}/unacknowledged`;
-      const request = this.ackPermission
-        ? api.put(link, null, {
-            params: {
-              acknowledged,
-            },
-          })
-        : api.put(link);
-      return request
+      const link = `/ticketing/${this.ticketId}/acknowledged`;
+      return api.put(link, null, { params: { acknowledged } })
         .then((response) => {
           if (response.data.resultCode !== 0) {
             throw new Error(response.data.errorMessage);

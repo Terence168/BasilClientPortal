@@ -682,6 +682,11 @@ export default {
         this.applyOrderDeptRule();
       },
     },
+    custType(newVal, oldVal) {
+      if (newVal !== oldVal) {
+        this.address = null;
+      }
+    },
     encrypt() {
       this.applyOrderDeptRule();
     },

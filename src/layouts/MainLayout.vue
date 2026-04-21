@@ -1,14 +1,16 @@
 <template>
   <q-layout view="lhh lpR fFf">
     <q-header class="transparent q-ma-sm" style="min-height: 100px">
-      <div class="row items-center justify-between">
+      <div class="row items-center justify-between top-header-row">
         <q-tabs
-          class="col-auto text-accent text-subtitle1 q-ml-md"
+          class="col text-accent text-subtitle1 q-ml-md top-nav-tabs"
           style="min-height: 80px"
           v-model="tab"
           no-caps
           indicator-color="primary"
           align="left"
+          outside-arrows
+          mobile-arrows
         >
           <q-tab name="RMAStatus" label="Ticket Status" />
           <q-tab
@@ -32,7 +34,7 @@
             label="Account"
           />
         </q-tabs>
-        <div class="col-auto text-accent text-subtitle1 q-mr-md">
+        <div class="col-auto text-accent text-subtitle1 q-mr-md top-header-actions">
           <div class="row items-center">
             <q-btn
               class="col-auto self-center q-mr-md contact-rma-btn"
@@ -41,18 +43,16 @@
               unelevated
               @click="openContactRmaModal"
             />
-            <q-avatar color="primary" text-color="white">{{
-              userName ? userName[0] : "G"
-            }}</q-avatar>
-            <div class="column justify-center q-ml-sm q-mr-md">
-              <div class="col-auto">{{ userName }}</div>
-              <div
-                v-if="companyName !== ''"
-                class="col-auto text-subtitle2 text-grey-6"
-              >
-                {{ companyName }}
-              </div>
-            </div>
+            <q-avatar class="user-avatar q-mr-md" color="primary" text-color="white">
+              {{ userName ? userName[0] : "G" }}
+              <q-tooltip anchor="bottom middle" self="top middle">
+                <div class="text-body2">{{ userName }}</div>
+                <div v-if="companyName !== ''" class="text-caption text-grey-5">
+                  {{ companyName }}
+                </div>
+                <div class="text-caption text-grey-5">{{ userEmail }}</div>
+              </q-tooltip>
+            </q-avatar>
             <q-btn class="col-auto self-center q-mr-md" @click="changePassword">
               Change Password
             </q-btn>
@@ -70,26 +70,47 @@
       </div>
     </q-header>
 
-    <q-drawer model-value side="left" :width="350" :breakpoint="0">
+    <q-drawer
+      model-value
+      side="left"
+      :width="260"
+      :mini="leftDrawerMini"
+      :mini-width="76"
+      :breakpoint="0"
+      bordered
+    >
       <!-- drawer content -->
 
-      <q-toolbar class="justify-center text-primary" style="min-height: 100px">
-        <q-toolbar-title shrink>
+      <q-toolbar class="justify-between text-primary drawer-toolbar">
+        <q-toolbar-title class="drawer-toolbar-title">
           <q-img
             src="~assets/pax_logo_small.png"
             spinner-color="white"
             class="q-mr-md"
-            style="width: 120px"
+            style="width: 72px"
           />
-          <span class="text-weight-bold">Basil Client Portal</span>
+          <span class="text-weight-bold drawer-title-text">Basil Client Portal</span>
         </q-toolbar-title>
+        <q-btn
+          flat
+          round
+          dense
+          color="primary"
+          class="drawer-toggle-btn"
+          :icon="leftDrawerMini ? 'chevron_right' : 'chevron_left'"
+          @click="toggleDrawerMini"
+        >
+          <q-tooltip anchor="bottom middle" self="top middle">
+            {{ leftDrawerMini ? "Expand sidebar" : "Collapse sidebar" }}
+          </q-tooltip>
+        </q-btn>
       </q-toolbar>
 
       <q-separator />
 
       <div
         v-if="uat"
-        class="q-mt-md text-h4 text-weight-bold text-center text-red"
+        class="text-weight-bold text-center text-red drawer-uat-text"
       >
         *** UAT Version ***
       </div>
@@ -376,6 +397,7 @@ export default {
       contactRmaScreenshot: null,
       contactRmaSubmitting: false,
       uat,
+      leftDrawerMini: false,
       // darkMode: "auto",
     };
   },
@@ -583,6 +605,9 @@ export default {
       Dark.set(value);
       this.userDarkMode = value;
     },
+    toggleDrawerMini() {
+      this.leftDrawerMini = !this.leftDrawerMini;
+    },
   },
 };
 </script>
@@ -597,6 +622,135 @@ export default {
 .contact-rma-btn:hover {
   background: #2f56cb;
   border-color: #2f56cb;
+}
+
+.top-header-row {
+  flex-wrap: nowrap;
+  column-gap: 20px;
+}
+
+.drawer-toggle-btn {
+  background: #e6f2ff;
+  border: 1px solid #90caf9;
+}
+
+.drawer-toggle-btn :deep(.q-icon) {
+  color: #1976d2;
+}
+
+.drawer-toolbar {
+  min-height: 72px;
+  padding: 0 10px;
+}
+
+.drawer-toolbar-title {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.drawer-title-text {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.drawer-uat-text {
+  font-size: 18px;
+  line-height: 1.1;
+  margin: 6px 0 4px;
+}
+
+:deep(.q-drawer .q-item) {
+  min-height: 42px !important;
+}
+
+:deep(.q-drawer .q-item__section--main) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+}
+
+:deep(.q-drawer .q-item__section--avatar) {
+  min-width: 34px;
+}
+
+:deep(.q-drawer .q-list) {
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+:deep(.q-drawer--mini .section-title) {
+  display: none;
+}
+
+:deep(.q-drawer--mini .q-toolbar-title span) {
+  display: none;
+}
+
+:deep(.q-drawer--mini .drawer-uat-text) {
+  display: none;
+}
+
+:deep(.q-drawer--mini .list-item) {
+  width: 56px;
+  min-height: 56px !important;
+  margin: 8px auto;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-radius: 12px;
+  justify-content: center;
+}
+
+:deep(.q-drawer--mini .list-item .q-item__section--avatar) {
+  min-width: auto;
+  justify-content: center;
+}
+
+:deep(.q-drawer--mini .list-item .q-item__section--main) {
+  display: none;
+}
+
+.top-header-actions {
+  white-space: nowrap;
+}
+
+.top-header-actions .row {
+  column-gap: 10px;
+}
+
+.top-header-actions .q-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.top-header-actions .q-toggle {
+  margin-left: 2px;
+  font-size: 13px;
+}
+
+.user-avatar {
+  cursor: pointer;
+}
+
+.top-nav-tabs :deep(.q-tabs__content) {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.top-nav-tabs :deep(.q-tab),
+.top-nav-tabs :deep(.q-tab__label) {
+  white-space: nowrap;
+}
+
+.top-nav-tabs :deep(.q-tab) {
+  min-height: 52px;
+  padding: 0 10px;
+}
+
+.top-nav-tabs :deep(.q-tab__label) {
+  font-size: 15px;
 }
 
 .body--dark .q-tabs .q-tab__label {

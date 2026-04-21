@@ -136,6 +136,16 @@ export default {
       submitting: false,
     };
   },
+  watch: {
+    customer: {
+      immediate: false,
+      handler() {
+        // 客户切换后，地址列表需跟随当前客户实时刷新
+        this.formData = this.newAddress();
+        this.refreshAddresses();
+      },
+    },
+  },
 
   methods: {
     addAddressHandler() {

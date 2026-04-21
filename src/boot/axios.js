@@ -42,6 +42,7 @@ export default boot(({ app, store }) => {
       // Any status code that lie within the range of 2xx cause this function to trigger
       // Do something with response data
       const skipAuthHandling = isPasswordEndpoint(response?.config?.url);
+      const isSessionTimeout = response?.data?.code === 40000;
 
       if (!skipAuthHandling && user.loggedIn && response.data.code === 40000) {
         //user session expire, throw user to login page
@@ -86,7 +87,8 @@ export default boot(({ app, store }) => {
       if (
         response.data.code &&
         response.data.code !== 20000 &&
-        response.data.code !== 40001
+        response.data.code !== 40001 &&
+        !(skipAuthHandling && isSessionTimeout)
       ) {
         Notify.create({
           type: "negative",

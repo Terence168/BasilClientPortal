@@ -381,13 +381,7 @@ export default {
           .then((response) => {
             update(() => {
               const data = response.data.data;
-
-              // BCP-60 - filter out all status except for "Open" and "Closed" (needs to be deleted once the logistics department is ready)
-              const filteredData = data.filter(
-                (item) => item.label === "Open" || item.label === "Closed"
-              );
-
-              this.options["status"] = filteredData;
+              this.options["status"] = data;
             });
           })
           .catch(function (error) {
