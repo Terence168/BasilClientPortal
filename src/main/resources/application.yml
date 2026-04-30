@@ -5,25 +5,21 @@ spring:
     active: dev
   http:
     encoding:
-      force:  true
+      force: true
       charset: UTF-8
       enabled: true
 
 rma:
   file-storage:
-    # 工单附件默认存储桶（需求指定）
+    # Default attachment storage bucket
     bucket: basil-uat-cp-file-storage
     use-s3: true
-    # 工单附件目录前缀：最终路径形如 tickets/{ticketId}/xxx
+    # Final object key looks like tickets/{ticketId}/xxx
     base-prefix: tickets
-    # 当 S3 不可用时，本地回退目录（相对项目根目录）
+    # Local fallback directory when S3 is unavailable
     local-root: ./basil-uat-cp-file-storage
-    # 预签名 URL 过期时间（分钟）
+    # Presigned URL expiration in minutes
     presign-expire-minutes: 30
-
-mail:
-  smtp:
-    enabled: false
 
 contact-rma:
   mail:

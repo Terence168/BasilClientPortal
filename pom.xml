@@ -136,6 +136,8 @@
       <groupId>com.paxcq.cloud</groupId>
       <artifactId>common</artifactId>
       <version>1.0.6-RELEASE</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/lib/common-1.0.6-RELEASE.jar</systemPath>
     </dependency>
 	<dependency>
     	<groupId>org.apache.poi</groupId>
@@ -234,6 +236,9 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <includeSystemScope>true</includeSystemScope>
+        </configuration>
       </plugin>
       
       <!-- Documentation Plugin -->

@@ -344,6 +344,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 		    	result.put("outForRepair", part.getOutForRepair());
 		    	result.put("quarantine", part.getQuarantine());
     			result.put("awaitingQaCa", part.getAwaitingQaCa());
+    			result.put("screening", part.getScreening());
     			result.put("readyToShip", part.getReadyToShip());
     			result.put("total", part.getTotal());
     			result.put("customerOrganization", part.getCustomerOrganization());
@@ -381,6 +382,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 		    	result.put("outForRepair", rma.getOutForRepair());
 		    	result.put("quarantine", rma.getQuarantine());
     			result.put("awaitingQaCa", rma.getAwaitingQaCa());
+    			result.put("screening", rma.getScreening());
     			result.put("readyToShip", rma.getReadyToShip());
     			result.put("total", rma.getTotal());
     			result.put("customerOrganization", rma.getCustomerOrganization());
@@ -419,6 +421,7 @@ public class RmaServiceImpl extends ServiceImpl<RmaMapper, Integer> implements R
 		    	result.put("outForRepair", serialNumber.getOutForRepair());
 		    	result.put("quarantine", serialNumber.getQuarantine());
     			result.put("awaitingQaCa", serialNumber.getAwaitingQaCa());
+    			result.put("screening", serialNumber.getScreening());
     			result.put("readyToShip", serialNumber.getReadyToShip());
     			result.put("customerOrganization", serialNumber.getCustomerOrganization());
     			

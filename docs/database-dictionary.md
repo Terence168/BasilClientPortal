@@ -2478,7 +2478,7 @@
 | SCHEDULED_DATE | date | Y |  |  |
 | SHIPPER | varchar(50) | Y |  |  |
 | SPECIAL_PROJECT_INDICATOR | int | Y |  |  |
-| STATUS | int | Y |  |  |
+| STATUS | int | Y |  | 外键至 `BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES.SAV_OID`（Material Status，如 `SA_OID=2`），表示终端在 RMA 流程中的状态；含 Received、Out for Repair、Quarantine、Awaiting QA/CA、Screening、Ready to Ship 等，具体以库中 `VALUE` 配置为准。 |
 | TAMPER_LOG_INTERPRETATION | varchar(70) | Y |  |  |
 | TECH_NOTES | varchar(2000) | Y |  |  |
 | TECH_OPENED_DEVICE | int | Y |  |  |

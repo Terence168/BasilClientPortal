@@ -221,6 +221,7 @@ FROM
 	    SUM(IF(xm.STATUS = 110, 1, 0)) AS outForRepair,
 	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
 	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
+	    SUM(IF(xm.STATUS = 116, 1, 0)) AS screening,
 	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
 	    COUNT(mo.MO_OID) AS TOTAL
 	FROM
@@ -229,7 +230,7 @@ FROM
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	<where>
-	    xm.STATUS IN (107, 110, 108, 111, 112)
+	    ( xm.STATUS IN (107, 110, 108, 111, 112, 116) )
 		<if test="id != null">
 	    	AND mo.MC_OID = #{id}
 		</if>
@@ -261,6 +262,7 @@ FROM
 	    SUM(IF(xm.STATUS = 110, 1, 0)) AS outForRepair,
 	    SUM(IF(xm.STATUS = 108, 1, 0)) AS quarantine,
 	    SUM(IF(xm.STATUS = 111, 1, 0)) AS awaitingQaCa,
+	    SUM(IF(xm.STATUS = 116, 1, 0)) AS screening,
 	    SUM(IF(xm.STATUS = 112, 1, 0)) AS readyToShip,
 	    COUNT(msn.SERIAL_NUMBER) AS total
 	FROM
@@ -269,7 +271,7 @@ FROM
 	    JOIN BASIL_ODS_PRD.MASTER_SERIAL_NUMBER msn USING (MSN_OID)
 	    JOIN BASIL_ODS_PRD.MASTER_PART part USING (PART_OID)
 	<where>
-	    xm.STATUS IN (107, 110, 108, 111, 112)
+	    ( xm.STATUS IN (107, 110, 108, 111, 112, 116) )
 		<if test="id != null">
 	    	AND mo.MC_OID = #{id}
 		</if>
@@ -300,6 +302,7 @@ FROM
         IF(xm.STATUS = 110, 1, 0) AS outForRepair,
         IF(xm.STATUS = 108, 1, 0) AS quarantine,
         IF(xm.STATUS = 111, 1, 0) AS awaitingQaCa,
+        IF(xm.STATUS = 116, 1, 0) AS screening,
         IF(xm.STATUS = 112, 1, 0) AS readyToShip
         
     FROM
@@ -311,7 +314,7 @@ FROM
 		<if test="id != null">
 	    	mo.MC_OID = #{id}
 		</if>
-            AND xm.STATUS IN (107, 110, 108, 111, 112)
+            AND ( xm.STATUS IN (107, 110, 108, 111, 112, 116) )
     		AND part.PART_NUMBER_SHORT = #{partNumber}
             AND mo.MO_OID = #{rmaNumber}
 		<if test="serialNumber != null">
@@ -361,7 +364,7 @@ FROM
 		LEFT JOIN BASIL_ODS_PRD.MASTER_CUSTOMER mc USING (MC_OID)
 		LEFT JOIN BASIL_ODS_PRD.SUPPORT_ATTRIBUTE_VALUES sav ON sav.SAV_OID = xm.STATUS
 	<where>
-		xm.STATUS IN (107, 110, 108, 111, 112)
+		( xm.STATUS IN (107, 110, 108, 111, 112, 116) )
 		<if test="id != null">
 			AND mo.MC_OID = #{id}
 		</if>
@@ -383,6 +386,16 @@ FROM
 			</foreach>
 		</if>
 	</where>
-	ORDER BY FIELD(xm.STATUS, 107, 110, 108, 111, 112), part.PART_NUMBER_SHORT
+	ORDER BY
+		CASE
+			WHEN xm.STATUS = 107 THEN 1
+			WHEN xm.STATUS = 110 THEN 2
+			WHEN xm.STATUS = 108 THEN 3
+			WHEN xm.STATUS = 111 THEN 4
+			WHEN xm.STATUS = 116 THEN 5
+			WHEN xm.STATUS = 112 THEN 6
+			ELSE 7
+		END,
+		part.PART_NUMBER_SHORT
 </select>
 </mapper>
