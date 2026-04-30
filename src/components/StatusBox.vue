@@ -124,7 +124,7 @@ const expandCategory = function (categoryValue) {
   <div
     @click="expandCategory(data[category])"
     class="row q-py-xs category"
-    style="max-width: 1100px; margin: 0 auto"
+    style="max-width: 1280px; margin: 0 auto"
   >
     <div class="col-3 text-body1 text-weight-bold" style="padding-left: 10px">
       <span v-if="level === 1" class="text-subtitle2 text-grey-5">Model:</span>
@@ -155,8 +155,8 @@ const expandCategory = function (categoryValue) {
     </div>
     <div class="col-9">
       <div class="row text-body1 text-center">
-        <div v-if="level < 3" class="col-2">{{ data.inventory }}</div>
-        <div v-else class="col-2">
+        <div v-if="level < 3" class="col">{{ data.inventory }}</div>
+        <div v-else class="col">
           <q-icon
             v-if="data.inventory == 1"
             size="sm"
@@ -164,8 +164,8 @@ const expandCategory = function (categoryValue) {
             name="done"
           />
         </div>
-        <div v-if="level < 3" class="col-2">{{ data.outForRepair }}</div>
-        <div v-else class="col-2">
+        <div v-if="level < 3" class="col">{{ data.outForRepair }}</div>
+        <div v-else class="col">
           <q-icon
             v-if="data.outForRepair == 1"
             size="sm"
@@ -173,8 +173,8 @@ const expandCategory = function (categoryValue) {
             name="done"
           />
         </div>
-        <div v-if="level < 3" class="col-2">{{ data.quarantine }}</div>
-        <div v-else class="col-2">
+        <div v-if="level < 3" class="col">{{ data.quarantine }}</div>
+        <div v-else class="col">
           <q-icon
             v-if="data.quarantine == 1"
             size="sm"
@@ -182,8 +182,8 @@ const expandCategory = function (categoryValue) {
             name="pending"
           />
         </div>
-        <div v-if="level < 3" class="col-2">{{ data.awaitingQaCa }}</div>
-        <div v-else class="col-2">
+        <div v-if="level < 3" class="col">{{ data.awaitingQaCa }}</div>
+        <div v-else class="col">
           <q-icon
             v-if="data.awaitingQaCa == 1"
             size="sm"
@@ -191,8 +191,17 @@ const expandCategory = function (categoryValue) {
             name="done"
           />
         </div>
-        <div v-if="level < 3" class="col-2">{{ data.readyToShip }}</div>
-        <div v-else class="col-2">
+        <div v-if="level < 3" class="col">{{ data.screening }}</div>
+        <div v-else class="col">
+          <q-icon
+            v-if="data.screening == 1"
+            size="sm"
+            color="green-4"
+            name="done"
+          />
+        </div>
+        <div v-if="level < 3" class="col">{{ data.readyToShip }}</div>
+        <div v-else class="col">
           <q-icon
             v-if="data.readyToShip == 1"
             size="sm"
@@ -200,10 +209,10 @@ const expandCategory = function (categoryValue) {
             name="done"
           />
         </div>
-        <div v-if="level < 3" class="col-2 text-weight-bold">
+        <div v-if="level < 3" class="col text-weight-bold">
           {{ data.total }}
         </div>
-        <div v-else class="col-2">-</div>
+        <div v-else class="col">-</div>
       </div>
     </div>
   </div>
@@ -222,7 +231,7 @@ const expandCategory = function (categoryValue) {
   <template v-if="level === 3 && expanded && !loading">
     <div
       class="q-py-xs category text-subtitle2"
-      style="max-width: 1100px; margin: 0 auto; padding-left: 100px"
+      style="max-width: 1280px; margin: 0 auto; padding-left: 100px"
     >
       <div>
         <span class="text-red">Customer:</span>
@@ -247,7 +256,7 @@ const expandCategory = function (categoryValue) {
 <style lang="scss" scoped>
 .category {
   border-bottom: 1px solid $grey-3;
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
   cursor: pointer;
 }

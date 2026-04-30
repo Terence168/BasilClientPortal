@@ -372,6 +372,12 @@ export default {
 
     filterStatusFn(val, update, abort) {
       const currentOptions = this.options["status"];
+      const statusField = this.filterFields.find((field) => field.id === "status");
+      const allowedStatusValues = Array.isArray(statusField?.statusAllowedValues)
+        ? statusField.statusAllowedValues
+            .map((item) => String(item || "").trim().toUpperCase())
+            .filter((item) => item !== "")
+        : [];
 
       if (currentOptions.length === 0) {
         const link = "/ticketing/dropdown/status";
@@ -380,8 +386,18 @@ export default {
           .get(link)
           .then((response) => {
             update(() => {
-              const data = response.data.data;
-              this.options["status"] = data;
+              const data = Array.isArray(response?.data?.data) ? response.data.data : [];
+              if (allowedStatusValues.length === 0) {
+                this.options["status"] = data;
+                return;
+              }
+              this.options["status"] = data.filter((item) => {
+                const label = String(item?.label || "").trim().toUpperCase();
+                const value = String(item?.value || "").trim().toUpperCase();
+                return (
+                  allowedStatusValues.includes(label) || allowedStatusValues.includes(value)
+                );
+              });
             });
           })
           .catch(function (error) {

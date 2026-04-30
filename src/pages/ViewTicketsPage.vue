@@ -64,7 +64,12 @@ export default {
         { id: "ticketId", label: "Ticket ID" },
         { id: "department", label: "Department", type: "select" },
         { id: "responder", label: "Responder" },
-        { id: "status", label: "Status", type: "select" },
+        {
+          id: "status",
+          label: "Status",
+          type: "select",
+          statusAllowedValues: ["OPEN", "CLOSED"],
+        },
         { id: "type", label: "Type", type: "select" },
         {
           id: "createdDate",
@@ -147,11 +152,14 @@ export default {
         .get("/ticketing/viewTickets" + window.location.search)
         .then(function (response) {
           const rows = Array.isArray(response?.data?.data) ? response.data.data : [];
-          vm.tableData.rows = rows.map((row) => ({
+          const filteredRows = rows.filter(
+            (row) => String(row?.department || "").trim().toUpperCase() !== "LOGISTICS"
+          );
+          vm.tableData.rows = filteredRows.map((row) => ({
             ...row,
             actionRequired: Number(row?.acknowledged) === 2 ? "Customer" : "",
           }));
-          vm.total = response.data.total;
+          vm.total = vm.tableData.rows.length;
         })
         .catch(function (error) {
           // handle error

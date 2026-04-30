@@ -39,7 +39,7 @@
           v-if="partSummary && partSummary.length > 0"
           class="row"
           style="
-            max-width: 1100px;
+            max-width: 1280px;
             margin: 0 auto;
             position: sticky;
             top: 0;
@@ -49,7 +49,7 @@
           <div class="col-3"></div>
             <div class="col-9 title-bar">
               <div class="row shadow-2 text-body1 text-center q-py-xs">
-                <div class="col-2">
+                <div class="col">
                   <span>Received</span>
                   <q-tooltip
                     class="bg-primary text-body2 shadow-4"
@@ -60,7 +60,7 @@
                     repair queue awaiting repair.
                   </q-tooltip>
                 </div>
-                <div class="col-2">
+                <div class="col">
                   <span>Out for Repair</span>
                   <q-tooltip
                     class="bg-primary text-body2 shadow-4"
@@ -71,7 +71,7 @@
                     and complete the repair.
                   </q-tooltip>
                 </div>
-                <div class="col-2">
+                <div class="col">
                   <span>Quarantine</span>
                   <q-tooltip
                     class="bg-primary text-body2 shadow-4"
@@ -82,7 +82,7 @@
                     part(s) that are not in stock at this time.
                   </q-tooltip>
                 </div>
-                <div class="col-2">
+                <div class="col">
                   <span>Awaiting QA/CA</span>
                   <q-tooltip
                     class="bg-primary text-body2 shadow-4"
@@ -94,7 +94,17 @@
                     Authorization team before being approved for shipping.
                   </q-tooltip>
                 </div>
-                <div class="col-2">
+                <div class="col">
+                  <span>Screening</span>
+                  <q-tooltip
+                    class="bg-primary text-body2 shadow-4"
+                    max-width="500px"
+                    :offset="[10, 10]"
+                  >
+                    The terminal is in screening before moving to Ready to Ship.
+                  </q-tooltip>
+                </div>
+                <div class="col">
                   <span>Ready to Ship</span>
                   <q-tooltip
                     class="bg-primary text-body2 shadow-4"
@@ -105,7 +115,7 @@
                     shipping label and/or UPS to pick it up.
                   </q-tooltip>
                 </div>
-                <div class="col-2 text-weight-bold">Total</div>
+                <div class="col text-weight-bold">Total</div>
               </div>
             </div>
 
@@ -116,12 +126,13 @@
             </div>
             <div class="col-9 summary-bar" >
               <div class="row shadow-2 text-body1 text-center q-py-xs ">
-                <div class="col-2">{{ summary.inventory }}</div>
-                <div class="col-2">{{ summary.outForRepair }}</div>
-                <div class="col-2">{{ summary.quarantine }}</div>
-                <div class="col-2">{{ summary.awaitingQaCa }}</div>
-                <div class="col-2">{{ summary.readyToShip }}</div>
-                <div class="col-2 text-weight-bold">{{ summary.total }}</div>
+                <div class="col">{{ summary.inventory }}</div>
+                <div class="col">{{ summary.outForRepair }}</div>
+                <div class="col">{{ summary.quarantine }}</div>
+                <div class="col">{{ summary.awaitingQaCa }}</div>
+                <div class="col">{{ summary.screening }}</div>
+                <div class="col">{{ summary.readyToShip }}</div>
+                <div class="col text-weight-bold">{{ summary.total }}</div>
               </div>
             </div>
 
@@ -208,6 +219,7 @@ export default {
         quarantine: 0,
         outForRepair: 0,
         awaitingQaCa: 0,
+        screening: 0,
         readyToShip: 0,
         total: 0,
       };
@@ -218,6 +230,7 @@ export default {
           quarantine: sum.quarantine + el.quarantine,
           outForRepair: sum.outForRepair + el.outForRepair,
           awaitingQaCa: sum.awaitingQaCa + el.awaitingQaCa,
+          screening: sum.screening + el.screening,
           readyToShip: sum.readyToShip + el.readyToShip,
           total: sum.total + el.total,
         }),

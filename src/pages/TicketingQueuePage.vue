@@ -76,7 +76,12 @@ export default {
         { id: "ticketId", label: "Ticket ID" },
         { id: "department", label: "Department", type: "select" },
         { id: "responder", label: "Responder" },
-        { id: "status", label: "Status", type: "select" },
+        {
+          id: "status",
+          label: "Status",
+          type: "select",
+          statusAllowedValues: ["OPEN"],
+        },
         { id: "type", label: "Type", type: "select" },
         {
           id: "createdDate",
