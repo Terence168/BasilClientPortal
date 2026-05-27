@@ -115,6 +115,16 @@
               ></q-btn>
             </span>
 
+            <span v-if="column.id === 'ticketView'">
+              <q-btn
+                flat
+                round
+                color="grey-6"
+                icon="visibility"
+                @click="viewTicket(row.ticketId)"
+              ></q-btn>
+            </span>
+
             <span
               style="cursor: pointer"
               v-if="
@@ -306,6 +316,12 @@ export default {
 
     editTicket(id) {
       this.$router.push({ name: "edit-ticket", params: { ticketId: id } });
+    },
+    viewTicket(id) {
+      this.$router.push({
+        name: "view-ticket-detail",
+        params: { ticketId: id },
+      });
     },
     checkPermission(permission) {
       return useUserStore().checkPermission(permission);

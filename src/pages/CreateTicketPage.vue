@@ -158,7 +158,7 @@
                   <q-select
                     class="field-input-sm"
                     v-model="selectedKeyIndexes[index]"
-                    :options="kcvksiOpt"
+                    :options="getKeyOptionsForRow(index)"
                     label="Please select"
                     dense
                     clearable
@@ -754,6 +754,33 @@ export default {
         return;
       }
       this.selectedKeyIndexes.splice(index, 1);
+    },
+    // 当前行下拉：排除其它行已选的 Key，保留本行已选值以便展示
+    getKeyOptionsForRow(rowIndex) {
+      if (!Array.isArray(this.kcvksiOpt)) {
+        return [];
+      }
+      const currentValue = this.selectedKeyIndexes[rowIndex];
+      const selectedInOtherRows = new Set(
+        this.selectedKeyIndexes
+          .map((keyIndex, index) =>
+            index === rowIndex || keyIndex == null || keyIndex === ""
+              ? null
+              : Number(keyIndex)
+          )
+          .filter((keyIndex) => keyIndex != null && !Number.isNaN(keyIndex))
+      );
+      return this.kcvksiOpt.filter((option) => {
+        const optionValue = Number(option.value);
+        if (
+          currentValue != null &&
+          currentValue !== "" &&
+          optionValue === Number(currentValue)
+        ) {
+          return true;
+        }
+        return !selectedInOtherRows.has(optionValue);
+      });
     },
     collectSelectedKeyIndexes() {
       if (!this.isEncrypted || !this.requiresKeySelection) {

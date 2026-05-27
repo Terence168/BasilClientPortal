@@ -143,6 +143,15 @@ const routes = [
               permissions: ["rma.status"],
             },
           },
+          {
+            path: "detail/:ticketId",
+            name: "view-ticket-detail",
+            component: () => import("pages/ViewTicketDetailPage.vue"),
+            meta: {
+              requiresAuth: true,
+              permissions: ["rma.status"],
+            },
+          },
         ],
       },
 

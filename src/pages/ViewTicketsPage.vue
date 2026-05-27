@@ -102,6 +102,7 @@ export default {
           { id: "responder", label: "Responder", sortable: true },
           { id: "actionRequired", label: "Action Required", sortable: false },
           { id: "ticketEdit", label: "Edit", sortable: false },
+          { id: "ticketView", label: "View Details", sortable: false },
         ],
         rows: [],
       },
@@ -122,6 +123,7 @@ export default {
         },
         { id: "responder", label: "Responder", sortable: true },
         { id: "actionRequired", label: "Action Required", sortable: false },
+        { id: "ticketView", label: "View Details", sortable: false },
       ];
     }
   },

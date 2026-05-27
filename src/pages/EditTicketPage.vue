@@ -153,7 +153,7 @@
               <div class="col-12 col-md-6">
                 <q-select
                   v-model="selectedKeyIndexes[index]"
-                  :options="kcvksiOpt"
+                  :options="getKeyOptionsForRow(index)"
                   label="Please select"
                   dense
                   clearable
@@ -474,6 +474,21 @@ function normalizeKeyCategory(category) {
   return normalized;
 }
 
+// 库表 ZOHO_ENCRYPT 常为 Yes/No，与表单 radio 的 yes/no 对齐
+function normalizeEncryptFlag(encrypt) {
+  if (encrypt == null || String(encrypt).trim() === "") {
+    return null;
+  }
+  const normalized = String(encrypt).trim().toLowerCase();
+  if (normalized === "yes" || normalized === "y" || normalized === "1") {
+    return "yes";
+  }
+  if (normalized === "no" || normalized === "n" || normalized === "0") {
+    return "no";
+  }
+  return normalized;
+}
+
 export default {
   components: {
     MessageBoard,
@@ -529,6 +544,8 @@ export default {
       keyTypeOpt: null,
       keyType: null,
       selectedKeyIndexes: [null],
+      // 拉取工单数据后回填 Key，避免 watcher 清空已保存选项
+      isHydratingTicket: false,
 
       attachments: [],
       attachmentsLoading: false,
@@ -570,11 +587,7 @@ export default {
             const comments = values[1];
 
             if (ticketInfo != null) {
-              this.ticketInfo = ticketInfo;
-              // Do not preselect acknowledged when opening the page.
-              this.ticketInfo.acknowledged = null;
-              this.applyOrderDeptRule({ preserveSelection: true });
-              this.initializeSelectedKeyIndexes();
+              this.syncTicketKeyUiFromLoadedData(ticketInfo);
             }
             if (comments != null) {
               this.comments = comments;
@@ -757,6 +770,9 @@ export default {
   },
   watch: {
     orderDept(newVal, oldVal) {
+      if (this.isHydratingTicket) {
+        return;
+      }
       if (newVal !== oldVal) {
         this.applyOrderDeptRule();
       }
@@ -767,11 +783,17 @@ export default {
       }
     },
     "ticketInfo.encrypt"(newVal, oldVal) {
+      if (this.isHydratingTicket) {
+        return;
+      }
       if (newVal !== oldVal) {
         this.applyOrderDeptRule();
       }
     },
     keyType(newVal, oldVal) {
+      if (this.isHydratingTicket) {
+        return;
+      }
       if (newVal !== oldVal) {
         this.populateKcvksiOpt();
         this.resetKeyRows();
@@ -810,6 +832,44 @@ export default {
         return;
       }
       this.selectedKeyIndexes.splice(index, 1);
+    },
+    getKeyOptionsForRow(rowIndex) {
+      if (!Array.isArray(this.kcvksiOpt)) {
+        return [];
+      }
+      const currentValue = this.selectedKeyIndexes[rowIndex];
+      const selectedInOtherRows = new Set(
+        this.selectedKeyIndexes
+          .map((keyIndex, index) =>
+            index === rowIndex || keyIndex == null || keyIndex === ""
+              ? null
+              : Number(keyIndex)
+          )
+          .filter((keyIndex) => keyIndex != null && !Number.isNaN(keyIndex))
+      );
+      return this.kcvksiOpt.filter((option) => {
+        const optionValue = Number(option.value);
+        if (
+          currentValue != null &&
+          currentValue !== "" &&
+          optionValue === Number(currentValue)
+        ) {
+          return true;
+        }
+        return !selectedInOtherRows.has(optionValue);
+      });
+    },
+    syncTicketKeyUiFromLoadedData(ticketInfo) {
+      this.isHydratingTicket = true;
+      this.ticketInfo = ticketInfo;
+      this.ticketInfo.encrypt = normalizeEncryptFlag(this.ticketInfo.encrypt);
+      // 打开页面时不预选 acknowledged
+      this.ticketInfo.acknowledged = null;
+      this.applyOrderDeptRule({ preserveSelection: true });
+      this.initializeSelectedKeyIndexes();
+      this.$nextTick(() => {
+        this.isHydratingTicket = false;
+      });
     },
     collectSelectedKeyIndexes() {
       if (!this.isEncrypted || !this.requiresKeySelection) {
@@ -894,29 +954,27 @@ export default {
         .map((item) => Number(item))
         .filter((item) => !Number.isNaN(item) && item > 0);
 
-      if (
-        normalized.length > 0 &&
-        this.allowKeyCategoryChoice &&
-        Array.isArray(this.keys)
-      ) {
+      if (normalized.length > 0 && Array.isArray(this.keys)) {
         const firstKey = this.keys.find(
           (item) => Number(item?.label?.keyIndex) === normalized[0]
         );
         const category = normalizeKeyCategory(firstKey?.label?.keyCategory);
-        if (category) {
+        if (category && this.allowKeyCategoryChoice) {
           this.keyType = category;
-          this.populateKcvksiOpt();
         }
       }
 
       if (normalized.length > 0) {
-        this.selectedKeyIndexes = [...new Set(normalized)];
-      } else if (this.ticketInfo.keyIndex != null) {
+        this.selectedKeyIndexes = [...new Set(normalized)].map((item) => Number(item));
+      } else if (this.ticketInfo.keyIndex != null && String(this.ticketInfo.keyIndex).trim() !== "") {
         const fallback = Number(this.ticketInfo.keyIndex);
-        this.selectedKeyIndexes = !Number.isNaN(fallback) && fallback > 0 ? [fallback] : [null];
+        this.selectedKeyIndexes =
+          !Number.isNaN(fallback) && fallback > 0 ? [fallback] : [null];
       } else {
         this.resetKeyRows();
       }
+
+      this.populateKcvksiOpt();
     },
     handleEditTicket() {
       //valid serials and update it
@@ -1119,9 +1177,9 @@ export default {
       this.isLoading = true;
       Promise.all([this.fetchTicket(this.ticketId), this.fetchAttachments(this.ticketId)])
         .then(([ticket]) => {
-          this.ticketInfo = ticket;
-          this.applyOrderDeptRule({ preserveSelection: true });
-          this.initializeSelectedKeyIndexes();
+          if (ticket != null) {
+            this.syncTicketKeyUiFromLoadedData(ticket);
+          }
         })
         .finally(() => {
           this.isLoading = false;
@@ -1413,8 +1471,14 @@ export default {
           const payload = response?.data?.data;
           this.keys = Array.isArray(payload) ? payload : [];
           this.keyTypeOpt = this.buildCategoryOptions(this.keys);
-          this.applyOrderDeptRule({ preserveSelection: true });
-          this.initializeSelectedKeyIndexes();
+          if (this.ticketInfo?.moOID != null) {
+            this.isHydratingTicket = true;
+            this.applyOrderDeptRule({ preserveSelection: true });
+            this.initializeSelectedKeyIndexes();
+            this.$nextTick(() => {
+              this.isHydratingTicket = false;
+            });
+          }
           return this.keys;
         })
         .catch((error) => {
